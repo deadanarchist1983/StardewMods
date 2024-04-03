@@ -110,7 +110,7 @@ internal sealed class OpenHeldChest : BaseFeature<OpenHeldChest>
         container.Mutex?.RequestLock(
             () =>
             {
-                container.ShowMenu();
+                container.ShowMenu(true);
             });
     }
 

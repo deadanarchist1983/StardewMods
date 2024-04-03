@@ -46,9 +46,13 @@ internal class ChestContainer : BaseContainer<Chest>
     public override WeakReference<Chest> Source { get; }
 
     /// <inheritdoc />
-    public override void ShowMenu()
+    public override void ShowMenu(bool playSound = false)
     {
-        Game1.player.currentLocation.localSound("openChest");
+        if (playSound)
+        {
+            Game1.player.currentLocation.localSound("openChest");
+        }
+
         this.Chest.ShowMenu();
     }
 

@@ -52,9 +52,13 @@ internal class ObjectContainer : BaseContainer<SObject>
     public override WeakReference<SObject> Source { get; }
 
     /// <inheritdoc />
-    public override void ShowMenu()
+    public override void ShowMenu(bool playSound = false)
     {
-        Game1.player.currentLocation.localSound("openChest");
+        if (playSound)
+        {
+            Game1.player.currentLocation.localSound("openChest");
+        }
+
         this.chest.ShowMenu();
     }
 

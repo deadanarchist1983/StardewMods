@@ -40,7 +40,8 @@ public interface IStorageContainer
     public void ForEachItem(Func<Item, bool> action);
 
     /// <summary>Opens an item grab menu for this container.</summary>
-    public void ShowMenu();
+    /// <param name="playSound">Whether to play the container open sound.</param>
+    public void ShowMenu(bool playSound = false);
 
     /// <summary>Tries to remove an item from the container.</summary>
     /// <param name="item">The item to remove.</param>

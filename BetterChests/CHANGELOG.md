@@ -9,6 +9,7 @@
 ### Changed
 
 * Apply stashing rules more strictly to prevent unwanted stashing.
+* Suppress playing chest sound when returning to the chest from the config menu.
 
 ### Fixed
 

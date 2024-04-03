@@ -84,7 +84,7 @@ internal abstract class BaseContainer : IStorageContainer
     }
 
     /// <inheritdoc />
-    public virtual void ShowMenu() { }
+    public virtual void ShowMenu(bool playSound = false) { }
 
     /// <inheritdoc />
     public abstract bool TryAdd(Item item, out Item? remaining);

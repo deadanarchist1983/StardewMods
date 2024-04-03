@@ -60,7 +60,7 @@ internal class ChildContainer : IStorageContainer
     public void ForEachItem(Func<Item, bool> action) => this.child.ForEachItem(action);
 
     /// <inheritdoc />
-    public void ShowMenu() => this.child.ShowMenu();
+    public void ShowMenu(bool playSound = false) => this.child.ShowMenu(playSound);
 
     /// <inheritdoc />
     public bool TryAdd(Item item, out Item? remaining) => this.child.TryAdd(item, out remaining);
