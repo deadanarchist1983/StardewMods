@@ -116,6 +116,8 @@ internal sealed class AssetHandler : BaseService
                             continue;
                         }
 
+                        this.Log.Trace("Garbage Can found on map: {0}", parts[1]);
+
                         // Remove base tile
                         layer.Tiles[x, y] = null;
 
@@ -131,6 +133,6 @@ internal sealed class AssetHandler : BaseService
                     }
                 }
             },
-            AssetEditPriority.Late);
+            (AssetEditPriority)int.MaxValue);
     }
 }

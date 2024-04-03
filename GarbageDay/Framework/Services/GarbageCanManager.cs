@@ -199,7 +199,7 @@ internal sealed class GarbageCanManager : BaseService<GarbageCanManager>
                 garbageCan.EmptyTrash();
             }
 
-            garbageCan.AddLoot();
+            garbageCan.AddLoot(this.Log);
         }
     }
 
@@ -217,7 +217,7 @@ internal sealed class GarbageCanManager : BaseService<GarbageCanManager>
                 && chest.modData.TryGetValue(this.ModId + "/WhichCan", out var whichCan)
                 && this.garbageCans.TryGetValue(whichCan, out var garbageCan))
             {
-                garbageCan.AddLoot();
+                garbageCan.AddLoot(this.Log);
             }
         }
     }
@@ -266,6 +266,7 @@ internal sealed class GarbageCanManager : BaseService<GarbageCanManager>
 
         if (location is null)
         {
+            this.Log.Trace("Unable to find location for Garbage Can {0}", foundGarbageCan.WhichCan);
             garbageCan = null;
             return false;
         }
@@ -279,6 +280,12 @@ internal sealed class GarbageCanManager : BaseService<GarbageCanManager>
 
         // Attempt to place item
         var item = (SObject)ItemRegistry.Create(this.definitions.QualifiedItemId);
+        this.Log.Trace(
+            "Placing Garbage Can {0} at {1} ({2})",
+            foundGarbageCan.WhichCan,
+            location.Name,
+            foundGarbageCan.TilePosition);
+
         if (!item.placementAction(
                 location,
                 (int)foundGarbageCan.TilePosition.X * Game1.tileSize,
@@ -287,6 +294,7 @@ internal sealed class GarbageCanManager : BaseService<GarbageCanManager>
             || !location.Objects.TryGetValue(foundGarbageCan.TilePosition, out obj)
             || obj is not Chest chest)
         {
+            this.Log.Trace("Unable to place Garbage Can");
             garbageCan = null;
             return false;
         }

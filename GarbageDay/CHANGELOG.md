@@ -1,6 +1,12 @@
 # Garbage Day Change Log
 
-## 3.1.2 (Unreleased)
+## 3.1.3 (Unreleased)
+
+### Changed
+
+* Added logging for debugging purposes.
+
+## 3.1.2 (March 25, 2024)
 
 ### Fixed
 

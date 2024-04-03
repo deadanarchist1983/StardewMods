@@ -1,6 +1,7 @@
 namespace StardewMods.GarbageDay.Framework.Models;
 
 using Microsoft.Xna.Framework;
+using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewValley.Inventories;
 using StardewValley.Mods;
 using StardewValley.Objects;
@@ -34,7 +35,8 @@ internal sealed class GarbageCan
     private ModDataDictionary ModData => this.chest.modData;
 
     /// <summary>Adds an item to the garbage can determined by luck and mirroring vanilla chances.</summary>
-    public void AddLoot()
+    /// <param name="log">Dependency used for logging debug information to the console.</param>
+    public void AddLoot(ILog log)
     {
         // Reset daily state
         this.checkedToday = false;
@@ -46,6 +48,7 @@ internal sealed class GarbageCan
             return;
         }
 
+        log.Trace("Adding loot item to garbage can {0}.", whichCan);
         this.Location.TryGetGarbageItem(
             whichCan,
             Game1.player.DailyLuck,
@@ -55,11 +58,13 @@ internal sealed class GarbageCan
 
         if (selected is null)
         {
+            log.Trace("No loot item selected");
             return;
         }
 
         if (selected.ItemId == "(O)890")
         {
+            log.Trace("Special loot item selected {0}", item.Name);
             this.dropQiBeans = true;
             this.specialItem = item;
             return;
@@ -69,11 +74,13 @@ internal sealed class GarbageCan
         this.mega = !this.doubleMega && selected.IsMegaSuccess;
         if (selected.AddToInventoryDirectly)
         {
+            log.Trace("Special loot item selected {0}", item.Name);
             this.specialItem = item;
             return;
         }
 
         // Add item
+        log.Trace("Regular loot item selected {0}", item.Name);
         this.chest.addItem(item);
 
         // Update color
