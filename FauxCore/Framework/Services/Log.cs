@@ -54,12 +54,12 @@ internal sealed class Log : ILog
         }
 
         // Prevent consecutive duplicate messages
-        this.lastMessage = message;
         if (message == this.lastMessage)
         {
             return;
         }
 
+        this.lastMessage = message;
         switch (level)
         {
             case LogLevel.Trace when this.modConfig.Value.LogLevel == SimpleLogLevel.More:
@@ -82,7 +82,7 @@ internal sealed class Log : ILog
                 return;
         }
 
-        if (level == LogLevel.Alert)
+        if (level == LogLevel.Alert && this.modConfig.Value.LogLevel == SimpleLogLevel.More)
         {
             Game1.showRedMessage(message);
         }
