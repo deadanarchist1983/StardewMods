@@ -11,16 +11,19 @@ using StardewMods.Common.Services.Integrations.FauxCore;
 internal sealed class AssetHandler : BaseService
 {
     private readonly IDataHelper dataHelper;
+    private readonly IGameContentHelper gameContentHelper;
 
     /// <summary>Initializes a new instance of the <see cref="AssetHandler" /> class.</summary>
     /// <param name="dataHelper">Dependency used for storing and retrieving data.</param>
     /// <param name="eventSubscriber">Dependency used for subscribing to events.</param>
+    /// <param name="gameContentHelper">Dependency used for loading game assets.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="themeHelper">Dependency used for swapping palettes.</param>
     public AssetHandler(
         IDataHelper dataHelper,
         IEventSubscriber eventSubscriber,
+        IGameContentHelper gameContentHelper,
         ILog log,
         IManifest manifest,
         IThemeHelper themeHelper)
@@ -28,6 +31,7 @@ internal sealed class AssetHandler : BaseService
     {
         // Init
         this.dataHelper = dataHelper;
+        this.gameContentHelper = gameContentHelper;
         this.HslTexturePath = this.ModId + "/HueBar";
         this.IconTexturePath = this.ModId + "/Icons";
         this.TabTexturePath = this.ModId + "/Tabs/Texture";
@@ -39,16 +43,25 @@ internal sealed class AssetHandler : BaseService
     }
 
     /// <summary>Gets the game path to the hsl texture.</summary>
-    public string HslTexturePath { get; }
+    private string HslTexturePath { get; }
 
     /// <summary>Gets the game path to the icon texture.</summary>
     public string IconTexturePath { get; }
 
     /// <summary>Gets the game path to the tab texture.</summary>
-    public string TabTexturePath { get; }
+    private string TabTexturePath { get; }
 
     /// <summary>Gets the game path to tab data.</summary>
     public string TabDataPath { get; }
+
+    /// <summary>Returns a Texture2D object representing the HSL texture.</summary>
+    /// <returns>A Texture2D object.</returns>
+    public Texture2D GetHslTexture() => this.gameContentHelper.Load<Texture2D>(this.HslTexturePath);
+
+    /// <summary>Retrieves inventory tab data.</summary>
+    /// <returns>A dictionary with inventory tab names as keys and corresponding InventoryTabData objects as values.</returns>
+    public Dictionary<string, InventoryTabData> GetInventoryTabData() =>
+        this.gameContentHelper.Load<Dictionary<string, InventoryTabData>>(this.TabDataPath);
 
     private void OnAssetRequested(AssetRequestedEventArgs e)
     {

@@ -10,6 +10,7 @@ using StardewMods.BetterChests.Framework.Interfaces;
 using StardewMods.BetterChests.Framework.Models.Events;
 using StardewMods.BetterChests.Framework.Services.Factory;
 using StardewMods.Common.Interfaces;
+using StardewMods.Common.Models;
 using StardewMods.Common.Services;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewValley.Menus;
@@ -308,7 +309,7 @@ internal sealed class ItemGrabMenuManager : BaseService
         }
     }
 
-    [EventPriority((EventPriority)int.MaxValue)]
+    [Priority(int.MaxValue)]
     private void OnRenderingActiveMenu(RenderingActiveMenuEventArgs e)
     {
         if (this.CurrentMenu is null || Game1.options.showClearBackgrounds)
@@ -323,7 +324,7 @@ internal sealed class ItemGrabMenuManager : BaseService
             Color.Black * 0.25f);
     }
 
-    [EventPriority((EventPriority)int.MinValue)]
+    [Priority(int.MinValue)]
     private void OnRenderedActiveMenu(RenderedActiveMenuEventArgs e)
     {
         if (this.CurrentMenu is null)

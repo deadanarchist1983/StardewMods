@@ -92,19 +92,9 @@ internal sealed class ContainerHandler : BaseService
                 }
 
                 var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, force);
-                if (force)
-                {
-                    // Allow forced transfer
-                    itemTransferringEventArgs.AllowTransfer();
-                }
-
-                if (to.Options.CategorizeChestAutomatically == FeatureOption.Enabled
-                    && to.Items.ContainsId(item.ItemId))
-                {
-                    // Allow transfer if existing stacks are allowed and item is already in the chest
-                    itemTransferringEventArgs.AllowTransfer();
-                }
-                else
+                if (!force
+                    && !(to.Options.CategorizeChestAutomatically == FeatureOption.Enabled
+                        && to.Items.ContainsId(item.QualifiedItemId)))
                 {
                     this.eventPublisher.Publish(itemTransferringEventArgs);
                 }
@@ -169,13 +159,20 @@ internal sealed class ContainerHandler : BaseService
     /// <returns>True if the item can be added, otherwise False.</returns>
     private bool CanAddItem(IStorageContainer to, Item item, bool force = false)
     {
+        // Prevent if destination container is already at capacity
         if (to.Items.CountItemStacks() >= to.Capacity && !to.Items.ContainsId(item.QualifiedItemId))
         {
             return false;
         }
 
         var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, force);
-        this.eventPublisher.Publish(itemTransferringEventArgs);
+        if (!force
+            && !(to.Options.CategorizeChestAutomatically == FeatureOption.Enabled
+                && to.Items.ContainsId(item.QualifiedItemId)))
+        {
+            this.eventPublisher.Publish(itemTransferringEventArgs);
+        }
+
         return itemTransferringEventArgs.IsAllowed;
     }
 }

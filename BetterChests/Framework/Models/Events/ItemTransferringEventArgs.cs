@@ -16,8 +16,8 @@ internal sealed class ItemTransferringEventArgs(IStorageContainer into, Item ite
     public Item Item { get; } = item;
 
     /// <summary>Gets a value indicating whether the the transfer is prevented.</summary>
-    public bool IsAllowed { get; private set; }
+    public bool IsAllowed { get; private set; } = true;
 
     /// <summary>Prevent the transfer.</summary>
-    public void AllowTransfer() => this.IsAllowed = true;
+    public void PreventTransfer() => this.IsAllowed = false;
 }

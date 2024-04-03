@@ -1,4 +1,4 @@
-﻿namespace StardewMods.BetterChests.Framework.Services.Features;
+namespace StardewMods.BetterChests.Framework.Services.Features;
 
 using HarmonyLib;
 using Microsoft.Xna.Framework;
@@ -27,7 +27,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
 
     private readonly GenericModConfigMenuIntegration genericModConfigMenuIntegration;
 
-    //private readonly Func<CategorizeOption> getCategorizeOption;
+    private readonly Func<CategorizeOption> getCategorizeOption;
     private readonly Harmony harmony;
     private readonly IInputHelper inputHelper;
     private readonly PerScreen<bool> isActive = new();
@@ -55,8 +55,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         IEventManager eventManager,
         IGameContentHelper gameContentHelper,
         GenericModConfigMenuIntegration genericModConfigMenuIntegration,
-
-        //Func<CategorizeOption> getCategorizeOption,
+        Func<CategorizeOption> getCategorizeOption,
         Harmony harmony,
         IInputHelper inputHelper,
         ItemGrabMenuManager itemGrabMenuManager,
@@ -69,7 +68,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         this.containerFactory = containerFactory;
         this.genericModConfigMenuIntegration = genericModConfigMenuIntegration;
 
-        //this.getCategorizeOption = getCategorizeOption;
+        this.getCategorizeOption = getCategorizeOption;
         this.harmony = harmony;
         this.inputHelper = inputHelper;
         this.itemGrabMenuManager = itemGrabMenuManager;
@@ -238,7 +237,9 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
 
     private void OnMenuChanged(MenuChangedEventArgs e)
     {
-        if (this.lastContainer.Value is null || e.OldMenu?.GetType().Name != "SpecificModConfigMenu")
+        if (this.lastContainer.Value is null
+            || e.OldMenu?.GetType().Name != "SpecificModConfigMenu"
+            || e.NewMenu?.GetType().Name == "SpecificModConfigMenu")
         {
             return;
         }
@@ -306,21 +307,21 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
                 I18n.Config_StashToChestPriority_Tooltip);
         }
 
-        // gmcm.AddPageLink(this.manifest, "Main", I18n.Section_Main_Name, I18n.Section_Main_Description);
-        // gmcm.AddPageLink(
-        //     this.manifest,
-        //     "Categories",
-        //     I18n.Section_Categorize_Name,
-        //     I18n.Section_Categorize_Description);
+        gmcm.AddPageLink(this.manifest, "Main", I18n.Section_Main_Name, I18n.Section_Main_Description);
+        gmcm.AddPageLink(
+            this.manifest,
+            "Categories",
+            I18n.Section_Categorize_Name,
+            I18n.Section_Categorize_Description);
 
-        //gmcm.AddPage(this.manifest, "Main", I18n.Section_Main_Name);
+        gmcm.AddPage(this.manifest, "Main", I18n.Section_Main_Name);
         this.configManager.AddMainOption(options);
 
-        //gmcm.AddPage(this.manifest, "Categories", I18n.Section_Categorize_Name);
+        gmcm.AddPage(this.manifest, "Categories", I18n.Section_Categorize_Name);
 
-        // var categorizeOption = this.getCategorizeOption();
-        // categorizeOption.Init(options.CategorizeChestTags);
-        // this.genericModConfigMenuIntegration.AddComplexOption(categorizeOption);
+        var categorizeOption = this.getCategorizeOption();
+        categorizeOption.Init(options.CategorizeChestTags);
+        this.genericModConfigMenuIntegration.AddComplexOption(categorizeOption);
 
         gmcm.OpenModMenu(this.manifest);
         this.lastContainer.Value = container;

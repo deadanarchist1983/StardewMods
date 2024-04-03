@@ -1,7 +1,6 @@
 ﻿// namespace StardewMods.BetterChests.Framework.Services;
 //
 // using Microsoft.Xna.Framework;
-// using StardewMods.BetterChests.Framework.Enums;
 // using StardewMods.Common.Services.Integrations.Automate;
 // using StardewMods.Common.Services.Integrations.BetterCrafting;
 // using StardewMods.Common.Services.Integrations.GenericModConfigMenu;
@@ -294,4 +293,5 @@
 //         }
 //     }
 // }
+//
 

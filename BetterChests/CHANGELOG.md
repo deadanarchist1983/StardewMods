@@ -1,5 +1,16 @@
 ﻿# Better Chests Change Log
 
+## 2.9.4 (April 3, 2024)
+
+### Added
+
+* Added back categorize menu to remove categories.
+
+### Fixed
+
+* Locked items can now be toggled again, and they won't stash into inventories.
+* Only categorized items will be stashed.
+
 ## 2.9.3 (April 2, 2024)
 
 ### Added

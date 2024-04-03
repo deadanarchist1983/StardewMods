@@ -67,7 +67,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
         this.inputHelper = inputHelper;
         this.itemGrabMenuManager = itemGrabMenuManager;
 
-        var hslTexture = gameContentHelper.Load<Texture2D>(assetHandler.HslTexturePath);
+        var hslTexture = assetHandler.GetHslTexture();
         var colors = new Color[hslTexture.Width * hslTexture.Height];
         hslTexture.GetData(colors);
         var hslColors = colors.Select(HslColor.FromColor).Distinct().ToArray();

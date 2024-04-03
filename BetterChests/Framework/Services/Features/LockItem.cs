@@ -199,9 +199,9 @@ internal sealed class LockItem : BaseFeature<LockItem>
 
     private void OnItemTransferring(ItemTransferringEventArgs e)
     {
-        if (this.IsUnlocked(e.Item))
+        if (!this.IsUnlocked(e.Item))
         {
-            e.AllowTransfer();
+            e.PreventTransfer();
         }
     }
 
@@ -209,7 +209,7 @@ internal sealed class LockItem : BaseFeature<LockItem>
     {
         if (this.IsUnlocked(item))
         {
-            item.modData[this.UniqueId] = "Locked;";
+            item.modData[this.UniqueId] = "Locked";
         }
         else
         {
@@ -217,5 +217,6 @@ internal sealed class LockItem : BaseFeature<LockItem>
         }
     }
 
-    private bool IsUnlocked(Item item) => !item.modData.ContainsKey(this.UniqueId);
+    private bool IsUnlocked(Item item) =>
+        !item.modData.TryGetValue(this.UniqueId, out var locked) || locked != "Locked";
 }
