@@ -16,5 +16,5 @@ public interface IItemTransferring
     public bool IsAllowed { get; }
 
     /// <summary>Allow the transfer.</summary>
-    public void AllowTransfer();
+    public void PreventTransfer();
 }
