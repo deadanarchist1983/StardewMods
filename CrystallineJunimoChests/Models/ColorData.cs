@@ -3,7 +3,7 @@ namespace StardewMods.CrystallineJunimoChests.Models;
 using Microsoft.Xna.Framework;
 
 /// <summary>The data model for the color and items.</summary>
-internal sealed class ColorData(string name, string item, Color color)
+internal sealed class ColorData(string name, string item, string color)
 {
     /// <summary>Gets or sets the name of the color.</summary>
     public string Name { get; set; } = name;
@@ -12,5 +12,5 @@ internal sealed class ColorData(string name, string item, Color color)
     public string Item { get; set; } = item;
 
     /// <summary>Gets or sets the color.</summary>
-    public Color Color { get; set; } = color;
+    public string Color { get; set; } = color;
 }

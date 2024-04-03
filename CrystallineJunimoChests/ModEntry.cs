@@ -83,7 +83,7 @@ public sealed class ModEntry : Mod
                     data.Cost,
                     item.DisplayName,
                     chest.DisplayName,
-                    this.Helper.Translation.Get($"color.{data.Colors[selection].Name}")),
+                    this.Helper.Translation.Get($"color.{data.Colors[selection - 1].Name}")),
                 responses,
                 (who, whichAnswer) =>
                 {
@@ -94,7 +94,7 @@ public sealed class ModEntry : Mod
 
                     Game1.playSound(data.Sound);
                     who.Items.ReduceId(item.QualifiedItemId, data.Cost);
-                    chest.GlobalInventoryId = $"{this.ModManifest.UniqueID}-{data.Colors[selection].Name}";
+                    chest.GlobalInventoryId = $"{this.ModManifest.UniqueID}-{data.Colors[selection - 1].Name}";
                     chest.playerChoiceColor.Value = DiscreteColorPicker.getColorFromSelection(selection);
                     chest.Location.temporarySprites.Add(
                         new TemporaryAnimatedSprite(
@@ -114,6 +114,6 @@ public sealed class ModEntry : Mod
                 data.Cost,
                 item.DisplayName,
                 chest.DisplayName,
-                this.Helper.Translation.Get($"color.{data.Colors[selection].Name}")));
+                this.Helper.Translation.Get($"color.{data.Colors[selection - 1].Name}")));
     }
 }
