@@ -113,6 +113,30 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
         this.toolbarIconsIntegration.Api.Unsubscribe(this.OnIconPressed);
     }
 
+    private static bool DefaultPredicate(IStorageContainer container) =>
+        container is not FarmerContainer
+        && container.Options.CraftFromChest is not (RangeOption.Disabled or RangeOption.Default)
+        && container.Items.Count > 0
+        && !CraftFromChest.instance.Config.CraftFromChestDisableLocations.Contains(Game1.player.currentLocation.Name)
+        && !(CraftFromChest.instance.Config.CraftFromChestDisableLocations.Contains("UndergroundMine")
+            && Game1.player.currentLocation is MineShaft)
+        && container.Options.CraftFromChest.WithinRange(
+            container.Options.CraftFromChestDistance,
+            container.Location,
+            container.TileLocation);
+
+    private static bool WorkbenchPredicate(IStorageContainer container) =>
+        container is not FarmerContainer
+        && container.Options.CraftFromChest is not RangeOption.Disabled
+        && container.Items.Count > 0
+        && !CraftFromChest.instance.Config.CraftFromChestDisableLocations.Contains(Game1.player.currentLocation.Name)
+        && !(CraftFromChest.instance.Config.CraftFromChestDisableLocations.Contains("UndergroundMine")
+            && Game1.player.currentLocation is MineShaft)
+        && CraftFromChest.instance.Config.CraftFromWorkbench.WithinRange(
+            CraftFromChest.instance.Config.CraftFromWorkbenchDistance,
+            container.Location,
+            container.TileLocation);
+
     private static IEnumerable<CodeInstruction> GameMenu_constructor_transpiler(
         IEnumerable<CodeInstruction> instructions)
     {
@@ -142,22 +166,8 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
 
     private static List<IInventory>? GetMaterials()
     {
-        var containers = CraftFromChest.instance.containerFactory.GetAll(Predicate).ToList();
+        var containers = CraftFromChest.instance.containerFactory.GetAll(CraftFromChest.DefaultPredicate).ToList();
         return containers.Count > 0 ? containers.Select(container => container.Items).ToList() : null;
-
-        bool Predicate(IStorageContainer container) =>
-            container is not FarmerContainer
-            && container.Options.CraftFromChest is not (RangeOption.Disabled or RangeOption.Default)
-            && container.Items.Count > 0
-            && !CraftFromChest.instance.Config.CraftFromChestDisableLocations.Contains(
-                Game1.player.currentLocation.Name)
-            && !(CraftFromChest.instance.Config.CraftFromChestDisableLocations.Contains("UndergroundMine")
-                && Game1.player.currentLocation is MineShaft mineShaft
-                && mineShaft.Name.StartsWith("UndergroundMine", StringComparison.OrdinalIgnoreCase))
-            && container.Options.CraftFromChest.WithinRange(
-                container.Options.CraftFromChestDistance,
-                container.Location,
-                container.TileLocation);
     }
 
     private void OnButtonPressed(ButtonPressedEventArgs e)
@@ -176,7 +186,7 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
             return;
         }
 
-        this.OpenCraftingMenu(this.WorkbenchPredicate);
+        this.OpenCraftingMenu(CraftFromChest.WorkbenchPredicate);
     }
 
     private void OnButtonsChanged(ButtonsChangedEventArgs e)
@@ -187,14 +197,14 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
         }
 
         this.inputHelper.SuppressActiveKeybinds(this.Config.Controls.OpenCrafting);
-        this.OpenCraftingMenu(this.DefaultPredicate);
+        this.OpenCraftingMenu(CraftFromChest.DefaultPredicate);
     }
 
     private void OnIconPressed(IIconPressedEventArgs e)
     {
         if (e.Id == this.Id)
         {
-            this.OpenCraftingMenu(this.DefaultPredicate);
+            this.OpenCraftingMenu(CraftFromChest.DefaultPredicate);
         }
     }
 
@@ -225,29 +235,4 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
                 this.Log.Alert(I18n.Alert_CraftFromChest_NoEligible());
             });
     }
-
-    private bool DefaultPredicate(IStorageContainer container) =>
-        container.Options.CraftFromChest is not (RangeOption.Disabled or RangeOption.Default)
-        && container.Items.Count > 0
-        && !this.Config.CraftFromChestDisableLocations.Contains(Game1.player.currentLocation.Name)
-        && !(this.Config.CraftFromChestDisableLocations.Contains("UndergroundMine")
-            && Game1.player.currentLocation is MineShaft mineShaft
-            && mineShaft.Name.StartsWith("UndergroundMine", StringComparison.OrdinalIgnoreCase))
-        && container.Options.CraftFromChest.WithinRange(
-            container.Options.CraftFromChestDistance,
-            container.Location,
-            container.TileLocation);
-
-    private bool WorkbenchPredicate(IStorageContainer container) =>
-        container is not FarmerContainer
-        && container.Options.CraftFromChest is not RangeOption.Disabled
-        && container.Items.Count > 0
-        && !CraftFromChest.instance.Config.CraftFromChestDisableLocations.Contains(Game1.player.currentLocation.Name)
-        && !(CraftFromChest.instance.Config.CraftFromChestDisableLocations.Contains("UndergroundMine")
-            && Game1.player.currentLocation is MineShaft mineShaft
-            && mineShaft.Name.StartsWith("UndergroundMine", StringComparison.OrdinalIgnoreCase))
-        && CraftFromChest.instance.Config.CraftFromWorkbench.WithinRange(
-            CraftFromChest.instance.Config.CraftFromWorkbenchDistance,
-            container.Location,
-            container.TileLocation);
 }

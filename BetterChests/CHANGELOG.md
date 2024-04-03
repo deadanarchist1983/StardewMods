@@ -1,6 +1,20 @@
 ﻿# Better Chests Change Log
 
-## 2.9.2 (Unreleased)
+## 2.9.3 (Unreleased)
+
+### Added
+
+* Added ShopFromChest feature.
+
+### Changed
+
+* Apply stashing rules more strictly to prevent unwanted stashing.
+
+### Fixed
+
+* Full chests can be stashed into for existing items.
+
+## 2.9.2 (March 25, 2024)
 
 ### Changed
 

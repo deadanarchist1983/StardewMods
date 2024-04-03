@@ -12,9 +12,9 @@ public interface IItemTransferring
     /// <summary>Gets the item that was transferred.</summary>
     public Item Item { get; }
 
-    /// <summary>Gets a value indicating whether the the transfer is prevented.</summary>
-    public bool IsPrevented { get; }
+    /// <summary>Gets a value indicating whether the the transfer is allowed.</summary>
+    public bool IsAllowed { get; }
 
-    /// <summary>Prevent the transfer.</summary>
-    public void PreventTransfer();
+    /// <summary>Allow the transfer.</summary>
+    public void AllowTransfer();
 }

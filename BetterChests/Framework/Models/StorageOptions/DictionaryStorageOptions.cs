@@ -147,6 +147,13 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
+    public FeatureOption ShopFromChest
+    {
+        get => this.Get(OptionKey.ShopFromChest);
+        set => this.Set(OptionKey.ShopFromChest, value);
+    }
+
+    /// <inheritdoc />
     public RangeOption StashToChest
     {
         get => this.Get(RangeOptionKey.StashToChest);
@@ -388,6 +395,7 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
         OpenHeldChest,
         OrganizeItems,
         SearchItems,
+        ShopFromChest,
         TransferItems,
         UnloadChest,
     }

@@ -59,6 +59,9 @@ public interface IStorageOptions
     /// <summary>Gets or sets a value indicating if a search bar will be added to the chest menu.</summary>
     public FeatureOption SearchItems { get; set; }
 
+    /// <summary>Gets or sets a value indicating if the shops can use items from the chest.</summary>
+    public FeatureOption ShopFromChest { get; set; }
+
     /// <summary>Gets or sets a value indicating if the chest can be remotely stashed into.</summary>
     public RangeOption StashToChest { get; set; }
 

@@ -148,6 +148,13 @@ internal class ChildStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
+    public FeatureOption ShopFromChest
+    {
+        get => this.Get(storage => storage.ShopFromChest);
+        set => this.child.ShopFromChest = value;
+    }
+
+    /// <inheritdoc />
     public RangeOption StashToChest
     {
         get => this.Get(storage => storage.StashToChest);

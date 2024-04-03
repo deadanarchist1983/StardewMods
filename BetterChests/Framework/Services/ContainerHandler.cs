@@ -7,6 +7,7 @@ using StardewMods.BetterChests.Framework.Services.Factory;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Services;
 using StardewMods.Common.Services.Integrations.Automate;
+using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewValley.Objects;
@@ -85,14 +86,30 @@ internal sealed class ContainerHandler : BaseService
             item =>
             {
                 // Stop iterating if destination container is already at capacity
-                if (to.Items.CountItemStacks() >= to.Capacity)
+                if (to.Items.CountItemStacks() >= to.Capacity && !to.Items.ContainsId(item.QualifiedItemId))
                 {
                     return false;
                 }
 
                 var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, force);
-                this.eventPublisher.Publish(itemTransferringEventArgs);
-                if (itemTransferringEventArgs.IsPrevented)
+                if (force)
+                {
+                    // Allow forced transfer
+                    itemTransferringEventArgs.AllowTransfer();
+                }
+
+                if (to.Options.CategorizeChestAutomatically == FeatureOption.Enabled
+                    && to.Items.ContainsId(item.ItemId))
+                {
+                    // Allow transfer if existing stacks are allowed and item is already in the chest
+                    itemTransferringEventArgs.AllowTransfer();
+                }
+                else
+                {
+                    this.eventPublisher.Publish(itemTransferringEventArgs);
+                }
+
+                if (!itemTransferringEventArgs.IsAllowed)
                 {
                     return true;
                 }
@@ -152,13 +169,13 @@ internal sealed class ContainerHandler : BaseService
     /// <returns>True if the item can be added, otherwise False.</returns>
     private bool CanAddItem(IStorageContainer to, Item item, bool force = false)
     {
-        if (to.Items.CountItemStacks() >= to.Capacity)
+        if (to.Items.CountItemStacks() >= to.Capacity && !to.Items.ContainsId(item.QualifiedItemId))
         {
             return false;
         }
 
         var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, force);
         this.eventPublisher.Publish(itemTransferringEventArgs);
-        return !itemTransferringEventArgs.IsPrevented;
+        return itemTransferringEventArgs.IsAllowed;
     }
 }

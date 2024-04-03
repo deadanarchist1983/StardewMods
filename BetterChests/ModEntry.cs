@@ -89,6 +89,7 @@ public sealed class ModEntry : Mod
                 typeof(OpenHeldChest),
                 typeof(ResizeChest),
                 typeof(SearchItems),
+                typeof(ShopFromChest),
                 typeof(StashToChest),
             },
             Lifestyle.Singleton);

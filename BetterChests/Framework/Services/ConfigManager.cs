@@ -4,6 +4,7 @@ using StardewMods.BetterChests.Framework.Interfaces;
 using StardewMods.BetterChests.Framework.Models;
 using StardewMods.BetterChests.Framework.Models.StorageOptions;
 using StardewMods.Common.Interfaces;
+using StardewMods.Common.Models.Events;
 using StardewMods.Common.Services;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
@@ -19,25 +20,27 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
     private readonly IManifest manifest;
 
     /// <summary>Initializes a new instance of the <see cref="ConfigManager" /> class.</summary>
-    /// <param name="eventPublisher">Dependency used for publishing events.</param>
+    /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="genericModConfigMenuIntegration">Dependency for Generic Mod Config Menu integration.</param>
     /// <param name="localizedTextManager">Dependency used for formatting and translating text.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modHelper">Dependency for events, input, and content.</param>
     public ConfigManager(
-        IEventPublisher eventPublisher,
+        IEventManager eventManager,
         GenericModConfigMenuIntegration genericModConfigMenuIntegration,
         LocalizedTextManager localizedTextManager,
         ILog log,
         IManifest manifest,
         IModHelper modHelper)
-        : base(eventPublisher, modHelper)
+        : base(eventManager, modHelper)
     {
         this.genericModConfigMenuIntegration = genericModConfigMenuIntegration;
         this.localizedTextManager = localizedTextManager;
         this.log = log;
         this.manifest = manifest;
+
+        eventManager.Subscribe<ConfigChangedEventArgs<DefaultConfig>>(this.OnConfigChanged);
 
         if (this.genericModConfigMenuIntegration.IsLoaded)
         {
@@ -86,6 +89,9 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
 
     /// <inheritdoc />
     public HashSet<string> StashToChestDisableLocations => this.Config.StashToChestDisableLocations;
+
+    private void OnConfigChanged(ConfigChangedEventArgs<DefaultConfig> e) =>
+        this.log.Trace("Config changed: {0}", e.Config);
 
     /// <summary>Setup the main config options.</summary>
     public void SetupMainConfig()

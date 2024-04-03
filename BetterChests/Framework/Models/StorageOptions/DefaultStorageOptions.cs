@@ -64,6 +64,9 @@ internal class DefaultStorageOptions : IStorageOptions
     public FeatureOption SearchItems { get; set; } = FeatureOption.Enabled;
 
     /// <inheritdoc />
+    public FeatureOption ShopFromChest { get; set; } = FeatureOption.Enabled;
+
+    /// <inheritdoc />
     public RangeOption StashToChest { get; set; } = RangeOption.Location;
 
     /// <inheritdoc />

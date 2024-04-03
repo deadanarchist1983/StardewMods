@@ -205,7 +205,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
         if (!stashedAny)
         {
-            Game1.showRedMessage(I18n.Alert_StashToChest_NoEligible());
+            this.Log.Alert(I18n.Alert_StashToChest_NoEligible());
             return;
         }
 

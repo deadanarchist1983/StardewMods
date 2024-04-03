@@ -135,24 +135,17 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
 
     private void OnItemTransferring(ItemTransferringEventArgs e)
     {
-        // Allow forced transfer
-        if (e.Into.Options.CategorizeChest != FeatureOption.Enabled || e.IsForced)
+        // Only test if categorize is enabled
+        if (e.Into.Options.CategorizeChest != FeatureOption.Enabled)
         {
             return;
         }
 
-        // Allow transfer if existing stacks are allowed and item is already in the chest
-        if (e.Into.Options.CategorizeChestAutomatically == FeatureOption.Enabled
-            && e.Into.Items.ContainsId(e.Item.ItemId))
-        {
-            return;
-        }
-
-        // Disallow transfer if item does not match category
+        // Allow transfer if item does matches category
         var itemMatcher = this.GetOrCreateItemMatcher(e.Into);
-        if (itemMatcher.IsEmpty || !itemMatcher.MatchesFilter(e.Item))
+        if (!itemMatcher.IsEmpty && itemMatcher.MatchesFilter(e.Item))
         {
-            e.PreventTransfer();
+            e.AllowTransfer();
         }
     }
 

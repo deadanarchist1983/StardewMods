@@ -199,9 +199,9 @@ internal sealed class LockItem : BaseFeature<LockItem>
 
     private void OnItemTransferring(ItemTransferringEventArgs e)
     {
-        if (!this.IsUnlocked(e.Item))
+        if (this.IsUnlocked(e.Item))
         {
-            e.PreventTransfer();
+            e.AllowTransfer();
         }
     }
 
