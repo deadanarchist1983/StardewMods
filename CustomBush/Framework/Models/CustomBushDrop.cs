@@ -2,8 +2,8 @@ namespace StardewMods.CustomBush.Framework.Models;
 
 using StardewValley.GameData;
 
-/// <summary>Model used for drops from custom tea plants.</summary>
-internal sealed class DropsModel : GenericSpawnItemDataWithCondition
+/// <summary>Model used for drops from custom bushes.</summary>
+internal sealed class CustomBushDrop : GenericSpawnItemDataWithCondition
 {
     /// <summary>Gets or sets the specific season when the item can be produced.</summary>
     public Season? Season { get; set; }

@@ -11,6 +11,7 @@ using StardewMods.Common.Services;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewMods.CustomBush.Framework.Models;
 using StardewValley.Extensions;
+using StardewValley.GameData;
 using StardewValley.Internal;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
@@ -20,7 +21,7 @@ internal sealed class BushManager : BaseService
 {
     private static BushManager instance = null!;
     private readonly MethodInfo checkItemPlantRules;
-    private readonly Lazy<Dictionary<string, BushModel>> data;
+    private readonly Lazy<Dictionary<string, CustomBush>> data;
 
     private readonly IGameContentHelper gameContentHelper;
     private readonly string modDataId;
@@ -37,7 +38,7 @@ internal sealed class BushManager : BaseService
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     public BushManager(
         IGameContentHelper gameContentHelper,
-        Func<Dictionary<string, BushModel>> getBushModels,
+        Func<Dictionary<string, CustomBush>> getBushModels,
         Harmony harmony,
         ILog log,
         IManifest manifest)
@@ -50,7 +51,7 @@ internal sealed class BushManager : BaseService
         this.modDataStack = this.ModId + "/Stack";
         this.modDataTexture = this.ModId + "/Texture";
         this.gameContentHelper = gameContentHelper;
-        this.data = new Lazy<Dictionary<string, BushModel>>(getBushModels);
+        this.data = new Lazy<Dictionary<string, CustomBush>>(getBushModels);
         this.checkItemPlantRules =
             typeof(GameLocation).GetMethod("CheckItemPlantRules", BindingFlags.NonPublic | BindingFlags.Instance)
             ?? throw new MethodAccessException("Unable to access CheckItemPlantRules");
@@ -102,6 +103,49 @@ internal sealed class BushManager : BaseService
         harmony.Patch(
             AccessTools.DeclaredMethod(typeof(SObject), nameof(SObject.placementAction)),
             transpiler: new HarmonyMethod(typeof(BushManager), nameof(BushManager.Object_placementAction_transpiler)));
+    }
+
+    /// <summary>Determines if the given Bush instance is a custom bush.</summary>
+    /// <param name="bush">The bush instance to check.</param>
+    /// <returns>True if the bush is a custom bush, otherwise false.</returns>
+    public bool IsCustomBush(Bush bush) =>
+        bush.modData.TryGetValue(this.modDataId, out var id) && this.data.Value.ContainsKey(id);
+
+    /// <summary>Tries to get the custom bush model associated with the given bush.</summary>
+    /// <param name="bush">The bush.</param>
+    /// <param name="customBush">
+    /// When this method returns, contains the custom bush associated with the given bush, if found;
+    /// otherwise, it contains null.
+    /// </param>
+    /// <returns>true if the custom bush associated with the given bush is found; otherwise, false.</returns>
+    public bool TryGetCustomBush(Bush bush, out CustomBush? customBush)
+    {
+        customBush = null;
+        return bush.modData.TryGetValue(this.modDataId, out var id) && this.data.Value.TryGetValue(id, out customBush);
+    }
+
+    /// <summary>Tries to get the drops from a bush.</summary>
+    /// <param name="bush">The bush to get the drops from.</param>
+    /// <param name="drops">
+    /// When this method returns, contains the drops from the bush, or null if there are no drops
+    /// available. This parameter is passed uninitialized.
+    /// </param>
+    /// <returns>true if the drops were successfully retrieved; otherwise, false.</returns>
+    public bool TryGetDrops(
+        Bush bush,
+        out IEnumerable<(GenericSpawnItemDataWithCondition, Season? Season, float Chance)>? drops)
+    {
+        drops = [];
+        if (!bush.modData.TryGetValue(this.modDataId, out var id)
+            || !this.data.Value.TryGetValue(id, out var customBush))
+        {
+            return false;
+        }
+
+        drops = customBush.ItemsProduced.Select(
+            drop => (drop as GenericSpawnItemDataWithCondition, drop.Season, drop.Chance));
+
+        return true;
     }
 
     [SuppressMessage("ReSharper", "SuggestBaseTypeForParameter", Justification = "Harmony")]
@@ -543,9 +587,9 @@ internal sealed class BushManager : BaseService
         }
     }
 
-    private bool TryToProduceRandomItem(Bush bush, BushModel bushModel, [NotNullWhen(true)] out Item? item)
+    private bool TryToProduceRandomItem(Bush bush, CustomBush customBush, [NotNullWhen(true)] out Item? item)
     {
-        foreach (var drop in bushModel.ItemsProduced)
+        foreach (var drop in customBush.ItemsProduced)
         {
             item = this.TryToProduceItem(bush, drop);
             if (item is null)
@@ -561,7 +605,7 @@ internal sealed class BushManager : BaseService
     }
 
     [SuppressMessage("ReSharper", "SuggestBaseTypeForParameter", Justification = "Harmony")]
-    private Item? TryToProduceItem(Bush bush, DropsModel drop)
+    private Item? TryToProduceItem(Bush bush, CustomBushDrop drop)
     {
         if (!Game1.random.NextBool(drop.Chance))
         {

@@ -2,6 +2,10 @@
 
 ## 1.0.3 (Unreleased)
 
+### Added
+
+* Added api for accessing custom bush data.
+
 ### Changed
 
 * Added current texture path to mod data.
