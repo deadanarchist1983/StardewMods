@@ -14,6 +14,7 @@
 ### Fixed
 
 * Full chests can be stashed into for existing items.
+* If location does not have CustomFields, use empty dictionary instead.
 
 ## 2.9.2 (March 25, 2024)
 
