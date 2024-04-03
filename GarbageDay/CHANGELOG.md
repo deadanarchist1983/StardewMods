@@ -1,5 +1,11 @@
 # Garbage Day Change Log
 
+## 3.1.4 (April 3, 2024)
+
+### Fixed
+
+* Garbage cans can now be loaded by default when the config option is set.
+
 ## 3.1.3 (April 2, 2024)
 
 ### Changed
