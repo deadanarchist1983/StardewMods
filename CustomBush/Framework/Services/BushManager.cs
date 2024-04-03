@@ -27,6 +27,7 @@ internal sealed class BushManager : BaseService
     private readonly string modDataItem;
     private readonly string modDataQuality;
     private readonly string modDataStack;
+    private readonly string modDataTexture;
 
     /// <summary>Initializes a new instance of the <see cref="BushManager" /> class.</summary>
     /// <param name="gameContentHelper">Dependency used for loading game assets.</param>
@@ -47,6 +48,7 @@ internal sealed class BushManager : BaseService
         this.modDataItem = this.ModId + "/ShakeOff";
         this.modDataQuality = this.ModId + "/Quality";
         this.modDataStack = this.ModId + "/Stack";
+        this.modDataTexture = this.ModId + "/Texture";
         this.gameContentHelper = gameContentHelper;
         this.data = new Lazy<Dictionary<string, BushModel>>(getBushModels);
         this.checkItemPlantRules =
@@ -319,10 +321,17 @@ internal sealed class BushManager : BaseService
             return;
         }
 
+        __instance.modData[BushManager.instance.modDataTexture] = !__instance.IsSheltered()
+            ? bushModel.Texture
+            : !string.IsNullOrWhiteSpace(bushModel.IndoorTexture)
+                ? bushModel.IndoorTexture
+                : bushModel.Texture;
+
         var age = __instance.getAge();
         var growthPercent = (float)age / bushModel.AgeToProduce;
         var x = (Math.Min(2, (int)(2 * growthPercent)) + __instance.tileSheetOffset.Value) * 16;
         var y = bushModel.TextureSpriteRow * 16;
+
         ___sourceRect.Value = new Rectangle(x, y, 16, 32);
     }
 

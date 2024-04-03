@@ -1,6 +1,12 @@
 # Custom Bush Change Log
 
-## 1.0.2 (Unreleased)
+## 1.0.3 (Unreleased)
+
+### Changed
+
+* Added current texture path to mod data.
+
+## 1.0.2 (March 25, 2024)
 
 ### Fixed
 
