@@ -1,7 +1,5 @@
 namespace StardewMods.CrystallineJunimoChests.Models;
 
-using Microsoft.Xna.Framework;
-
 /// <summary>The data model for the color and items.</summary>
 internal sealed class ColorData(string name, string item, string color)
 {

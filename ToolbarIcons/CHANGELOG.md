@@ -134,6 +134,6 @@
 
 * Bumped version number to avoid conflict on Toolbar Icons mod page.
 
-## 1.0.0 (Unreleased)
+## 1.0.0 (July 1, 2022)
 
 * Initial Version

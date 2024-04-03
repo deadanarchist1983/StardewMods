@@ -1,6 +1,6 @@
 # Garbage Day Change Log
 
-## 3.1.3 (Unreleased)
+## 3.1.3 (April 2, 2024)
 
 ### Changed
 
