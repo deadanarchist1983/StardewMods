@@ -10,8 +10,6 @@ using StardewValley.Objects;
 /// <inheritdoc />
 internal class ObjectContainer : BaseContainer<SObject>
 {
-    private readonly Chest chest;
-
     /// <summary>Initializes a new instance of the <see cref="ObjectContainer" /> class.</summary>
     /// <param name="baseOptions">The type of storage object.</param>
     /// <param name="obj">The storage object.</param>
@@ -20,7 +18,7 @@ internal class ObjectContainer : BaseContainer<SObject>
         : base(baseOptions)
     {
         this.Source = new WeakReference<SObject>(obj);
-        this.chest = chest;
+        this.Chest = chest;
     }
 
     /// <summary>Gets the source object of the container.</summary>
@@ -28,10 +26,13 @@ internal class ObjectContainer : BaseContainer<SObject>
         this.Source.TryGetTarget(out var target) ? target : throw new ObjectDisposedException(nameof(ObjectContainer));
 
     /// <inheritdoc />
-    public override int Capacity => this.chest.GetActualCapacity();
+    public override int Capacity => this.Chest.GetActualCapacity();
+
+    /// <summary>Gets the source chest of the container.</summary>
+    public Chest Chest { get; }
 
     /// <inheritdoc />
-    public override IInventory Items => this.chest.GetItemsForPlayer();
+    public override IInventory Items => this.Chest.GetItemsForPlayer();
 
     /// <inheritdoc />
     public override GameLocation Location => this.Object.Location;
@@ -43,7 +44,7 @@ internal class ObjectContainer : BaseContainer<SObject>
     public override ModDataDictionary ModData => this.Object.modData;
 
     /// <inheritdoc />
-    public override NetMutex Mutex => this.chest.GetMutex();
+    public override NetMutex Mutex => this.Chest.GetMutex();
 
     /// <inheritdoc />
     public override bool IsAlive => this.Source.TryGetTarget(out _);
@@ -59,14 +60,14 @@ internal class ObjectContainer : BaseContainer<SObject>
             Game1.player.currentLocation.localSound("openChest");
         }
 
-        this.chest.ShowMenu();
+        this.Chest.ShowMenu();
     }
 
     /// <inheritdoc />
     public override bool TryAdd(Item item, out Item? remaining)
     {
         var stack = item.Stack;
-        remaining = this.chest.addItem(item);
+        remaining = this.Chest.addItem(item);
         return remaining is null || remaining.Stack != stack;
     }
 
