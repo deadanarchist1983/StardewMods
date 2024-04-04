@@ -17,6 +17,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IEventManager.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IEventPublisher.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IEventSubscriber.cs"/>
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IModIntegration.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Models\SavedPatch.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Models\PriorityAttribute.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Models\Events\ConfigChangedEventArgs.cs"/>

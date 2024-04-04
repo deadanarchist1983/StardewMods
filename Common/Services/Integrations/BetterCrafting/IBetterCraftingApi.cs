@@ -1,5 +1,4 @@
 namespace StardewMods.Common.Services.Integrations.BetterCrafting;
-
 #nullable enable
 
 using System;
@@ -12,6 +11,7 @@ using StardewValley;
 using StardewValley.Objects;
 using StardewValley.Menus;
 using StardewValley.Inventories;
+using StardewValley.Network;
 
 
 #if IS_BETTER_CRAFTING
@@ -917,6 +917,24 @@ public interface IBetterCraftingMenu {
 	IClickableMenu Menu { get; }
 
 	/// <summary>
+	/// Whether or not this menu is going to perform container discovery.
+	/// </summary>
+	bool DiscoverContainers { get; }
+
+	/// <summary>
+	/// Whether or not this menu is going to scan buildings as part of
+	/// container discovery.
+	/// </summary>
+	bool DiscoverBuildings { get; }
+
+	/// <summary>
+	/// Whether or not this crafting menu is ready, meaning that it has
+	/// finished initializing. Note that it can still be busy crafting, so
+	/// you may need to check <see cref="Working"/> as well.
+	/// </summary>
+	bool IsReady { get; }
+
+	/// <summary>
 	/// Whether or not this crafting menu is for cooking. If this is
 	/// false, then the menu is for crafting recipes.
 	/// </summary>
@@ -947,6 +965,27 @@ public interface IBetterCraftingMenu {
 	/// relevant recipe.
 	/// </summary>
 	IRecipe? ActiveRecipe { get; }
+
+	/// <summary>
+	/// The location this menu was opened from, if it has an associated
+	/// location. This may be null if the menu was not opened by
+	/// interacting with something in the world, like a Workbench.
+	/// </summary>
+	GameLocation? Location { get; }
+
+	/// <summary>
+	/// The position this menu was opened from, if it has an associated
+	/// position. This may be null if the menu was not opened by
+	/// interacting with something in the world, like a kitchen.
+	/// </summary>
+	Vector2? Position { get; }
+
+	/// <summary>
+	/// The multi-tile area this menu was opened from, if it has an
+	/// associated area. This is not set when working with single
+	/// tile objects like a Workbench.
+	/// </summary>
+	Rectangle? Area { get; }
 
 	/// <summary>
 	/// Calling this method will toggle edit mode, as though the user
@@ -982,7 +1021,18 @@ public interface IPopulateContainersEvent {
 	/// The relevant Better Crafting menu.
 	/// </summary>
 	IBetterCraftingMenu Menu { get; }
+
+	/// <summary>
+	/// A list of all the containers this menu should draw items from.
+	/// </summary>
 	IList<Tuple<object, GameLocation?>> Containers { get; }
+
+	/// <summary>
+	/// Set this to true to prevent Better Crafting from running its
+	/// own container discovery logic, if you so desire.
+	/// </summary>
+	bool DisableDiscovery { get; set; }
+
 }
 
 public interface IBetterCrafting {
@@ -1016,6 +1066,7 @@ public interface IBetterCrafting {
 	/// <param name="discover_containers">If true, attempt to discover additional material containers.</param>
 	/// <param name="containers">An optional list of containers to draw extra crafting materials from.</param>
 	/// <param name="listed_recipes">An optional list of recipes by name. If provided, only these recipes will be listed in the crafting menu.</param>
+	/// <param name="discover_buildings">If true, attempt to discover additional containers inside of adjacent buildings.</param>
 	/// <returns>Whether or not the menu was opened successfully</returns>
 	bool OpenCraftingMenu(
 		bool cooking,
@@ -1025,7 +1076,8 @@ public interface IBetterCrafting {
 		Rectangle? area = null,
 		bool discover_containers = true,
 		IList<Tuple<object, GameLocation?>>? containers = null,
-		IList<string>? listed_recipes = null
+		IList<string>? listed_recipes = null,
+		bool discover_buildings = false
 	);
 
 	/// <summary>
