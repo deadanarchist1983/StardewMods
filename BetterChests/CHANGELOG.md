@@ -1,10 +1,14 @@
 ﻿# Better Chests Change Log
 
-## 2.9.4 (April 3, 2024)
+## 2.9.4 (April 4, 2024)
 
 ### Added
 
 * Added back categorize menu to remove categories.
+
+### Changed
+
+* Crafting from chests now requires Better Crafting.
 
 ### Fixed
 
@@ -38,7 +42,7 @@
 * Crafting now works for chests outside of the current location.
 * Stashing is now able to find eligible chests.
 * Backpack items are no longer double counted towards crafting materials.
-* Prevent chest being lost when added to a carried chest. 
+* Prevent chest being lost when added to a carried chest.
 * Chest menu background is no longer black.
 * Cursor should be drawn above the color picker.
 * Chest color is no longer lost when clicking in the chest menu.

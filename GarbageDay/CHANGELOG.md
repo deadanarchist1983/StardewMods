@@ -1,6 +1,6 @@
 # Garbage Day Change Log
 
-## 3.1.4 (April 3, 2024)
+## 3.1.4 (April 4, 2024)
 
 ### Fixed
 

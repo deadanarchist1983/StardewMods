@@ -21,6 +21,7 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
 
     private readonly AssetHandler assetHandler;
     private readonly BetterCraftingIntegration betterCraftingIntegration;
+    private readonly BetterCraftingInventoryProvider betterCraftingInventoryProvider;
     private readonly ContainerFactory containerFactory;
     private readonly IInputHelper inputHelper;
     private readonly ToolbarIconsIntegration toolbarIconsIntegration;
@@ -28,6 +29,7 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
     /// <summary>Initializes a new instance of the <see cref="CraftFromChest" /> class.</summary>
     /// <param name="assetHandler">Dependency used for handling assets.</param>
     /// <param name="betterCraftingIntegration">Dependency for Better Crafting integration.</param>
+    /// <param name="betterCraftingInventoryProvider">Dependency used for providing inventories to Better Crafting.</param>
     /// <param name="containerFactory">Dependency used for accessing containers.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
@@ -38,6 +40,7 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
     public CraftFromChest(
         AssetHandler assetHandler,
         BetterCraftingIntegration betterCraftingIntegration,
+        BetterCraftingInventoryProvider betterCraftingInventoryProvider,
         ContainerFactory containerFactory,
         IEventManager eventManager,
         IInputHelper inputHelper,
@@ -50,9 +53,15 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
         CraftFromChest.instance = this;
         this.assetHandler = assetHandler;
         this.betterCraftingIntegration = betterCraftingIntegration;
+        this.betterCraftingInventoryProvider = betterCraftingInventoryProvider;
         this.containerFactory = containerFactory;
         this.inputHelper = inputHelper;
         this.toolbarIconsIntegration = toolbarIconsIntegration;
+
+        if (!this.betterCraftingIntegration.IsLoaded)
+        {
+            this.Log.Warn("Better Crafting is not loaded. CraftFromChest will not be active.");
+        }
     }
 
     /// <inheritdoc />
@@ -69,6 +78,30 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
         // Integrations
         if (this.betterCraftingIntegration.IsLoaded)
         {
+            this.betterCraftingIntegration.Api.RegisterInventoryProvider(
+                typeof(BuildingContainer),
+                this.betterCraftingInventoryProvider);
+
+            this.betterCraftingIntegration.Api.RegisterInventoryProvider(
+                typeof(ChestContainer),
+                this.betterCraftingInventoryProvider);
+
+            this.betterCraftingIntegration.Api.RegisterInventoryProvider(
+                typeof(ChildContainer),
+                this.betterCraftingInventoryProvider);
+
+            this.betterCraftingIntegration.Api.RegisterInventoryProvider(
+                typeof(FarmerContainer),
+                this.betterCraftingInventoryProvider);
+
+            this.betterCraftingIntegration.Api.RegisterInventoryProvider(
+                typeof(FridgeContainer),
+                this.betterCraftingInventoryProvider);
+
+            this.betterCraftingIntegration.Api.RegisterInventoryProvider(
+                typeof(ObjectContainer),
+                this.betterCraftingInventoryProvider);
+
             this.betterCraftingIntegration.Api.MenuPopulateContainers += this.OnMenuPopulateContainers;
         }
 
@@ -94,6 +127,12 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
         // Integrations
         if (this.betterCraftingIntegration.IsLoaded)
         {
+            this.betterCraftingIntegration.Api.UnregisterInventoryProvider(typeof(BuildingContainer));
+            this.betterCraftingIntegration.Api.UnregisterInventoryProvider(typeof(ChestContainer));
+            this.betterCraftingIntegration.Api.UnregisterInventoryProvider(typeof(ChildContainer));
+            this.betterCraftingIntegration.Api.UnregisterInventoryProvider(typeof(FarmerContainer));
+            this.betterCraftingIntegration.Api.UnregisterInventoryProvider(typeof(FridgeContainer));
+            this.betterCraftingIntegration.Api.UnregisterInventoryProvider(typeof(ObjectContainer));
             this.betterCraftingIntegration.Api.MenuPopulateContainers -= this.OnMenuPopulateContainers;
         }
 
@@ -159,7 +198,7 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
             false,
             true,
             Game1.player.currentLocation,
-            Game1.player.Position,
+            Game1.player.Tile,
             null,
             false);
     }
@@ -172,7 +211,7 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
                 false,
                 true,
                 Game1.player.currentLocation,
-                Game1.player.Position,
+                Game1.player.Tile,
                 null,
                 false);
         }
@@ -181,8 +220,8 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
     private void OnMenuPopulateContainers(IPopulateContainersEvent e)
     {
         e.DisableDiscovery = true;
-        var location = e.Menu.Location ?? Game1.currentLocation;
-        var position = e.Menu.Position ?? Game1.player.Position;
+        var location = e.Menu.Location ?? Game1.player.currentLocation;
+        var position = e.Menu.Position ?? Game1.player.Tile;
 
         Func<IStorageContainer, bool> predicate =
             location.Objects.TryGetValue(position, out var obj) && obj is not Workbench
@@ -192,23 +231,7 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
         var containers = this.containerFactory.GetAll(predicate).ToList();
         foreach (var container in containers)
         {
-            switch (container)
-            {
-                case ChestContainer chestContainer:
-                    e.Containers.Add(new Tuple<object, GameLocation?>(chestContainer.Chest, chestContainer.Location));
-                    break;
-                case ChildContainer
-                {
-                    Parent:
-                    { } parent,
-                    Child: ChestContainer child,
-                }:
-                    e.Containers.Add(new Tuple<object, GameLocation?>(child.Chest, parent.Location));
-                    break;
-                case ObjectContainer objectContainer:
-                    e.Containers.Add(new Tuple<object, GameLocation?>(objectContainer.Chest, objectContainer.Location));
-                    break;
-            }
+            e.Containers.Add(new Tuple<object, GameLocation?>(container, container.Location));
         }
     }
 }

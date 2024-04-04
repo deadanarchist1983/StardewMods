@@ -69,6 +69,30 @@ internal sealed class ContainerHandler : BaseService
         }
     }
 
+    /// <summary>Checks if an item is allowed to be added to a container.</summary>
+    /// <param name="to">The container to add the item to.</param>
+    /// <param name="item">The item to add.</param>
+    /// <param name="force">Indicates whether it should be a forced attempt.</param>
+    /// <returns>True if the item can be added, otherwise False.</returns>
+    public bool CanAddItem(IStorageContainer to, Item item, bool force = false)
+    {
+        // Prevent if destination container is already at capacity
+        if (to.Items.CountItemStacks() >= to.Capacity && !to.Items.ContainsId(item.QualifiedItemId))
+        {
+            return false;
+        }
+
+        var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, force);
+        if (!force
+            && !(to.Options.CategorizeChestAutomatically == FeatureOption.Enabled
+                && to.Items.ContainsId(item.QualifiedItemId)))
+        {
+            this.eventPublisher.Publish(itemTransferringEventArgs);
+        }
+
+        return itemTransferringEventArgs.IsAllowed;
+    }
+
     /// <summary>Transfers items from one container to another.</summary>
     /// <param name="from">The container to transfer items from.</param>
     /// <param name="to">The container to transfer items to.</param>
@@ -150,29 +174,5 @@ internal sealed class ContainerHandler : BaseService
 
         __result = item;
         return false;
-    }
-
-    /// <summary>Checks if an item is allowed to be added to a container.</summary>
-    /// <param name="to">The container to add the item to.</param>
-    /// <param name="item">The item to add.</param>
-    /// <param name="force">Indicates whether it should be a forced attempt.</param>
-    /// <returns>True if the item can be added, otherwise False.</returns>
-    private bool CanAddItem(IStorageContainer to, Item item, bool force = false)
-    {
-        // Prevent if destination container is already at capacity
-        if (to.Items.CountItemStacks() >= to.Capacity && !to.Items.ContainsId(item.QualifiedItemId))
-        {
-            return false;
-        }
-
-        var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, force);
-        if (!force
-            && !(to.Options.CategorizeChestAutomatically == FeatureOption.Enabled
-                && to.Items.ContainsId(item.QualifiedItemId)))
-        {
-            this.eventPublisher.Publish(itemTransferringEventArgs);
-        }
-
-        return itemTransferringEventArgs.IsAllowed;
     }
 }

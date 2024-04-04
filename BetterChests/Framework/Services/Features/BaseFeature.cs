@@ -51,10 +51,12 @@ internal abstract class BaseFeature<TFeature> : BaseService<TFeature>, IFeature
         this.isActivated = this.ShouldBeActive;
         if (this.isActivated)
         {
+            this.Log.Trace("Activating feature {0}", this.Id);
             this.Activate();
             return;
         }
 
+        this.Log.Trace("Deactivating feature {0}", this.Id);
         this.Deactivate();
     }
 }
