@@ -1,6 +1,6 @@
 ﻿# Better Chests Change Log
 
-## 2.9.4 (April 4, 2024)
+## 2.10.0 (April 4, 2024)
 
 ### Added
 
