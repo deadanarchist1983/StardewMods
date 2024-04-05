@@ -4,15 +4,14 @@ using StardewModdingAPI.Events;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Services;
 using StardewMods.Common.Services.Integrations.ContentPatcher;
-using StardewMods.Common.Services.Integrations.CustomBush;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewMods.CustomBush.Framework.Models;
 
 /// <summary>Responsible for handling assets provided by this mod.</summary>
 internal sealed class AssetHandler : BaseService
 {
-    private readonly IGameContentHelper gameContentHelper;
     private readonly string dataPath;
+    private readonly IGameContentHelper gameContentHelper;
 
     private Dictionary<string, CustomBush>? data;
 

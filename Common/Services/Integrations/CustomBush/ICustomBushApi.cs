@@ -5,8 +5,9 @@ using StardewValley.TerrainFeatures;
 /// <summary>Mod API for custom bushes.</summary>
 public interface ICustomBushApi
 {
-    /// <summary>Gets the data model for all Custom Bush.</summary>
-    public Dictionary<string, ICustomBush> Data { get; }
+    /// <summary>Retrieves the data model for all Custom Bush.</summary>
+    /// <returns>An enumerable of objects implementing the ICustomBush interface. Each object represents a custom bush.</returns>
+    public IEnumerable<(string Id, ICustomBush Data)> GetData();
 
     /// <summary>Determines if the given Bush instance is a custom bush.</summary>
     /// <param name="bush">The bush instance to check.</param>
