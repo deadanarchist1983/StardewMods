@@ -8,10 +8,10 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Netcode;
 using StardewMods.Common.Services;
+using StardewMods.Common.Services.Integrations.CustomBush;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewMods.CustomBush.Framework.Models;
 using StardewValley.Extensions;
-using StardewValley.GameData;
 using StardewValley.Internal;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
@@ -21,8 +21,8 @@ internal sealed class BushManager : BaseService
 {
     private static BushManager instance = null!;
     private readonly MethodInfo checkItemPlantRules;
-    private readonly Lazy<Dictionary<string, CustomBush>> data;
 
+    private readonly AssetHandler assetHandler;
     private readonly IGameContentHelper gameContentHelper;
     private readonly string modDataId;
     private readonly string modDataItem;
@@ -31,14 +31,14 @@ internal sealed class BushManager : BaseService
     private readonly string modDataTexture;
 
     /// <summary>Initializes a new instance of the <see cref="BushManager" /> class.</summary>
+    /// <param name="assetHandler">Dependency used for handling assets.</param>
     /// <param name="gameContentHelper">Dependency used for loading game assets.</param>
-    /// <param name="getBushModels">Function which returns the bush model data.</param>
     /// <param name="harmony">Dependency used to patch external code.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     public BushManager(
+        AssetHandler assetHandler,
         IGameContentHelper gameContentHelper,
-        Func<Dictionary<string, CustomBush>> getBushModels,
         Harmony harmony,
         ILog log,
         IManifest manifest)
@@ -50,8 +50,8 @@ internal sealed class BushManager : BaseService
         this.modDataQuality = this.ModId + "/Quality";
         this.modDataStack = this.ModId + "/Stack";
         this.modDataTexture = this.ModId + "/Texture";
+        this.assetHandler = assetHandler;
         this.gameContentHelper = gameContentHelper;
-        this.data = new Lazy<Dictionary<string, CustomBush>>(getBushModels);
         this.checkItemPlantRules =
             typeof(GameLocation).GetMethod("CheckItemPlantRules", BindingFlags.NonPublic | BindingFlags.Instance)
             ?? throw new MethodAccessException("Unable to access CheckItemPlantRules");
@@ -109,7 +109,7 @@ internal sealed class BushManager : BaseService
     /// <param name="bush">The bush instance to check.</param>
     /// <returns>True if the bush is a custom bush, otherwise false.</returns>
     public bool IsCustomBush(Bush bush) =>
-        bush.modData.TryGetValue(this.modDataId, out var id) && this.data.Value.ContainsKey(id);
+        bush.modData.TryGetValue(this.modDataId, out var id) && this.assetHandler.Data.ContainsKey(id);
 
     /// <summary>Tries to get the custom bush model associated with the given bush.</summary>
     /// <param name="bush">The bush.</param>
@@ -121,37 +121,13 @@ internal sealed class BushManager : BaseService
     public bool TryGetCustomBush(Bush bush, out CustomBush? customBush)
     {
         customBush = null;
-        return bush.modData.TryGetValue(this.modDataId, out var id) && this.data.Value.TryGetValue(id, out customBush);
-    }
-
-    /// <summary>Tries to get the drops from a bush.</summary>
-    /// <param name="bush">The bush to get the drops from.</param>
-    /// <param name="drops">
-    /// When this method returns, contains the drops from the bush, or null if there are no drops
-    /// available. This parameter is passed uninitialized.
-    /// </param>
-    /// <returns>true if the drops were successfully retrieved; otherwise, false.</returns>
-    public bool TryGetDrops(
-        Bush bush,
-        out IEnumerable<(GenericSpawnItemDataWithCondition, Season? Season, float Chance)>? drops)
-    {
-        drops = [];
-        if (!bush.modData.TryGetValue(this.modDataId, out var id)
-            || !this.data.Value.TryGetValue(id, out var customBush))
-        {
-            return false;
-        }
-
-        drops = customBush.ItemsProduced.Select(
-            drop => (drop as GenericSpawnItemDataWithCondition, drop.Season, drop.Chance));
-
-        return true;
+        return bush.modData.TryGetValue(this.modDataId, out var id) && this.assetHandler.Data.TryGetValue(id, out customBush);
     }
 
     [SuppressMessage("ReSharper", "SuggestBaseTypeForParameter", Justification = "Harmony")]
     private static Bush AddModData(Bush bush, SObject obj)
     {
-        if (!BushManager.instance.data.Value.ContainsKey(obj.QualifiedItemId))
+        if (!BushManager.instance.assetHandler.Data.ContainsKey(obj.QualifiedItemId))
         {
             return bush;
         }
@@ -171,7 +147,7 @@ internal sealed class BushManager : BaseService
         float ___yDrawOffset)
     {
         if (!__instance.modData.TryGetValue(BushManager.instance.modDataId, out var id)
-            || !BushManager.instance.data.Value.TryGetValue(id, out var bushModel))
+            || !BushManager.instance.assetHandler.Data.TryGetValue(id, out var bushModel))
         {
             return true;
         }
@@ -238,7 +214,7 @@ internal sealed class BushManager : BaseService
         }
 
         if (!__instance.modData.TryGetValue(BushManager.instance.modDataId, out var id)
-            || !BushManager.instance.data.Value.TryGetValue(id, out var bushModel))
+            || !BushManager.instance.assetHandler.Data.TryGetValue(id, out var bushModel))
         {
             return;
         }
@@ -360,7 +336,7 @@ internal sealed class BushManager : BaseService
     private static void Bush_setUpSourceRect_postfix(Bush __instance, NetRectangle ___sourceRect)
     {
         if (!__instance.modData.TryGetValue(BushManager.instance.modDataId, out var id)
-            || !BushManager.instance.data.Value.TryGetValue(id, out var bushModel))
+            || !BushManager.instance.assetHandler.Data.TryGetValue(id, out var bushModel))
         {
             return;
         }
@@ -419,7 +395,7 @@ internal sealed class BushManager : BaseService
     {
         var metadata = ItemRegistry.GetMetadata(itemId);
         if (metadata is null
-            || !BushManager.instance.data.Value.TryGetValue(metadata.QualifiedItemId, out var bushModel))
+            || !BushManager.instance.assetHandler.Data.TryGetValue(metadata.QualifiedItemId, out var bushModel))
         {
             return;
         }
@@ -482,7 +458,7 @@ internal sealed class BushManager : BaseService
         bush.modData.Remove(BushManager.instance.modDataStack);
 
         if (!bush.modData.TryGetValue(BushManager.instance.modDataId, out var bushId)
-            || !BushManager.instance.data.Value.TryGetValue(bushId, out var bushModel)
+            || !BushManager.instance.assetHandler.Data.TryGetValue(bushId, out var bushModel)
             || !BushManager.instance.TryToProduceRandomItem(bush, bushModel, out var item))
         {
             Game1.createObjectDebris(id, xTile, yTile, groundLevel, itemQuality, velocityMultiplier, location);
@@ -504,7 +480,7 @@ internal sealed class BushManager : BaseService
     [SuppressMessage("StyleCop", "SA1313", Justification = "Harmony")]
     private static void HoeDirt_canPlantThisSeedHere_postfix(string itemId, ref bool __result)
     {
-        if (!__result || !BushManager.instance.data.Value.ContainsKey($"(O){itemId}"))
+        if (!__result || !BushManager.instance.assetHandler.Data.ContainsKey($"(O){itemId}"))
         {
             return;
         }
@@ -521,7 +497,7 @@ internal sealed class BushManager : BaseService
         bool probe,
         ref bool __result)
     {
-        if (!BushManager.instance.data.Value.ContainsKey(dropInItem.QualifiedItemId)
+        if (!BushManager.instance.assetHandler.Data.ContainsKey(dropInItem.QualifiedItemId)
             || __instance.hoeDirt.Value.crop != null)
         {
             return;
@@ -559,7 +535,7 @@ internal sealed class BushManager : BaseService
             return;
         }
 
-        if (BushManager.instance.data.Value.ContainsKey(__instance.QualifiedItemId))
+        if (BushManager.instance.assetHandler.Data.ContainsKey(__instance.QualifiedItemId))
         {
             __result = true;
         }
@@ -605,7 +581,7 @@ internal sealed class BushManager : BaseService
     }
 
     [SuppressMessage("ReSharper", "SuggestBaseTypeForParameter", Justification = "Harmony")]
-    private Item? TryToProduceItem(Bush bush, CustomBushDrop drop)
+    private Item? TryToProduceItem(Bush bush, ICustomBushDrop drop)
     {
         if (!Game1.random.NextBool(drop.Chance))
         {

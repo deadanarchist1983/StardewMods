@@ -5,9 +5,9 @@ using SimpleInjector;
 using StardewModdingAPI.Events;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Services;
+using StardewMods.Common.Services.Integrations.ContentPatcher;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewMods.CustomBush.Framework;
-using StardewMods.CustomBush.Framework.Models;
 using StardewMods.CustomBush.Framework.Services;
 
 /// <inheritdoc />
@@ -20,7 +20,11 @@ public sealed class ModEntry : Mod
 
     /// <inheritdoc />
     public override object GetApi(IModInfo mod) =>
-        new CustomBushApi(this.container.GetInstance<BushManager>(), mod, this.container.GetInstance<ILog>());
+        new CustomBushApi(
+            this.container.GetInstance<AssetHandler>(),
+            this.container.GetInstance<BushManager>(),
+            mod,
+            this.container.GetInstance<ILog>());
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
@@ -40,9 +44,9 @@ public sealed class ModEntry : Mod
         this.container.RegisterInstance(this.Helper.ModRegistry);
         this.container.RegisterInstance(this.Helper.Reflection);
         this.container.RegisterInstance(this.Helper.Translation);
-        this.container.RegisterInstance<Func<Dictionary<string, CustomBush>>>(this.GetData);
         this.container.RegisterSingleton<AssetHandler>();
         this.container.RegisterSingleton<BushManager>();
+        this.container.RegisterSingleton<ContentPatcherIntegration>();
         this.container.RegisterSingleton<IEventManager, EventManager>();
         this.container.RegisterSingleton<IEventPublisher, EventManager>();
         this.container.RegisterSingleton<IEventSubscriber, EventManager>();
@@ -51,12 +55,5 @@ public sealed class ModEntry : Mod
 
         // Verify
         this.container.Verify();
-    }
-
-    private Dictionary<string, CustomBush> GetData()
-    {
-        var assetHandler = this.container.GetInstance<AssetHandler>();
-        var gameContentHelper = this.container.GetInstance<IGameContentHelper>();
-        return gameContentHelper.Load<Dictionary<string, CustomBush>>(assetHandler.DataPath);
     }
 }

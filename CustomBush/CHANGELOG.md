@@ -1,5 +1,11 @@
 # Custom Bush Change Log
 
+## 1.0.4 (Unreleased)
+
+### Changed
+
+* Updated api to return ICustomBushDrop with ICustomBush.
+
 ## 1.0.3 (April 2, 2024)
 
 ### Added
