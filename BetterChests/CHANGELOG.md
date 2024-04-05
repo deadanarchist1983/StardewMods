@@ -1,5 +1,11 @@
 ﻿# Better Chests Change Log
 
+## 2.10.1 (Unreleased)
+
+### Changed
+
+* If categorize is disabled, stash to existing stacks only.
+
 ## 2.10.0 (April 4, 2024)
 
 ### Added

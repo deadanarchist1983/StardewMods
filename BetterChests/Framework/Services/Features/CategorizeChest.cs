@@ -147,6 +147,10 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
         {
             e.PreventTransfer();
         }
+        else
+        {
+            e.AllowTransfer();
+        }
     }
 
     private ItemMatcher GetOrCreateItemMatcher(IStorageContainer container)

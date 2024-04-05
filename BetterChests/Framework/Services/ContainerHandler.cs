@@ -83,9 +83,8 @@ internal sealed class ContainerHandler : BaseService
         }
 
         var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, force);
-        if (!force
-            && !(to.Options.CategorizeChestAutomatically == FeatureOption.Enabled
-                && to.Items.ContainsId(item.QualifiedItemId)))
+        ContainerHandler.AddTagIfNeeded(to, item, force);
+        if (!force)
         {
             this.eventPublisher.Publish(itemTransferringEventArgs);
         }
@@ -116,9 +115,14 @@ internal sealed class ContainerHandler : BaseService
                 }
 
                 var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, force);
-                if (!force
-                    && !(to.Options.CategorizeChestAutomatically == FeatureOption.Enabled
-                        && to.Items.ContainsId(item.QualifiedItemId)))
+                if (to.Items.ContainsId(item.QualifiedItemId))
+                {
+                    itemTransferringEventArgs.AllowTransfer();
+                }
+
+                ContainerHandler.AddTagIfNeeded(to, item, force);
+
+                if (!force)
                 {
                     this.eventPublisher.Publish(itemTransferringEventArgs);
                 }
@@ -174,5 +178,31 @@ internal sealed class ContainerHandler : BaseService
 
         __result = item;
         return false;
+    }
+
+    private static void AddTagIfNeeded(IStorageContainer container, Item item, bool force)
+    {
+        if (!force
+            || !(container.Options.CategorizeChestAutomatically == FeatureOption.Enabled
+                && container.Items.ContainsId(item.QualifiedItemId)))
+        {
+            return;
+        }
+
+        var tags = new HashSet<string>(container.Options.CategorizeChestTags);
+        var tag = item
+            .GetContextTags()
+            .Where(tag => tag.StartsWith("id_", StringComparison.OrdinalIgnoreCase))
+            .MinBy(tag => tag.Contains('('));
+
+        if (tag is not null)
+        {
+            tags.Add(tag);
+        }
+
+        if (!tags.SetEquals(container.Options.CategorizeChestTags))
+        {
+            container.Options.CategorizeChestTags = [..tags];
+        }
     }
 }
