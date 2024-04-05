@@ -31,8 +31,4 @@ public interface ICustomBush
 
     /// <summary>Gets the row index for the custom bush's sprites.</summary>
     public int TextureSpriteRow { get; }
-
-    /// <summary>Retrieves the items produced by the custom bush.</summary>
-    /// <returns>An enumerable collection of objects implementing the ICustomBushDrop interface. Each object represents an item produced by the custom bush.</returns>
-    public IEnumerable<ICustomBushDrop> GetItemsProduced();
 }

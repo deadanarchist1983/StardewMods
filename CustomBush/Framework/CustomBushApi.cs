@@ -45,4 +45,17 @@ public sealed class CustomBushApi : ICustomBushApi
         customBush = null;
         return false;
     }
+
+    /// <inheritdoc />
+    public bool TryGetDrops(string id, out IList<ICustomBushDrop>? drops)
+    {
+        drops = null;
+        if (!this.assetHandler.Data.TryGetValue(id, out var customBush))
+        {
+            return false;
+        }
+
+        drops = customBush.ItemsProduced.Select(drop => (ICustomBushDrop)drop).ToList();
+        return true;
+    }
 }

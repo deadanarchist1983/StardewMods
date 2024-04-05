@@ -35,7 +35,4 @@ internal sealed class CustomBush : ICustomBush
 
     /// <inheritdoc />
     public int TextureSpriteRow { get; set; }
-
-    /// <inheritdoc />
-    public IEnumerable<ICustomBushDrop> GetItemsProduced() => this.ItemsProduced;
 }
