@@ -904,6 +904,42 @@ public interface IRecipeBuilder {
 
 }
 
+public interface ICraftingStation {
+
+	/// <summary>
+	/// The crafting station's unique Id.
+	/// </summary>
+	string Id { get; }
+
+	/// <summary>
+	/// The display name of this crafting station.
+	/// </summary>
+	string? DisplayName { get; }
+
+	/// <summary>
+	/// Whether this crafting station's recipes should be available outside
+	/// of this crafting station or not.
+	/// </summary>
+	bool AreRecipesExclusive { get; }
+
+	/// <summary>
+	/// When this is true, this crafting station's recipes will always be
+	/// available, even if the player hasn't learned the recipe yet.
+	/// </summary>
+	bool DisplayUnknownRecipes { get; }
+
+	/// <summary>
+	/// Whether or not this crafting station is for cooking.
+	/// </summary>
+	bool IsCooking { get; }
+
+	/// <summary>
+	/// A list of recipes included in this crafting station.
+	/// </summary>
+	string[] Recipes { get; }
+
+}
+
 /// <summary>
 /// This interface contains a few basic properties on the Better Crafting
 /// menu that may be useful for other mods.
@@ -926,6 +962,12 @@ public interface IBetterCraftingMenu {
 	/// container discovery.
 	/// </summary>
 	bool DiscoverBuildings { get; }
+
+	/// <summary>
+	/// If this menu is associated with a specific crafting station, this
+	/// is the crafting station.
+	/// </summary>
+	ICraftingStation? Station { get; }
 
 	/// <summary>
 	/// Whether or not this crafting menu is ready, meaning that it has
