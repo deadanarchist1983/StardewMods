@@ -20,9 +20,9 @@ using StardewValley.TerrainFeatures;
 internal sealed class BushManager : BaseService
 {
     private static BushManager instance = null!;
-    private readonly MethodInfo checkItemPlantRules;
 
     private readonly AssetHandler assetHandler;
+    private readonly MethodInfo checkItemPlantRules;
     private readonly IGameContentHelper gameContentHelper;
     private readonly string modDataId;
     private readonly string modDataItem;
@@ -121,7 +121,8 @@ internal sealed class BushManager : BaseService
     public bool TryGetCustomBush(Bush bush, out CustomBush? customBush)
     {
         customBush = null;
-        return bush.modData.TryGetValue(this.modDataId, out var id) && this.assetHandler.Data.TryGetValue(id, out customBush);
+        return bush.modData.TryGetValue(this.modDataId, out var id)
+            && this.assetHandler.Data.TryGetValue(id, out customBush);
     }
 
     [SuppressMessage("ReSharper", "SuggestBaseTypeForParameter", Justification = "Harmony")]

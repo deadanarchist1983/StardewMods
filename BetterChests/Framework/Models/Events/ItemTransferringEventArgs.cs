@@ -10,21 +10,21 @@ internal sealed class ItemTransferringEventArgs(IStorageContainer into, Item ite
 
     private bool isPrevented;
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public bool IsForced { get; } = force;
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public IStorageContainer Into { get; } = into;
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public Item Item { get; } = item;
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public bool IsAllowed => this.isAllowed && !this.isPrevented;
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public void AllowTransfer() => this.isAllowed = true;
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public void PreventTransfer() => this.isPrevented = true;
 }

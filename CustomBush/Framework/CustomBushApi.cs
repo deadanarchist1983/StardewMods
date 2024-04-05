@@ -26,9 +26,9 @@ public sealed class CustomBushApi : ICustomBushApi
         this.log = log;
     }
 
-    /// <inheritdoc/>
-    public Dictionary<string, ICustomBush> Data =>
-        this.assetHandler.Data.ToDictionary(pair => pair.Key, pair => (ICustomBush)pair.Value);
+    /// <inheritdoc />
+    public IEnumerable<(string Id, ICustomBush Data)> GetData() =>
+        this.assetHandler.Data.Select(pair => (pair.Key, (ICustomBush)pair.Value));
 
     /// <inheritdoc />
     public bool IsCustomBush(Bush bush) => this.bushManager.IsCustomBush(bush);
