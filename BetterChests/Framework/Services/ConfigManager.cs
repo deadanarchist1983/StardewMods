@@ -90,9 +90,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
     /// <inheritdoc />
     public HashSet<string> StashToChestDisableLocations => this.Config.StashToChestDisableLocations;
 
-    private void OnConfigChanged(ConfigChangedEventArgs<DefaultConfig> e) =>
-        this.log.Trace("Config changed: {0}", e.Config);
-
     /// <summary>Setup the main config options.</summary>
     public void SetupMainConfig()
     {
@@ -702,4 +699,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
             I18n.Config_SearchNegationSymbol_Name,
             I18n.Config_SearchNegationSymbol_Tooltip);
     }
+
+    private void OnConfigChanged(ConfigChangedEventArgs<DefaultConfig> e) =>
+        this.log.Trace("Config changed: {0}", e.Config);
 }

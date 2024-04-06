@@ -224,7 +224,7 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
         var position = e.Menu.Position ?? Game1.player.Tile;
 
         Func<IStorageContainer, bool> predicate =
-            location.Objects.TryGetValue(position, out var obj) && obj is not Workbench
+            location.Objects.TryGetValue(position, out var obj) && obj is Workbench
                 ? CraftFromChest.WorkbenchPredicate
                 : CraftFromChest.DefaultPredicate;
 

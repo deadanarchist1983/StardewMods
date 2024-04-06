@@ -115,7 +115,7 @@ internal sealed class ContainerFactory : BaseService
 
             if (!this.storageOptions.TryGetValue($"(B){building.buildingType.Value}", out var storageType))
             {
-                storageType = new BuildingStorageOptions(this.modConfig.DefaultOptions, building.GetData());
+                storageType = new BuildingStorageOptions(() => this.modConfig.DefaultOptions, building.GetData());
                 this.storageOptions.Add($"(B){building.buildingType.Value}", storageType);
             }
 
@@ -141,7 +141,7 @@ internal sealed class ContainerFactory : BaseService
         {
             if (!this.storageOptions.TryGetValue($"(L){location.Name}", out var storageType))
             {
-                storageType = new LocationStorageOptions(this.modConfig.DefaultOptions, location.GetData());
+                storageType = new LocationStorageOptions(() => this.modConfig.DefaultOptions, location.GetData());
                 this.storageOptions.Add($"(L){location.Name}", storageType);
             }
 
@@ -413,7 +413,7 @@ internal sealed class ContainerFactory : BaseService
             var data =
                 ItemRegistry.GetData(item.QualifiedItemId)?.RawData as BigCraftableData ?? new BigCraftableData();
 
-            storageOption = new BigCraftableStorageOptions(this.modConfig.DefaultOptions, data);
+            storageOption = new BigCraftableStorageOptions(() => this.modConfig.DefaultOptions, data);
             this.storageOptions.Add(item.QualifiedItemId, storageOption);
         }
 

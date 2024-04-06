@@ -1,6 +1,13 @@
 ﻿# Better Chests Change Log
 
-## 2.10.1 (Unreleased)
+## 2.10.2 (Unreleased)
+
+### Fixed
+
+* Config options will now be reflected without restarting the game.
+* Workbenches were not using the Workbench range.
+
+## 2.10.1 (April 6, 2024)
 
 ### Changed
 
