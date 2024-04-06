@@ -306,7 +306,7 @@ public interface IIngredient {
 	/// </summary>
 	Rectangle SourceRectangle { get; }
 
-	#region Quantity
+#region Quantity
 
 	/// <summary>
 	/// The amount of this ingredient required to perform a craft.
@@ -329,9 +329,9 @@ public interface IIngredient {
 	/// returns <c>false</c>.</param>
 	int GetAvailableQuantity(Farmer who, IList<Item?>? items, IList<IBCInventory>? inventories, int maxQuality);
 
-	#endregion
+#endregion
 
-	#region Consumption
+#region Consumption
 
 	/// <summary>
 	/// Consume this ingredient out of the player's inventory and the other
@@ -347,7 +347,7 @@ public interface IIngredient {
 	/// ingredients.</param>
 	void Consume(Farmer who, IList<IBCInventory>? inventories, int maxQuality, bool lowQualityFirst);
 
-	#endregion
+#endregion
 }
 
 
@@ -396,7 +396,7 @@ public interface IPerformCraftEvent {
 /// </summary>
 public interface IRecipe {
 
-	#region Identity
+#region Identity
 
 	/// <summary>
 	/// An additional sorting value to apply to recipes in the Better Crafting
@@ -424,6 +424,11 @@ public interface IRecipe {
 	string? Description { get; }
 
 	/// <summary>
+	/// Whether or not this recipe can be reversed with recycling.
+	/// </summary>
+	bool AllowRecycling { get; }
+
+	/// <summary>
 	/// Whether or not the player knows this recipe.
 	/// </summary>
 	/// <param name="who">The player we're asking about</param>
@@ -444,9 +449,9 @@ public interface IRecipe {
 	/// </summary>
 	CraftingRecipe? CraftingRecipe { get; }
 
-	#endregion
+#endregion
 
-	#region Display
+#region Display
 
 	/// <summary>
 	/// The texture to use when drawing this recipe in the menu.
@@ -468,9 +473,9 @@ public interface IRecipe {
 	/// </summary>
 	int GridWidth { get; }
 
-	#endregion
+#endregion
 
-	#region Cost and Quantity
+#region Cost and Quantity
 
 	/// <summary>
 	/// The quantity of item produced every time this recipe is crafted.
@@ -482,9 +487,9 @@ public interface IRecipe {
 	/// </summary>
 	IIngredient[]? Ingredients { get; }
 
-	#endregion
+#endregion
 
-	#region Creation
+#region Creation
 
 	/// <summary>
 	/// Whether or not the item created by this recipe is stackable, and thus
@@ -530,7 +535,7 @@ public interface IRecipe {
 		evt.Complete();
 	}
 
-	#endregion
+#endregion
 }
 
 
@@ -730,6 +735,13 @@ public interface IRecipeBuilder {
 	/// <param name="description">A method that returns a description.</param>
 	/// <returns>The same <see cref="IRecipeBuilder"/> instance</returns>
 	IRecipeBuilder Description(Func<string?>? description);
+
+	/// <summary>
+	/// Set whether or not the recipe can be reversed with recycling. By
+	/// default, this is true.
+	/// </summary>
+	/// <param name="allow">Can the recipe be reversed with recycling?</param>
+	IRecipeBuilder AllowRecycling(bool allow);
 
 	/// <summary>
 	/// Check to see whether or not a given player knows this recipe.
@@ -1146,6 +1158,16 @@ public interface IBetterCrafting {
 	#region Recipes
 
 	/// <summary>
+	/// Return a list of all recipes that are exclusive to a specific
+	/// crafting station. These recipes should not be listed in general
+	/// crafting stations.
+	/// </summary>
+	/// <param name="cooking">If true, return cooking recipes. If false, return
+	/// crafting recipes.</param>
+	/// <returns>An enumeration of recipe names.</returns>
+	IEnumerable<string> GetExclusiveRecipes(bool cooking);
+
+	/// <summary>
 	/// Register a recipe provider with Better Crafting. Calling this
 	/// will also invalidate the recipe cache.
 	///
@@ -1234,6 +1256,32 @@ public interface IBetterCrafting {
 	/// ingredients list.
 	/// </summary>
 	IIngredient CreateErrorIngredient();
+
+	#endregion
+
+	#region Item Manipulation
+
+	/// <summary>
+	/// Lock the provided inventories and call a delegate with the locked
+	/// <see cref="IBCInventory"/> instances, ready to be safely manipulated.
+	///
+	/// This is the same method used internally by the crafting menu to do
+	/// just-in-time mutex locks when crafting.
+	///
+	/// The delegate's first argument is a list of locked inventories, and
+	/// the second argument is an Action to call when you are done.
+	/// </summary>
+	/// <param name="inventories">The list of things with inventories you want
+	/// to lock, the same as you'd pass into other API instances. Each one
+	/// is handled using an <see cref="IInventoryProvider"/>.</param>
+	/// <param name="who">The relevant farmer.</param>
+	/// <param name="withLocks">A delegate to call when the locks are ready,
+	/// which will not be immediate.</param>
+	void WithInventories(
+		IEnumerable<Tuple<object, GameLocation?>> inventories,
+		Farmer? who,
+		Action<IList<IBCInventory>, Action> withLocks
+	);
 
 	/// <summary>
 	/// Consume matching items from a player, and also from a set of

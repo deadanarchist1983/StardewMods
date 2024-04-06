@@ -83,7 +83,13 @@ internal sealed class ContainerHandler : BaseService
         }
 
         var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, force);
+        if (force || to.Items.ContainsId(item.QualifiedItemId))
+        {
+            itemTransferringEventArgs.AllowTransfer();
+        }
+
         ContainerHandler.AddTagIfNeeded(to, item, force);
+
         if (!force)
         {
             this.eventPublisher.Publish(itemTransferringEventArgs);

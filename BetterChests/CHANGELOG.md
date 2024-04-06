@@ -6,6 +6,11 @@
 
 * If categorize is disabled, stash to existing stacks only.
 
+### Fixed
+
+* Categorize menu should work correctly for all zoom levels.
+* Updated to support Better Crafting 2.2.0 Api changes.
+
 ## 2.10.0 (April 4, 2024)
 
 ### Added
