@@ -48,7 +48,6 @@ public sealed class ModEntry : Mod
         this.container.RegisterSingleton<AssetHandler>();
         this.container.RegisterSingleton<IModConfig, ConfigManager>();
         this.container.RegisterSingleton<ContentPatcherIntegration>();
-        this.container.RegisterSingleton<Definitions>();
         this.container.RegisterSingleton<IEventManager, EventManager>();
         this.container.RegisterSingleton<IEventPublisher, EventManager>();
         this.container.RegisterSingleton<IEventSubscriber, EventManager>();
