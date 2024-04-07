@@ -6,10 +6,10 @@ using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewMods.Common.Enums;
 using StardewMods.Common.Interfaces;
+using StardewMods.Common.Models.Events;
 using StardewMods.Common.Services;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewMods.Common.Services.Integrations.ToolbarIcons;
-using StardewMods.ToolbarIcons.Framework.Interfaces;
 using StardewMods.ToolbarIcons.Framework.Models;
 using StardewMods.ToolbarIcons.Framework.Models.Events;
 using StardewValley.Menus;
@@ -21,6 +21,7 @@ internal sealed class ToolbarManager : BaseService
 {
     private readonly AssetHandler assetHandler;
     private readonly Dictionary<string, ClickableTextureComponent> components;
+    private readonly ConfigManager configManager;
     private readonly PerScreen<string> currentHoverText = new();
     private readonly IEventManager eventManager;
     private readonly IGameContentHelper gameContentHelper;
@@ -29,44 +30,43 @@ internal sealed class ToolbarManager : BaseService
     private readonly PerScreen<ClickableComponent> lastButton = new();
     private readonly PerScreen<Toolbar> lastToolbar = new();
     private readonly ILog log;
-    private readonly IModConfig modConfig;
     private readonly IReflectionHelper reflectionHelper;
 
     /// <summary>Initializes a new instance of the <see cref="ToolbarManager" /> class.</summary>
     /// <param name="assetHandler">Dependency used for handling assets.</param>
     /// <param name="components">Dependency used for the toolbar icon components.</param>
+    /// <param name="configManager">Dependency used for accessing config data.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="gameContentHelper">Dependency used for loading game assets.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="log">Dependency used for monitoring and logging.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
-    /// <param name="modConfig">Dependency used for accessing config data.</param>
     /// <param name="reflectionHelper">Dependency used for reflecting into external code.</param>
     public ToolbarManager(
         AssetHandler assetHandler,
         Dictionary<string, ClickableTextureComponent> components,
+        ConfigManager configManager,
         IEventManager eventManager,
         IGameContentHelper gameContentHelper,
         IInputHelper inputHelper,
         ILog log,
         IManifest manifest,
-        IModConfig modConfig,
         IReflectionHelper reflectionHelper)
         : base(log, manifest)
     {
         // Init
         this.assetHandler = assetHandler;
         this.components = components;
+        this.configManager = configManager;
         this.eventManager = eventManager;
         this.gameContentHelper = gameContentHelper;
         this.inputHelper = inputHelper;
         this.log = log;
-        this.modConfig = modConfig;
         this.reflectionHelper = reflectionHelper;
 
         // Events
+        eventManager.Subscribe<ConfigChangedEventArgs<DefaultConfig>>(this.OnConfigChanged);
         eventManager.Subscribe<ToolbarIconsLoadedEventArgs>(this.OnToolbarIconsLoaded);
-        eventManager.Subscribe<ToolbarIconsChangedEventArgs>(this.OnToolbarIconsChanged);
     }
 
     private static bool ShowToolbar =>
@@ -84,12 +84,15 @@ internal sealed class ToolbarManager : BaseService
     /// <param name="hoverText">Text to appear when hovering over the icon.</param>
     public void AddToolbarIcon(string id, string texturePath, Rectangle? sourceRect, string? hoverText)
     {
-        var icon = this.modConfig.Icons.FirstOrDefault(icon => icon.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+        var icon = this.configManager.Icons.FirstOrDefault(
+            icon => icon.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
 
         if (icon is null)
         {
             icon = new ToolbarIcon(id);
-            this.modConfig.Icons.Add(icon);
+            var config = this.configManager.GetNew();
+            config.Icons.Add(icon);
+            this.configManager.Save(config);
         }
 
         if (this.components.ContainsKey(id))
@@ -116,7 +119,7 @@ internal sealed class ToolbarManager : BaseService
     /// <param name="id">A unique identifier for the icon.</param>
     public void RemoveToolbarIcon(string id)
     {
-        var toolbarIcon = this.modConfig.Icons.FirstOrDefault(
+        var toolbarIcon = this.configManager.Icons.FirstOrDefault(
             toolbarIcon => toolbarIcon.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
 
         if (toolbarIcon is null)
@@ -125,7 +128,9 @@ internal sealed class ToolbarManager : BaseService
         }
 
         this.log.Trace("Removing icon: {0}", id);
-        this.modConfig.Icons.Remove(toolbarIcon);
+        var config = this.configManager.GetNew();
+        config.Icons.Remove(toolbarIcon);
+        this.configManager.Save(config);
         this.components.Remove(id);
     }
 
@@ -177,6 +182,19 @@ internal sealed class ToolbarManager : BaseService
             new IconPressedEventArgs(component.name, e.Button));
 
         this.inputHelper.Suppress(e.Button);
+    }
+
+    private void OnConfigChanged(ConfigChangedEventArgs<DefaultConfig> e)
+    {
+        foreach (var icon in this.configManager.Icons)
+        {
+            if (this.components.TryGetValue(icon.Id, out var component))
+            {
+                component.visible = icon.Enabled;
+            }
+        }
+
+        this.ReorientComponents();
     }
 
     private void OnCursorMoved(CursorMovedEventArgs e)
@@ -237,19 +255,6 @@ internal sealed class ToolbarManager : BaseService
         }
     }
 
-    private void OnToolbarIconsChanged(ToolbarIconsChangedEventArgs e)
-    {
-        foreach (var icon in this.modConfig.Icons)
-        {
-            if (this.components.TryGetValue(icon.Id, out var component))
-            {
-                component.visible = icon.Enabled;
-            }
-        }
-
-        this.ReorientComponents();
-    }
-
     private void OnToolbarIconsLoaded(ToolbarIconsLoadedEventArgs e)
     {
         // Init
@@ -269,8 +274,8 @@ internal sealed class ToolbarManager : BaseService
             return;
         }
 
-        var xAlign = button.bounds.X < Game1.viewport.Width / 2;
-        var yAlign = button.bounds.Y < Game1.viewport.Height / 2;
+        var xAlign = button.bounds.X * (1f / Game1.options.zoomLevel) < Game1.viewport.Width / 2;
+        var yAlign = button.bounds.Y * (1f / Game1.options.zoomLevel) < Game1.viewport.Height / 2;
         ComponentArea area;
         int x;
         int y;
@@ -303,20 +308,13 @@ internal sealed class ToolbarManager : BaseService
             }
         }
 
-        var firstComponent = this.components.Values.First(component => component.visible);
-        if (!this.lastArea.IsActiveForScreen()
-            || area != this.lastArea.Value
-            || firstComponent.bounds.X != x
-            || firstComponent.bounds.Y != y)
-        {
-            this.ReorientComponents(area, x, y);
-        }
+        this.ReorientComponents(area, x, y);
     }
 
     private void ReorientComponents(ComponentArea area, int x, int y)
     {
         this.lastArea.Value = area;
-        foreach (var icon in this.modConfig.Icons)
+        foreach (var icon in this.configManager.Icons)
         {
             if (this.components.TryGetValue(icon.Id, out var component))
             {

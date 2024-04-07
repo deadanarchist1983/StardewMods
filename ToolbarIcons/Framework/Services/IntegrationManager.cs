@@ -1,11 +1,11 @@
-﻿namespace StardewMods.ToolbarIcons.Framework.Services;
+namespace StardewMods.ToolbarIcons.Framework.Services;
 
 using System.Reflection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using StardewModdingAPI.Events;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Services;
+using StardewMods.Common.Services.Integrations.ContentPatcher;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewMods.Common.Services.Integrations.ToolbarIcons;
 using StardewMods.ToolbarIcons.Framework.Enums;
@@ -63,7 +63,7 @@ internal sealed class IntegrationManager : BaseService
             ?? throw new MethodAccessException("Unable to access OverrideButton");
 
         // Events
-        eventManager.Subscribe<SaveLoadedEventArgs>(this.OnSaveLoaded);
+        eventManager.Subscribe<ConditionsApiReadyEventArgs>(this.OnConditionsApiReady);
         eventManager.Subscribe<IIconPressedEventArgs>(this.OnIconPressed);
     }
 
@@ -226,7 +226,7 @@ internal sealed class IntegrationManager : BaseService
         this.AddIcon(modId, index, hoverText, () => action.Invoke(arguments), this.assetHandler.IconPath);
     }
 
-    private void OnSaveLoaded(SaveLoadedEventArgs e)
+    private void OnConditionsApiReady(ConditionsApiReadyEventArgs e)
     {
         if (this.isLoaded)
         {

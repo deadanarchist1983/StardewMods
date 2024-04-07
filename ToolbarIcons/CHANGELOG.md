@@ -1,5 +1,16 @@
 # Toolbar Icons Change Log
 
+## 2.7.0 (April 6, 2024)
+
+### Added
+
+* New default icon to toggle player collision.
+* Improved GMCM integration.
+
+### Fixed
+
+* Toolbar icons should work correctly for all zoom levels.
+
 ## 2.6.2 (March 25, 2024)
 
 ### Fixed

@@ -4,6 +4,7 @@ using SimpleInjector;
 using StardewModdingAPI.Events;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Services;
+using StardewMods.Common.Services.Integrations.ContentPatcher;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewMods.Common.Services.Integrations.GenericModConfigMenu;
 using StardewMods.ToolbarIcons.Framework;
@@ -11,6 +12,7 @@ using StardewMods.ToolbarIcons.Framework.Interfaces;
 using StardewMods.ToolbarIcons.Framework.Services;
 using StardewMods.ToolbarIcons.Framework.Services.Integrations.Modded;
 using StardewMods.ToolbarIcons.Framework.Services.Integrations.Vanilla;
+using StardewMods.ToolbarIcons.Framework.UI;
 using StardewValley.Menus;
 
 /// <inheritdoc />
@@ -53,18 +55,24 @@ public sealed class ModEntry : Mod
         this.container.RegisterInstance(this.Helper.ModRegistry);
         this.container.RegisterInstance(this.Helper.Reflection);
         this.container.RegisterInstance(this.Helper.Translation);
+
+        this.container.RegisterInstance<Func<ToolbarIconOption>>(this.GetToolbarIconsOption);
         this.container.RegisterInstance(new Dictionary<string, ClickableTextureComponent>());
         this.container.RegisterSingleton<AssetHandler>();
+        this.container.RegisterSingleton<ContentPatcherIntegration>();
         this.container.RegisterSingleton<IEventManager, EventManager>();
         this.container.RegisterSingleton<IEventPublisher, EventManager>();
         this.container.RegisterSingleton<IEventSubscriber, EventManager>();
         this.container.RegisterSingleton<FauxCoreIntegration>();
         this.container.RegisterSingleton<GenericModConfigMenuIntegration>();
         this.container.RegisterSingleton<IModConfig, ConfigManager>();
+        this.container.RegisterSingleton<ConfigManager, ConfigManager>();
         this.container.RegisterSingleton<IntegrationManager>();
         this.container.RegisterSingleton<ILog, Logger>();
         this.container.RegisterSingleton<IThemeHelper, Themer>();
         this.container.RegisterSingleton<ToolbarManager>();
+
+        this.container.Register<ToolbarIconOption>();
 
         this.container.Collection.Register<ICustomIntegration>(
             typeof(AlwaysScrollMap),
@@ -75,9 +83,15 @@ public sealed class ModEntry : Mod
             typeof(GenericModConfigMenu),
             typeof(SpecialOrders),
             typeof(StardewAquarium),
-            typeof(ToDew));
+            typeof(ToDew),
+            typeof(ToggleCollision));
 
         // Verify
         this.container.Verify();
+
+        var configManager = this.container.GetInstance<ConfigManager>();
+        configManager.Init();
     }
+
+    private ToolbarIconOption GetToolbarIconsOption() => this.container.GetInstance<ToolbarIconOption>();
 }
