@@ -297,6 +297,8 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         var options = new TemporaryStorageOptions(container.Options, defaultOptions);
         this.genericModConfigMenuIntegration.Register(options.Reset, options.Save);
 
+        gmcm.AddSectionTitle(this.manifest, () => container.DisplayName, container.ToString);
+
         if (container.Options.StashToChest is not (RangeOption.Disabled or RangeOption.Default))
         {
             gmcm.AddNumberOption(

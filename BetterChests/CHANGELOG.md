@@ -1,11 +1,20 @@
 ﻿# Better Chests Change Log
 
-## 2.10.2 (Unreleased)
+## 2.11.0 (Unreleased)
+
+### Added
+
+* Added support for Shipping Bins.
+
+### Changed
+
+* When configuring chests, it will show the chest being configured.
 
 ### Fixed
 
 * Config options will now be reflected without restarting the game.
 * Workbenches were not using the Workbench range.
+* Fixed Satchels not opening after exiting from menu.
 
 ## 2.10.1 (April 6, 2024)
 

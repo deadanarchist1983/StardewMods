@@ -68,6 +68,12 @@ internal sealed class ItemGrabMenuManager : BaseService
 
         // Patches
         harmony.Patch(
+            AccessTools.DeclaredMethod(typeof(IClickableMenu), nameof(IClickableMenu.SetChildMenu)),
+            postfix: new HarmonyMethod(
+                typeof(ItemGrabMenuManager),
+                nameof(ItemGrabMenuManager.IClickableMenu_SetChildMenu_postfix)));
+
+        harmony.Patch(
             AccessTools.DeclaredMethod(
                 typeof(InventoryMenu),
                 nameof(InventoryMenu.draw),
@@ -93,6 +99,10 @@ internal sealed class ItemGrabMenuManager : BaseService
 
     /// <summary>Gets the inventory menu manager for the bottom inventory menu.</summary>
     public IInventoryMenuManager Bottom => this.bottomMenu.Value;
+
+    [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]
+    [SuppressMessage("StyleCop", "SA1313", Justification = "Harmony")]
+    private static void IClickableMenu_SetChildMenu_postfix() => ItemGrabMenuManager.instance.UpdateMenu();
 
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]
     [SuppressMessage("ReSharper", "RedundantAssignment", Justification = "Harmony")]
@@ -196,14 +206,15 @@ internal sealed class ItemGrabMenuManager : BaseService
 
     private void UpdateMenu()
     {
-        if (Game1.activeClickableMenu == this.currentMenu.Value)
+        var menu = Game1.activeClickableMenu?.GetChildMenu() ?? Game1.activeClickableMenu;
+        if (menu == this.currentMenu.Value)
         {
             this.UpdateHighlightMethods();
             return;
         }
 
-        this.currentMenu.Value = Game1.activeClickableMenu;
-        if (Game1.activeClickableMenu is not ItemGrabMenu itemGrabMenu)
+        this.currentMenu.Value = menu;
+        if (menu is not ItemGrabMenu itemGrabMenu)
         {
             this.topMenu.Value.Reset(null, null);
             this.bottomMenu.Value.Reset(null, null);
