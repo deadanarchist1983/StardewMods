@@ -2,10 +2,15 @@
 <project version="4">
   <component name="UserContentModel">
     <attachedFolders>
-      <Path>GarbageDayCP</Path>
-      <Path>HelpfulSpousesCP</Path>
-      <Path>SpritePatcherCP</Path>
-      <Path>ToolbarIconsCP</Path>
+      <Path>[CP] BetterChests</Path>
+      <Path>[CP] Garbage Day</Path>
+      <Path>[CP] GarbageDay</Path>
+      <Path>[CP] Helpful Spouses</Path>
+      <Path>[CP] HelpfulSpouses</Path>
+      <Path>[CP] Sprite Patcher</Path>
+      <Path>[CP] SpritePatcher</Path>
+      <Path>[CP] Toolbar Icons</Path>
+      <Path>[CP] ToolbarIcons</Path>
       <Path>build</Path>
     </attachedFolders>
     <explicitIncludes />
