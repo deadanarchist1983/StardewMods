@@ -19,6 +19,7 @@ internal sealed class AssetHandler : BaseService
     /// <param name="gameContentHelper">Dependency used for loading game assets.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
+    /// <param name="modContentHelper">Dependency used for accessing mod content.</param>
     /// <param name="themeHelper">Dependency used for swapping palettes.</param>
     public AssetHandler(
         IDataHelper dataHelper,
@@ -26,6 +27,7 @@ internal sealed class AssetHandler : BaseService
         IGameContentHelper gameContentHelper,
         ILog log,
         IManifest manifest,
+        IModContentHelper modContentHelper,
         IThemeHelper themeHelper)
         : base(log, manifest)
     {
@@ -36,7 +38,9 @@ internal sealed class AssetHandler : BaseService
         this.IconTexturePath = this.ModId + "/Icons";
         this.TabTexturePath = this.ModId + "/Tabs/Texture";
         this.TabDataPath = this.ModId + "/Tabs";
-        themeHelper.AddAssets([this.IconTexturePath, this.TabTexturePath]);
+
+        themeHelper.AddAsset(this.IconTexturePath, modContentHelper.Load<IRawTextureData>("assets/icons.png"));
+        themeHelper.AddAsset(this.TabTexturePath, modContentHelper.Load<IRawTextureData>("assets/tabs.png"));
 
         // Events
         eventSubscriber.Subscribe<AssetRequestedEventArgs>(this.OnAssetRequested);
@@ -68,18 +72,6 @@ internal sealed class AssetHandler : BaseService
         if (e.Name.IsEquivalentTo(this.HslTexturePath))
         {
             e.LoadFromModFile<Texture2D>("assets/hue.png", AssetLoadPriority.Exclusive);
-            return;
-        }
-
-        if (e.Name.IsEquivalentTo(this.IconTexturePath))
-        {
-            e.LoadFromModFile<Texture2D>("assets/icons.png", AssetLoadPriority.Exclusive);
-            return;
-        }
-
-        if (e.Name.IsEquivalentTo(this.TabTexturePath))
-        {
-            e.LoadFromModFile<Texture2D>("assets/tabs.png", AssetLoadPriority.Exclusive);
             return;
         }
 

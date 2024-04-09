@@ -9,6 +9,7 @@
 ### Changed
 
 * When configuring chests, it will show the chest being configured.
+* Updated for FauxCore api changes.
 
 ### Fixed
 
