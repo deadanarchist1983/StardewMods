@@ -1,5 +1,11 @@
 # Easy Access Change Log
 
+### 2.1.3 (Unreleased)
+
+### Changed
+
+* Updated for FauxCore api changes.
+
 ### 2.1.2 (March 25, 2024)
 
 ### Fixed
