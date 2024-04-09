@@ -4,7 +4,6 @@ using HarmonyLib;
 using SimpleInjector;
 using StardewModdingAPI.Events;
 using StardewMods.BetterChests.Framework.Interfaces;
-using StardewMods.BetterChests.Framework.Models;
 using StardewMods.BetterChests.Framework.Services;
 using StardewMods.BetterChests.Framework.Services.Factory;
 using StardewMods.BetterChests.Framework.Services.Features;
@@ -48,9 +47,6 @@ public sealed class ModEntry : Mod
         this.container.RegisterInstance(this.Helper.Reflection);
         this.container.RegisterInstance(this.Helper.Translation);
 
-        this.container.RegisterInstance<Func<CategorizeOption>>(this.GetCategorizeOption);
-        this.container.RegisterInstance<Func<Dictionary<string, InventoryTabData>>>(this.GetInventoryTabData);
-        this.container.RegisterInstance<Func<IModConfig>>(this.GetConfig);
         this.container.RegisterSingleton<AssetHandler>();
         this.container.RegisterSingleton<AutomateIntegration>();
         this.container.RegisterSingleton<BetterCraftingIntegration>();
@@ -73,6 +69,9 @@ public sealed class ModEntry : Mod
         this.container.RegisterSingleton<ProxyChestFactory>();
         this.container.RegisterSingleton<StatusEffectManager>();
         this.container.RegisterSingleton<ToolbarIconsIntegration>();
+
+        this.container.RegisterInstance<Func<CategorizeOption>>(this.container.GetInstance<CategorizeOption>);
+        this.container.RegisterInstance<Func<IModConfig>>(this.container.GetInstance<IModConfig>);
 
         this.container.Register<CategorizeOption>();
 
@@ -104,15 +103,4 @@ public sealed class ModEntry : Mod
         var configManager = this.container.GetInstance<ConfigManager>();
         configManager.Init();
     }
-
-    private IModConfig GetConfig() => this.container.GetInstance<IModConfig>();
-
-    private Dictionary<string, InventoryTabData> GetInventoryTabData()
-    {
-        var assetHandler = this.container.GetInstance<AssetHandler>();
-        var gameContentHelper = this.container.GetInstance<IGameContentHelper>();
-        return gameContentHelper.Load<Dictionary<string, InventoryTabData>>(assetHandler.TabDataPath);
-    }
-
-    private CategorizeOption GetCategorizeOption() => this.container.GetInstance<CategorizeOption>();
 }

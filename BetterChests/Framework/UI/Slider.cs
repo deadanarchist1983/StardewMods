@@ -61,13 +61,20 @@ internal sealed class Slider
         var height = this.area.Height / steps;
         for (var step = 0; step < steps; ++step)
         {
-            this.bars[step] = new ClickableComponent(new Rectangle(0, 0, area.Width, height), string.Empty)
-            {
-                myID = step + 4343,
-                upNeighborID = step > 0 ? step + 4343 - 1 : -1,
-                downNeighborID = step < steps - 1 ? step + 4343 + 1 : -1,
-            };
+            this.bars[step] =
+                new ClickableComponent(
+                    new Rectangle(area.X, area.Y + (step * height), area.Width, height),
+                    string.Empty)
+                {
+                    myID = step + 4343,
+                    upNeighborID = step > 0 ? step + 4343 - 1 : -1,
+                    downNeighborID = step < steps - 1 ? step + 4343 + 1 : -1,
+                };
         }
+
+        // Initialize selected
+        var y = this.getMethod().Remap(Slider.Unit, this.track);
+        this.selected = this.GetSelected(y);
     }
 
     /// <summary>Gets or sets a value indicating whether the slider is currently being held or not.</summary>
@@ -129,27 +136,6 @@ internal sealed class Slider
         }
 
         this.UpdateShade();
-    }
-
-    /// <summary>Moves the slider to the specified coordinate.</summary>
-    /// <param name="xPosition">The x-coordinate to move to.</param>
-    /// <param name="yPosition">The y-coordinate to move to.</param>
-    public void MoveTo(int xPosition, int yPosition)
-    {
-        this.area.X = xPosition;
-        this.area.Y = yPosition;
-        this.track.Minimum = this.area.Top;
-        this.track.Maximum = this.area.Bottom;
-        var height = this.area.Height / this.bars.Length;
-        for (var step = 0; step < this.bars.Length; ++step)
-        {
-            this.bars[step].bounds.X = this.area.X;
-            this.bars[step].bounds.Y = this.area.Y + (step * height);
-        }
-
-        // Initialize selected
-        var y = this.getMethod().Remap(Slider.Unit, this.track);
-        this.selected = this.GetSelected(y);
     }
 
     private int GetSelected(int mouseY = 0)
