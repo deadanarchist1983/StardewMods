@@ -6,14 +6,14 @@ using StardewModdingAPI.Events;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Services;
 using StardewMods.Common.Services.Integrations.FauxCore;
+using StardewMods.FauxCore.Framework.Models;
 
 /// <inheritdoc cref="IThemeHelper" />
 internal sealed class ThemeHelper : BaseService, IThemeHelper
 {
-    private readonly Dictionary<IAssetName, Texture2D> cachedTextures = new();
     private readonly IGameContentHelper gameContentHelper;
     private readonly Dictionary<Color, Color> paletteSwap = new();
-    private readonly Dictionary<IAssetName, IRawTextureData> trackedAssets = [];
+    private readonly Dictionary<IAssetName, ManagedTexture> trackedAssets = [];
 
     private readonly Dictionary<Point[], Color> vanillaPalette = new()
     {
@@ -58,13 +58,15 @@ internal sealed class ThemeHelper : BaseService, IThemeHelper
     }
 
     /// <inheritdoc />
-    public void AddAsset(string path, IRawTextureData data)
+    public IManagedTexture AddAsset(string path, IRawTextureData data)
     {
-        var key = this.gameContentHelper.ParseAssetName(path);
-        if (!this.trackedAssets.TryAdd(key, data))
+        var managedTexture = new ManagedTexture(this.gameContentHelper, path, data);
+        if (!this.trackedAssets.TryAdd(managedTexture.Name, managedTexture))
         {
-            this.Log.Trace("Error, conflicting key {0} found in ThemeHelper. Asset not added.", key.Name);
+            this.Log.Trace("Error, conflicting key {0} found in ThemeHelper. Asset not added.", managedTexture.Name);
         }
+
+        return managedTexture;
     }
 
     private void InitializePalette()
@@ -96,9 +98,9 @@ internal sealed class ThemeHelper : BaseService, IThemeHelper
             return;
         }
 
-        this.cachedTextures.Clear();
-        foreach (var assetName in this.trackedAssets.Keys)
+        foreach (var (assetName, managedTexture) in this.trackedAssets)
         {
+            managedTexture.InvalidateCache();
             this.gameContentHelper.InvalidateCache(assetName);
         }
     }
@@ -116,7 +118,7 @@ internal sealed class ThemeHelper : BaseService, IThemeHelper
 
     private void OnAssetRequested(AssetRequestedEventArgs e)
     {
-        if (!this.trackedAssets.TryGetValue(e.NameWithoutLocale, out var texture))
+        if (!this.trackedAssets.TryGetValue(e.NameWithoutLocale, out var managedTexture))
         {
             return;
         }
@@ -124,26 +126,21 @@ internal sealed class ThemeHelper : BaseService, IThemeHelper
         e.LoadFrom(
             () =>
             {
-                if (this.cachedTextures.TryGetValue(e.NameWithoutLocale, out var cachedTexture))
-                {
-                    return cachedTexture;
-                }
-
+                var rawTexture = managedTexture.RawData;
                 if (this.paletteSwap.Any())
                 {
-                    for (var index = 0; index < texture.Data.Length; ++index)
+                    for (var index = 0; index < rawTexture.Data.Length; ++index)
                     {
-                        if (this.paletteSwap.TryGetValue(texture.Data[index], out var newColor))
+                        if (this.paletteSwap.TryGetValue(rawTexture.Data[index], out var newColor))
                         {
-                            texture.Data[index] = newColor;
+                            rawTexture.Data[index] = newColor;
                         }
                     }
                 }
 
-                cachedTexture = new Texture2D(Game1.spriteBatch.GraphicsDevice, texture.Width, texture.Height);
-                cachedTexture.SetData(texture.Data);
-                this.cachedTextures.Add(e.NameWithoutLocale, cachedTexture);
-                return cachedTexture;
+                var texture = new Texture2D(Game1.spriteBatch.GraphicsDevice, rawTexture.Width, rawTexture.Height);
+                texture.SetData(rawTexture.Data);
+                return texture;
             },
             AssetLoadPriority.Medium);
     }
