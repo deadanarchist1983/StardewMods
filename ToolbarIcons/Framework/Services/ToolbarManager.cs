@@ -27,7 +27,6 @@ internal sealed class ToolbarManager : BaseService
     private readonly ContentPatcherIntegration contentPatcherIntegration;
     private readonly PerScreen<string> currentHoverText = new();
     private readonly IEventManager eventManager;
-    private readonly IGameContentHelper gameContentHelper;
     private readonly IInputHelper inputHelper;
     private readonly PerScreen<ComponentArea> lastArea = new(() => ComponentArea.Custom);
     private readonly PerScreen<ClickableComponent> lastButton = new();
@@ -43,7 +42,6 @@ internal sealed class ToolbarManager : BaseService
     /// <param name="configManager">Dependency used for accessing config data.</param>
     /// <param name="contentPatcherIntegration">Dependency used for integration with Content Patcher.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
-    /// <param name="gameContentHelper">Dependency used for loading game assets.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="log">Dependency used for monitoring and logging.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
@@ -54,7 +52,6 @@ internal sealed class ToolbarManager : BaseService
         ConfigManager configManager,
         ContentPatcherIntegration contentPatcherIntegration,
         IEventManager eventManager,
-        IGameContentHelper gameContentHelper,
         IInputHelper inputHelper,
         ILog log,
         IManifest manifest,
@@ -67,7 +64,6 @@ internal sealed class ToolbarManager : BaseService
         this.configManager = configManager;
         this.contentPatcherIntegration = contentPatcherIntegration;
         this.eventManager = eventManager;
-        this.gameContentHelper = gameContentHelper;
         this.inputHelper = inputHelper;
         this.log = log;
         this.reflectionHelper = reflectionHelper;
@@ -95,10 +91,10 @@ internal sealed class ToolbarManager : BaseService
 
     /// <summary>Adds an icon next to the <see cref="Toolbar" />.</summary>
     /// <param name="id">A unique identifier for the icon.</param>
-    /// <param name="texturePath">The path to the texture icon.</param>
+    /// <param name="getTexture">Get method for the texture.</param>
     /// <param name="sourceRect">The source rectangle of the icon.</param>
     /// <param name="hoverText">Text to appear when hovering over the icon.</param>
-    public void AddToolbarIcon(string id, string texturePath, Rectangle? sourceRect, string? hoverText) =>
+    public void AddToolbarIcon(string id, Func<Texture2D> getTexture, Rectangle? sourceRect, string? hoverText) =>
         this.actionQueue.Enqueue(
             () =>
             {
@@ -123,7 +119,7 @@ internal sealed class ToolbarManager : BaseService
                     id,
                     new ClickableTextureComponent(
                         new Rectangle(0, 0, 32, 32),
-                        this.gameContentHelper.Load<Texture2D>(texturePath),
+                        getTexture(),
                         sourceRect ?? new Rectangle(0, 0, 16, 16),
                         2f)
                     {
@@ -277,7 +273,7 @@ internal sealed class ToolbarManager : BaseService
         foreach (var component in this.components.Values.Where(component => component.visible))
         {
             e.SpriteBatch.Draw(
-                this.gameContentHelper.Load<Texture2D>(this.assetHandler.IconPath),
+                this.assetHandler.Icons.Value,
                 new Vector2(component.bounds.X, component.bounds.Y),
                 new Rectangle(0, 0, 16, 16),
                 Color.White,

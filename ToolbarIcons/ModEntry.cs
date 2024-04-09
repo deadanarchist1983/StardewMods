@@ -35,6 +35,7 @@ public sealed class ModEntry : Mod
         new ToolbarIconsApi(
             mod,
             this.container.GetInstance<IEventSubscriber>(),
+            this.container.GetInstance<IGameContentHelper>(),
             this.container.GetInstance<ILog>(),
             this.container.GetInstance<ToolbarManager>());
 

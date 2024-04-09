@@ -62,7 +62,7 @@ internal sealed class ToolbarIconOption : BaseComplexOption
 
             // Arrows
             spriteBatch.Draw(
-                this.assetHandler.Arrows,
+                this.assetHandler.Arrows.Value,
                 pos + new Vector2(0, 0),
                 new Rectangle(0, 0, 8, 8),
                 Color.White * (this.index > 0 ? 1f : 0.5f),
@@ -73,7 +73,7 @@ internal sealed class ToolbarIconOption : BaseComplexOption
                 1f);
 
             spriteBatch.Draw(
-                this.assetHandler.Arrows,
+                this.assetHandler.Arrows.Value,
                 pos + new Vector2(96, 0),
                 new Rectangle(8, 0, 8, 8),
                 Color.White * (this.index < this.components.Count - 1 ? 1f : 0.5f),

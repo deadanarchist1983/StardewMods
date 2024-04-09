@@ -1,6 +1,5 @@
 namespace StardewMods.ToolbarIcons.Framework.Services;
 
-using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI.Events;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Services;
@@ -10,8 +9,11 @@ using StardewMods.ToolbarIcons.Framework.Models;
 /// <summary>Responsible for handling assets provided by this mod.</summary>
 internal sealed class AssetHandler : BaseService<AssetHandler>
 {
-    private readonly string arrowsPath;
+    /// <summary>Represents the width of the default icon texture.</summary>
+    public const int IconTextureWidth = 128;
+
     private readonly string dataPath;
+
     private readonly IGameContentHelper gameContentHelper;
 
     /// <summary>Initializes a new instance of the <see cref="AssetHandler" /> class.</summary>
@@ -32,26 +34,29 @@ internal sealed class AssetHandler : BaseService<AssetHandler>
     {
         // Init
         this.gameContentHelper = gameContentHelper;
-        this.arrowsPath = this.ModId + "/Arrows";
-        this.IconPath = this.ModId + "/Icons";
         this.dataPath = this.ModId + "/Data";
 
-        themeHelper.AddAsset(this.IconPath, modContentHelper.Load<IRawTextureData>("assets/icons.png"));
-        themeHelper.AddAsset(this.arrowsPath, modContentHelper.Load<IRawTextureData>("assets/arrows.png"));
+        this.Arrows = themeHelper.AddAsset(
+            this.ModId + "/Arrows",
+            modContentHelper.Load<IRawTextureData>("assets/arrows.png"));
+
+        this.Icons = themeHelper.AddAsset(
+            this.ModId + "/Icons",
+            modContentHelper.Load<IRawTextureData>("assets/icons.png"));
 
         // Events
         eventSubscriber.Subscribe<AssetRequestedEventArgs>(this.OnAssetRequested);
     }
 
-    /// <summary>Gets the arrows texture.</summary>
-    public Texture2D Arrows => this.gameContentHelper.Load<Texture2D>(this.arrowsPath);
+    /// <summary>Gets the managed arrows texture.</summary>
+    public IManagedTexture Arrows { get; }
 
     /// <summary>Gets the toolbar icons data model.</summary>
     public Dictionary<string, ToolbarIconData> Data =>
         this.gameContentHelper.Load<Dictionary<string, ToolbarIconData>>(this.dataPath);
 
     /// <summary>Gets the game path to the icons texture.</summary>
-    public string IconPath { get; }
+    public IManagedTexture Icons { get; }
 
     private void OnAssetRequested(AssetRequestedEventArgs e)
     {
