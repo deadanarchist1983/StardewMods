@@ -47,7 +47,7 @@ internal sealed class DispenseService : BaseService<DispenseService>
 
         toolbarIconsIntegration.Api.AddToolbarIcon(
             this.UniqueId,
-            assetHandler.IconTexturePath,
+            assetHandler.IconTexture.Name.BaseName,
             new Rectangle(16, 0, 16, 16),
             I18n.Button_DispenseInputs_Name());
 

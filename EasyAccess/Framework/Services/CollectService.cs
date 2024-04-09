@@ -47,7 +47,7 @@ internal sealed class CollectService : BaseService<CollectService>
 
         toolbarIconsIntegration.Api.AddToolbarIcon(
             this.UniqueId,
-            assetHandler.IconTexturePath,
+            assetHandler.IconTexture.Name.BaseName,
             new Rectangle(0, 0, 16, 16),
             I18n.Button_CollectOutputs_Name());
 

@@ -12,14 +12,11 @@ internal sealed class AssetHandler : BaseService
     /// <param name="modContentHelper">Dependency used for accessing mod content.</param>
     /// <param name="themeHelper">Dependency used for swapping palettes.</param>
     public AssetHandler(ILog log, IManifest manifest, IModContentHelper modContentHelper, IThemeHelper themeHelper)
-        : base(log, manifest)
-    {
-        // Init
-        this.IconTexturePath = this.ModId + "/Icons";
+        : base(log, manifest) =>
+        this.IconTexture = themeHelper.AddAsset(
+            this.ModId + "/Icons",
+            modContentHelper.Load<IRawTextureData>("assets/icons.png"));
 
-        themeHelper.AddAsset(this.IconTexturePath, modContentHelper.Load<IRawTextureData>("assets/icons.png"));
-    }
-
-    /// <summary>Gets the game path to the icon texture.</summary>
-    public string IconTexturePath { get; }
+    /// <summary>Gets the managed icon texture.</summary>
+    public IManagedTexture IconTexture { get; }
 }
