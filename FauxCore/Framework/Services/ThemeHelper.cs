@@ -61,7 +61,7 @@ internal sealed class ThemeHelper : BaseService, IThemeHelper
     public void AddAsset(string path, IRawTextureData data)
     {
         var key = this.gameContentHelper.ParseAssetName(path);
-        if (this.trackedAssets.TryAdd(key, data))
+        if (!this.trackedAssets.TryAdd(key, data))
         {
             this.Log.Trace("Error, conflicting key {0} found in ThemeHelper. Asset not added.", key.Name);
         }
