@@ -5,12 +5,13 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewMods.Common.Services.Integrations.GenericModConfigMenu;
 using StardewMods.ToolbarIcons.Framework.Interfaces;
 using StardewMods.ToolbarIcons.Framework.Models;
+using StardewMods.ToolbarIcons.Framework.Services;
 using StardewValley.Menus;
 
 /// <summary>Represents a complex menu option for arranging toolbar icons.</summary>
 internal sealed class ToolbarIconOption : BaseComplexOption
 {
-    private readonly Texture2D arrows;
+    private readonly AssetHandler assetHandler;
     private readonly Dictionary<string, ClickableTextureComponent> components;
     private readonly IInputHelper inputHelper;
     private readonly IModConfig modConfig;
@@ -20,20 +21,20 @@ internal sealed class ToolbarIconOption : BaseComplexOption
     private int index;
 
     /// <summary>Initializes a new instance of the <see cref="ToolbarIconOption" /> class.</summary>
+    /// <param name="assetHandler">Dependency used for handling assets.</param>
     /// <param name="components">Dependency used for the toolbar icon components.</param>
-    /// <param name="gameContentHelper">Dependency used for loading game assets.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
     public ToolbarIconOption(
+        AssetHandler assetHandler,
         Dictionary<string, ClickableTextureComponent> components,
-        IGameContentHelper gameContentHelper,
         IInputHelper inputHelper,
         IModConfig modConfig)
     {
+        this.assetHandler = assetHandler;
         this.components = components;
         this.inputHelper = inputHelper;
         this.modConfig = modConfig;
-        this.arrows = gameContentHelper.Load<Texture2D>("furyx639.ToolbarIcons/Arrows");
     }
 
     /// <inheritdoc />
@@ -61,7 +62,7 @@ internal sealed class ToolbarIconOption : BaseComplexOption
 
             // Arrows
             spriteBatch.Draw(
-                this.arrows,
+                this.assetHandler.Arrows,
                 pos + new Vector2(0, 0),
                 new Rectangle(0, 0, 8, 8),
                 Color.White * (this.index > 0 ? 1f : 0.5f),
@@ -72,7 +73,7 @@ internal sealed class ToolbarIconOption : BaseComplexOption
                 1f);
 
             spriteBatch.Draw(
-                this.arrows,
+                this.assetHandler.Arrows,
                 pos + new Vector2(96, 0),
                 new Rectangle(8, 0, 8, 8),
                 Color.White * (this.index < this.components.Count - 1 ? 1f : 0.5f),

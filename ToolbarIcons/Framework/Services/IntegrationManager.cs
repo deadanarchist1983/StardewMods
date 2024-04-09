@@ -10,7 +10,6 @@ using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewMods.Common.Services.Integrations.ToolbarIcons;
 using StardewMods.ToolbarIcons.Framework.Enums;
 using StardewMods.ToolbarIcons.Framework.Interfaces;
-using StardewMods.ToolbarIcons.Framework.Models;
 using StardewMods.ToolbarIcons.Framework.Models.Events;
 using StardewValley.Menus;
 
@@ -266,8 +265,7 @@ internal sealed class IntegrationManager : BaseService
         }
 
         // Load Data Integrations
-        foreach (var (_, data) in this.gameContentHelper.Load<Dictionary<string, ToolbarIconData>>(
-            this.assetHandler.DataPath))
+        foreach (var (_, data) in this.assetHandler.Data)
         {
             switch (data.Type)
             {

@@ -8,6 +8,7 @@ using StardewMods.Common.Enums;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Models.Events;
 using StardewMods.Common.Services;
+using StardewMods.Common.Services.Integrations.ContentPatcher;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewMods.Common.Services.Integrations.ToolbarIcons;
 using StardewMods.ToolbarIcons.Framework.Models;
@@ -19,9 +20,11 @@ using StardewValley.Menus;
 /// <summary>Service for handling the toolbar icons on the screen.</summary>
 internal sealed class ToolbarManager : BaseService
 {
+    private readonly Queue<Action> actionQueue = new();
     private readonly AssetHandler assetHandler;
     private readonly Dictionary<string, ClickableTextureComponent> components;
     private readonly ConfigManager configManager;
+    private readonly ContentPatcherIntegration contentPatcherIntegration;
     private readonly PerScreen<string> currentHoverText = new();
     private readonly IEventManager eventManager;
     private readonly IGameContentHelper gameContentHelper;
@@ -32,10 +35,13 @@ internal sealed class ToolbarManager : BaseService
     private readonly ILog log;
     private readonly IReflectionHelper reflectionHelper;
 
+    private int ticks;
+
     /// <summary>Initializes a new instance of the <see cref="ToolbarManager" /> class.</summary>
     /// <param name="assetHandler">Dependency used for handling assets.</param>
     /// <param name="components">Dependency used for the toolbar icon components.</param>
     /// <param name="configManager">Dependency used for accessing config data.</param>
+    /// <param name="contentPatcherIntegration">Dependency used for integration with Content Patcher.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="gameContentHelper">Dependency used for loading game assets.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
@@ -46,6 +52,7 @@ internal sealed class ToolbarManager : BaseService
         AssetHandler assetHandler,
         Dictionary<string, ClickableTextureComponent> components,
         ConfigManager configManager,
+        ContentPatcherIntegration contentPatcherIntegration,
         IEventManager eventManager,
         IGameContentHelper gameContentHelper,
         IInputHelper inputHelper,
@@ -58,6 +65,7 @@ internal sealed class ToolbarManager : BaseService
         this.assetHandler = assetHandler;
         this.components = components;
         this.configManager = configManager;
+        this.contentPatcherIntegration = contentPatcherIntegration;
         this.eventManager = eventManager;
         this.gameContentHelper = gameContentHelper;
         this.inputHelper = inputHelper;
@@ -67,6 +75,14 @@ internal sealed class ToolbarManager : BaseService
         // Events
         eventManager.Subscribe<ConfigChangedEventArgs<DefaultConfig>>(this.OnConfigChanged);
         eventManager.Subscribe<ToolbarIconsLoadedEventArgs>(this.OnToolbarIconsLoaded);
+
+        if (!contentPatcherIntegration.IsLoaded)
+        {
+            eventManager.Subscribe<UpdateTickedEventArgs>(this.OnUpdateTicked);
+            return;
+        }
+
+        eventManager.Subscribe<ConditionsApiReadyEventArgs>(this.OnConditionsApiReady);
     }
 
     private static bool ShowToolbar =>
@@ -82,57 +98,61 @@ internal sealed class ToolbarManager : BaseService
     /// <param name="texturePath">The path to the texture icon.</param>
     /// <param name="sourceRect">The source rectangle of the icon.</param>
     /// <param name="hoverText">Text to appear when hovering over the icon.</param>
-    public void AddToolbarIcon(string id, string texturePath, Rectangle? sourceRect, string? hoverText)
-    {
-        var icon = this.configManager.Icons.FirstOrDefault(
-            icon => icon.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
-
-        if (icon is null)
-        {
-            icon = new ToolbarIcon(id);
-            var config = this.configManager.GetNew();
-            config.Icons.Add(icon);
-            this.configManager.Save(config);
-        }
-
-        if (this.components.ContainsKey(id))
-        {
-            return;
-        }
-
-        this.log.Trace("Adding icon: {0}", id);
-        this.components.Add(
-            id,
-            new ClickableTextureComponent(
-                new Rectangle(0, 0, 32, 32),
-                this.gameContentHelper.Load<Texture2D>(texturePath),
-                sourceRect ?? new Rectangle(0, 0, 16, 16),
-                2f)
+    public void AddToolbarIcon(string id, string texturePath, Rectangle? sourceRect, string? hoverText) =>
+        this.actionQueue.Enqueue(
+            () =>
             {
-                hoverText = hoverText,
-                name = id,
-                visible = icon.Enabled,
+                var icon = this.configManager.Icons.FirstOrDefault(
+                    icon => icon.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+
+                if (icon is null)
+                {
+                    icon = new ToolbarIcon(id);
+                    var config = this.configManager.GetNew();
+                    config.Icons.Add(icon);
+                    this.configManager.Save(config);
+                }
+
+                if (this.components.ContainsKey(id))
+                {
+                    return;
+                }
+
+                this.log.Trace("Adding icon: {0}", id);
+                this.components.Add(
+                    id,
+                    new ClickableTextureComponent(
+                        new Rectangle(0, 0, 32, 32),
+                        this.gameContentHelper.Load<Texture2D>(texturePath),
+                        sourceRect ?? new Rectangle(0, 0, 16, 16),
+                        2f)
+                    {
+                        hoverText = hoverText,
+                        name = id,
+                        visible = icon.Enabled,
+                    });
             });
-    }
 
     /// <summary>Removes an icon.</summary>
     /// <param name="id">A unique identifier for the icon.</param>
-    public void RemoveToolbarIcon(string id)
-    {
-        var toolbarIcon = this.configManager.Icons.FirstOrDefault(
-            toolbarIcon => toolbarIcon.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+    public void RemoveToolbarIcon(string id) =>
+        this.actionQueue.Enqueue(
+            () =>
+            {
+                var toolbarIcon = this.configManager.Icons.FirstOrDefault(
+                    toolbarIcon => toolbarIcon.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
 
-        if (toolbarIcon is null)
-        {
-            return;
-        }
+                if (toolbarIcon is null)
+                {
+                    return;
+                }
 
-        this.log.Trace("Removing icon: {0}", id);
-        var config = this.configManager.GetNew();
-        config.Icons.Remove(toolbarIcon);
-        this.configManager.Save(config);
-        this.components.Remove(id);
-    }
+                this.log.Trace("Removing icon: {0}", id);
+                var config = this.configManager.GetNew();
+                config.Icons.Remove(toolbarIcon);
+                this.configManager.Save(config);
+                this.components.Remove(id);
+            });
 
     private bool TryGetButton([NotNullWhen(true)] out ClickableComponent? button)
     {
@@ -154,6 +174,22 @@ internal sealed class ToolbarManager : BaseService
         button = this.lastButton.Value = buttons.First();
         return true;
     }
+
+    private void OnUpdateTicked(UpdateTickedEventArgs e)
+    {
+        if (!this.contentPatcherIntegration.IsLoaded && ++this.ticks < 2)
+        {
+            return;
+        }
+
+        while (this.actionQueue.TryDequeue(out var action))
+        {
+            action();
+        }
+    }
+
+    private void OnConditionsApiReady(ConditionsApiReadyEventArgs e) =>
+        this.eventManager.Subscribe<UpdateTickedEventArgs>(this.OnUpdateTicked);
 
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {

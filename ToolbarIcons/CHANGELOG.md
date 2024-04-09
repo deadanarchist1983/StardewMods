@@ -1,5 +1,11 @@
 # Toolbar Icons Change Log
 
+## 2.7.1 (Unreleased)
+
+### Changed
+
+* Updated for FauxCore api changes.
+
 ## 2.7.0 (April 6, 2024)
 
 ### Added
