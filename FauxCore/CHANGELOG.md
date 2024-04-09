@@ -1,5 +1,11 @@
 # FauxCore Change Log
 
+## 1.1.0 (Unreleased)
+
+### Changed
+
+* Updated Api for Theme Helper.
+
 ## 1.0.2 (April 2, 2024)
 
 ### Changed
