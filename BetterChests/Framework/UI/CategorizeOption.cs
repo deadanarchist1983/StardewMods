@@ -4,6 +4,7 @@ using System.Globalization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewMods.BetterChests.Framework.Models;
+using StardewMods.BetterChests.Framework.Services;
 using StardewMods.BetterChests.Framework.Services.Factory;
 using StardewMods.BetterChests.Framework.Services.Transient;
 using StardewMods.Common.Services.Integrations.GenericModConfigMenu;
@@ -49,21 +50,21 @@ internal sealed class CategorizeOption : BaseComplexOption
     private HashSet<string> tags = [];
 
     /// <summary>Initializes a new instance of the <see cref="CategorizeOption" /> class.</summary>
+    /// <param name="assetHandler">Dependency used for handling assets.</param>
     /// <param name="gameContentHelper">Dependency used for loading game assets.</param>
-    /// <param name="getInventoryTabData">Function which returns inventory tab data.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="itemMatcherFactory">Dependency used for getting an ItemMatcher.</param>
     /// <param name="translationHelper">Dependency used for accessing translations.</param>
     public CategorizeOption(
+        AssetHandler assetHandler,
         IGameContentHelper gameContentHelper,
-        Func<Dictionary<string, InventoryTabData>> getInventoryTabData,
         IInputHelper inputHelper,
         ItemMatcherFactory itemMatcherFactory,
         ITranslationHelper translationHelper)
     {
         this.gameContentHelper = gameContentHelper;
         this.inputHelper = inputHelper;
-        this.inventoryTabData = getInventoryTabData();
+        this.inventoryTabData = assetHandler.TabData;
         this.itemMatcherForFiltering = itemMatcherFactory.GetDefault();
         this.itemMatcherForSorting = itemMatcherFactory.GetDefault();
         this.translationHelper = translationHelper;

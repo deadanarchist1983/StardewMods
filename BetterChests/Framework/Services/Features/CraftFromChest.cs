@@ -109,7 +109,7 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
         {
             this.toolbarIconsIntegration.Api.AddToolbarIcon(
                 this.Id,
-                this.assetHandler.IconTexturePath,
+                this.assetHandler.Icons.Name.BaseName,
                 new Rectangle(32, 0, 16, 16),
                 I18n.Button_CraftFromChest_Name());
 

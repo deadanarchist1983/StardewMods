@@ -40,7 +40,6 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     /// <param name="configManager">Dependency used for accessing config data.</param>
     /// <param name="containerFactory">Dependency used for accessing containers.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
-    /// <param name="gameContentHelper">Dependency used for loading game assets.</param>
     /// <param name="genericModConfigMenuIntegration">Dependency for Generic Mod Config Menu integration.</param>
     /// <param name="getCategorizeOption">Gets a new instance of <see cref="CategorizeOption" />.</param>
     /// <param name="harmony">Dependency used to patch external code.</param>
@@ -53,7 +52,6 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         ConfigManager configManager,
         ContainerFactory containerFactory,
         IEventManager eventManager,
-        IGameContentHelper gameContentHelper,
         GenericModConfigMenuIntegration genericModConfigMenuIntegration,
         Func<CategorizeOption> getCategorizeOption,
         Harmony harmony,
@@ -76,7 +74,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         this.configButton = new PerScreen<ClickableTextureComponent>(
             () => new ClickableTextureComponent(
                 new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
-                gameContentHelper.Load<Texture2D>(assetHandler.IconTexturePath),
+                assetHandler.Icons.Value,
                 new Rectangle(0, 0, 16, 16),
                 Game1.pixelZoom)
             {
