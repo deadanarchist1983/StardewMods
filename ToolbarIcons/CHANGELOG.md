@@ -1,6 +1,6 @@
 # Toolbar Icons Change Log
 
-## 2.7.1 (Unreleased)
+## 2.7.1 (April 9, 2024)
 
 ### Changed
 
@@ -45,7 +45,8 @@
 
 ### Changed
 
-* New icons created by [Tai](https://www.nexusmods.com/stardewvalley/users/92060238):
+* New icons created
+  by [Tai](https://www.nexusmods.com/stardewvalley/users/92060238):
     * Always Scroll Map
     * To-Dew
     * Daily Quests

@@ -1,6 +1,6 @@
 # Crystalline Junimo Chest Change Log
 
-## 1.0.3 (Unreleased)
+## 1.0.3 (April 7, 2024)
 
 ### Fixed
 
