@@ -290,10 +290,12 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             return;
         }
 
+        this.Log.Info("{0}: Configuring {1}", this.Id, container);
+
         var gmcm = this.genericModConfigMenuIntegration.Api;
         var defaultOptions = new DefaultStorageOptions();
         var options = new TemporaryStorageOptions(container.Options, defaultOptions);
-        this.genericModConfigMenuIntegration.Register(options.Reset, options.Save);
+        this.genericModConfigMenuIntegration.Register(options.Reset, Save);
 
         gmcm.AddSectionTitle(this.manifest, () => container.DisplayName, container.ToString);
 
@@ -325,5 +327,12 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
 
         gmcm.OpenModMenu(this.manifest);
         this.lastContainer.Value = container;
+        return;
+
+        void Save()
+        {
+            this.Log.Trace("Config changed: {0}\n{1}", container, options);
+            options.Save();
+        }
     }
 }

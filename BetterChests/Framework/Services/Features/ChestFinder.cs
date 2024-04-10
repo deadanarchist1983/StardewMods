@@ -291,7 +291,7 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
             }
         }
 
-        this.Log.Trace("{0}: Found {1} chests", this.Id, this.pointers.Value.Count);
+        this.Log.Info("{0}: Found {1} chests", this.Id, this.pointers.Value.Count);
         this.currentIndex.Value = 0;
     }
 }

@@ -188,7 +188,7 @@ internal sealed class CarryChest : BaseFeature<CarryChest>
         }
 
         // Remove chest from world
-        this.Log.Trace(
+        this.Log.Info(
             "{0}: Grabbed chest from {1} at ({2}, {3})",
             this.Id,
             Game1.player.currentLocation.Name,

@@ -1,5 +1,7 @@
 namespace StardewMods.BetterChests.Framework.Models.StorageOptions;
 
+using System.Globalization;
+using System.Text;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 
@@ -80,4 +82,57 @@ internal class DefaultStorageOptions : IStorageOptions
 
     /// <inheritdoc />
     public virtual string GetDisplayName() => I18n.Storage_Other_Name();
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        StringBuilder sb = new();
+
+        sb.AppendLine(CultureInfo.InvariantCulture, $"Display Name: {this.GetDisplayName()}");
+
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.AutoOrganize)}: {this.AutoOrganize}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CarryChest)}: {this.CarryChest}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CategorizeChest)}: {this.CategorizeChest}");
+        sb.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"{nameof(this.CategorizeChestAutomatically)}: {this.CategorizeChestAutomatically}");
+
+        sb.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"{nameof(this.CategorizeChestMethod)}: {this.CategorizeChestMethod}");
+
+        sb.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"{nameof(this.CategorizeChestTags)}: {string.Join(", ", this.CategorizeChestTags)}");
+
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ChestFinder)}: {this.ChestFinder}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ChestInfo)}: {this.ChestInfo}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CollectItems)}: {this.CollectItems}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ConfigureChest)}: {this.ConfigureChest}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CraftFromChest)}: {this.CraftFromChest}");
+        sb.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"{nameof(this.CraftFromChestDistance)}: {this.CraftFromChestDistance}");
+
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.HslColorPicker)}: {this.HslColorPicker}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.InventoryTabs)}: {this.InventoryTabs}");
+        sb.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"{nameof(this.InventoryTabList)}: {string.Join(", ", this.InventoryTabList)}");
+
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.OpenHeldChest)}: {this.OpenHeldChest}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ResizeChest)}: {this.ResizeChest}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.SearchItems)}: {this.SearchItems}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ShopFromChest)}: {this.ShopFromChest}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.StashToChest)}: {this.StashToChest}");
+        sb.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"{nameof(this.StashToChestDistance)}: {this.StashToChestDistance}");
+
+        sb.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"{nameof(this.StashToChestPriority)}: {this.StashToChestPriority}");
+
+        return sb.ToString();
+    }
 }

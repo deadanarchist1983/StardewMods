@@ -115,7 +115,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         gmcm.AddParagraph(this.manifest, I18n.Section_Storages_Description);
 
         gmcm.AddPage(this.manifest, "Main", I18n.Section_Main_Name);
-        this.AddMainOption(config.DefaultOptions);
+        this.AddMainOption(config.DefaultOptions, true);
 
         gmcm.AddPage(this.manifest, "Controls", I18n.Section_Controls_Name);
         this.AddControls(config.Controls);
@@ -130,7 +130,8 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
 
     /// <summary>Adds the main options to the config menu.</summary>
     /// <param name="options">The storage options to add.</param>
-    public void AddMainOption(IStorageOptions options)
+    /// <param name="isDefault">Indicates if these are the default options being set.</param>
+    public void AddMainOption(IStorageOptions options, bool isDefault = false)
     {
         if (!this.genericModConfigMenuIntegration.IsLoaded)
         {
@@ -140,7 +141,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         var gmcm = this.genericModConfigMenuIntegration.Api;
 
         // Auto Organize
-        if (options == this.DefaultOptions || this.DefaultOptions.AutoOrganize != FeatureOption.Disabled)
+        if (isDefault || this.DefaultOptions.AutoOrganize != FeatureOption.Disabled)
         {
             gmcm.AddTextOption(
                 this.manifest,
@@ -155,7 +156,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         }
 
         // Carry Chest
-        if (options == this.DefaultOptions || this.DefaultOptions.CarryChest != FeatureOption.Disabled)
+        if (isDefault || this.DefaultOptions.CarryChest != FeatureOption.Disabled)
         {
             gmcm.AddTextOption(
                 this.manifest,
@@ -170,7 +171,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         }
 
         // Categorize Chest
-        if (options == this.DefaultOptions || this.DefaultOptions.CategorizeChest != FeatureOption.Disabled)
+        if (isDefault || this.DefaultOptions.CategorizeChest != FeatureOption.Disabled)
         {
             gmcm.AddTextOption(
                 this.manifest,
@@ -207,7 +208,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         }
 
         // Chest Finder
-        if (options == this.DefaultOptions || this.DefaultOptions.ChestFinder != FeatureOption.Disabled)
+        if (isDefault || this.DefaultOptions.ChestFinder != FeatureOption.Disabled)
         {
             gmcm.AddTextOption(
                 this.manifest,
@@ -222,7 +223,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         }
 
         // Chest Info
-        if (options == this.DefaultOptions || this.DefaultOptions.ChestInfo != FeatureOption.Disabled)
+        if (isDefault || this.DefaultOptions.ChestInfo != FeatureOption.Disabled)
         {
             gmcm.AddTextOption(
                 this.manifest,
@@ -237,7 +238,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         }
 
         // Collect Items
-        if (options == this.DefaultOptions || this.DefaultOptions.CollectItems != FeatureOption.Disabled)
+        if (isDefault || this.DefaultOptions.CollectItems != FeatureOption.Disabled)
         {
             gmcm.AddTextOption(
                 this.manifest,
@@ -252,7 +253,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         }
 
         // Configure Chest
-        if (options == this.DefaultOptions || this.DefaultOptions.ConfigureChest != FeatureOption.Disabled)
+        if (isDefault || this.DefaultOptions.ConfigureChest != FeatureOption.Disabled)
         {
             gmcm.AddTextOption(
                 this.manifest,
@@ -267,7 +268,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         }
 
         // Craft from Chest
-        if (options == this.DefaultOptions || this.DefaultOptions.CraftFromChest != RangeOption.Disabled)
+        if (isDefault || this.DefaultOptions.CraftFromChest != RangeOption.Disabled)
         {
             gmcm.AddNumberOption(
                 this.manifest,
@@ -315,7 +316,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         }
 
         // HSL Color Picker
-        if (options == this.DefaultOptions || this.DefaultOptions.HslColorPicker != FeatureOption.Disabled)
+        if (isDefault || this.DefaultOptions.HslColorPicker != FeatureOption.Disabled)
         {
             gmcm.AddTextOption(
                 this.manifest,
@@ -330,7 +331,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         }
 
         // Inventory Tabs
-        if (options == this.DefaultOptions || this.DefaultOptions.InventoryTabs != FeatureOption.Disabled)
+        if (isDefault || this.DefaultOptions.InventoryTabs != FeatureOption.Disabled)
         {
             gmcm.AddTextOption(
                 this.manifest,
@@ -345,7 +346,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         }
 
         // Open Held Chest
-        if (options == this.DefaultOptions || this.DefaultOptions.OpenHeldChest != FeatureOption.Disabled)
+        if (isDefault || this.DefaultOptions.OpenHeldChest != FeatureOption.Disabled)
         {
             gmcm.AddTextOption(
                 this.manifest,
@@ -360,7 +361,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         }
 
         // Resize Chest
-        if (options == this.DefaultOptions || this.DefaultOptions.ResizeChest != CapacityOption.Disabled)
+        if (isDefault || this.DefaultOptions.ResizeChest != CapacityOption.Disabled)
         {
             gmcm.AddTextOption(
                 this.manifest,
@@ -375,7 +376,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         }
 
         // Search Items
-        if (options == this.DefaultOptions || this.DefaultOptions.SearchItems != FeatureOption.Disabled)
+        if (isDefault || this.DefaultOptions.SearchItems != FeatureOption.Disabled)
         {
             gmcm.AddTextOption(
                 this.manifest,
@@ -390,7 +391,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         }
 
         // Stash to Chest
-        if (options == this.DefaultOptions || this.DefaultOptions.StashToChest != RangeOption.Disabled)
+        if (isDefault || this.DefaultOptions.StashToChest != RangeOption.Disabled)
         {
             gmcm.AddNumberOption(
                 this.manifest,
@@ -701,5 +702,5 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
     }
 
     private void OnConfigChanged(ConfigChangedEventArgs<DefaultConfig> e) =>
-        this.log.Trace("Config changed: {0}", e.Config);
+        this.log.Trace("Config changed:\n{0}", e.Config);
 }

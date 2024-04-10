@@ -8,12 +8,14 @@
 
 ### Changed
 
+* Added more logging of configuration changes.
 * When configuring chests, it will show the chest being configured.
 * Updated for FauxCore api changes.
 
 ### Fixed
 
 * Config options will now be reflected without restarting the game.
+* Disabled config options will show on the main menu.
 * Workbenches were not using the Workbench range.
 * Prevent swapping chest with carried chests.
 * Fixed Satchels not opening after exiting from menu.

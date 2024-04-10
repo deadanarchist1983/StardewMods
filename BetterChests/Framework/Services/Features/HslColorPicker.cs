@@ -57,18 +57,6 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
     /// <inheritdoc />
     public override bool ShouldBeActive => this.Config.DefaultOptions.HslColorPicker != FeatureOption.Disabled;
 
-    private int ColorSelection
-    {
-        get => this.itemGrabMenuManager.CurrentMenu?.chestColorPicker?.colorSelection ?? 0;
-        set
-        {
-            if (this.itemGrabMenuManager.CurrentMenu?.chestColorPicker is not null)
-            {
-                this.itemGrabMenuManager.CurrentMenu.chestColorPicker.colorSelection = value;
-            }
-        }
-    }
-
     /// <inheritdoc />
     protected override void Activate()
     {

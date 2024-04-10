@@ -106,6 +106,7 @@ internal sealed class OpenHeldChest : BaseFeature<OpenHeldChest>
             return;
         }
 
+        this.Log.Info("{0}: Opening held chest {1}", this.Id, container);
         this.inputHelper.Suppress(e.Button);
         container.Mutex?.RequestLock(
             () =>
