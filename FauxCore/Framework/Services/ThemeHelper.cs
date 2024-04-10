@@ -18,13 +18,13 @@ internal sealed class ThemeHelper : BaseService, IThemeHelper
     private readonly Dictionary<Point[], Color> vanillaPalette = new()
     {
         // Outside edge of frame
-        { [new Point(17, 369), new Point(16, 376), new Point(31, 380)], new Color(91, 43, 42) },
+        { [new Point(17, 369), new Point(104, 469), new Point(118, 483)], new Color(91, 43, 42) },
 
         // Inner frame color
-        { [new Point(18, 370), new Point(29, 371), new Point(17, 380)], new Color(220, 123, 5) },
+        { [new Point(18, 370), new Point(105, 471), new Point(116, 483)], new Color(220, 123, 5) },
 
         // Dark shade of inner frame
-        { [new Point(19, 371), new Point(29, 376), new Point(18, 382)], new Color(177, 78, 5) },
+        { [new Point(19, 371), new Point(106, 475), new Point(115, 475)], new Color(177, 78, 5) },
 
         // Dark shade of menu background
         { [new Point(20, 372), new Point(28, 378), new Point(22, 383)], new Color(228, 174, 110) },

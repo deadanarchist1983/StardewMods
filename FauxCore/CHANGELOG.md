@@ -5,6 +5,7 @@
 ### Changed
 
 * Updated Api for Theme Helper.
+* Collect multiple samples for palette swaps.
 
 ## 1.0.2 (April 2, 2024)
 
