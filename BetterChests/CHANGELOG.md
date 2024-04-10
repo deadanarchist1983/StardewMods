@@ -15,6 +15,7 @@
 
 * Config options will now be reflected without restarting the game.
 * Workbenches were not using the Workbench range.
+* Prevent swapping chest with carried chests.
 * Fixed Satchels not opening after exiting from menu.
 
 ## 2.10.1 (April 6, 2024)

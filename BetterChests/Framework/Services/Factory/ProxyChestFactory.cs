@@ -45,6 +45,12 @@ internal sealed class ProxyChestFactory : BaseService<ProxyChestFactory>
             postfix: new HarmonyMethod(typeof(ProxyChestFactory), nameof(ProxyChestFactory.Item_canStackWith_postfix)));
 
         harmony.Patch(
+            AccessTools.DeclaredMethod(typeof(Item), nameof(Item.GetContextTags)),
+            postfix: new HarmonyMethod(
+                typeof(ProxyChestFactory),
+                nameof(ProxyChestFactory.Item_GetContextTags_postfix)));
+
+        harmony.Patch(
             AccessTools.DeclaredMethod(typeof(SObject), nameof(SObject.drawInMenu)),
             postfix: new HarmonyMethod(typeof(ProxyChestFactory), nameof(ProxyChestFactory.Object_drawInMenu_postfix)));
 
@@ -253,6 +259,16 @@ internal sealed class ProxyChestFactory : BaseService<ProxyChestFactory>
         }
 
         __result = !ProxyChestFactory.instance.IsProxy(__instance) && !ProxyChestFactory.instance.IsProxy(other);
+    }
+
+    [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]
+    [SuppressMessage("StyleCop", "SA1313", Justification = "Harmony")]
+    private static void Item_GetContextTags_postfix(Item __instance, ref HashSet<string> __result)
+    {
+        if (ProxyChestFactory.instance.TryGetProxy(__instance, out var chest) && chest.GetItemsForPlayer().Any())
+        {
+            __result.Remove("swappable_chest");
+        }
     }
 
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]

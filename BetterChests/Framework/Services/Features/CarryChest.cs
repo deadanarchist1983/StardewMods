@@ -145,9 +145,21 @@ internal sealed class CarryChest : BaseFeature<CarryChest>
             return;
         }
 
-        if (!Game1.currentLocation.Objects.TryGetValue(e.Cursor.GrabTile, out var obj)
-            || obj is not Chest chest
-            || !this.containerFactory.TryGetOneFromLocation(Game1.currentLocation, e.Cursor.GrabTile, out var container)
+        if (!Game1.currentLocation.Objects.TryGetValue(e.Cursor.GrabTile, out var obj) || obj is not Chest chest)
+        {
+            return;
+        }
+
+        // Allow swap behavior
+        if (Game1.player.CurrentItem?.HasContextTag("swappable_chest") == true
+            && chest.HasContextTag("swappable_chest")
+            && Game1.player.CurrentItem.Name.Contains("Chest")
+            && (Game1.player.CurrentItem.Name.Contains("Big") || !chest.ItemId.Contains("Big")))
+        {
+            return;
+        }
+
+        if (!this.containerFactory.TryGetOneFromLocation(Game1.currentLocation, e.Cursor.GrabTile, out var container)
             || container.Options.CarryChest != FeatureOption.Enabled)
         {
             return;
