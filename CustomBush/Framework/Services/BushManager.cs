@@ -11,6 +11,7 @@ using StardewMods.Common.Services;
 using StardewMods.Common.Services.Integrations.CustomBush;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewMods.CustomBush.Framework.Models;
+using StardewValley.Characters;
 using StardewValley.Extensions;
 using StardewValley.Internal;
 using StardewValley.Objects;
@@ -95,6 +96,10 @@ internal sealed class BushManager : BaseService
             postfix: new HarmonyMethod(
                 typeof(BushManager),
                 nameof(BushManager.IndoorPot_performObjectDropInAction_postfix)));
+
+        harmony.Patch(
+            AccessTools.DeclaredMethod(typeof(JunimoHarvester), nameof(JunimoHarvester.update)),
+            transpiler: new HarmonyMethod(typeof(BushManager), nameof(BushManager.JunimoHarvester_update_transpiler)));
 
         harmony.Patch(
             AccessTools.DeclaredMethod(typeof(SObject), nameof(SObject.IsTeaSapling)),
@@ -417,6 +422,39 @@ internal sealed class BushManager : BaseService
         return ItemRegistry.Create(itemId, amount, quality, allowNull);
     }
 
+    private static Item CreateItem(Item i, Bush bush)
+    {
+        // Return cached item
+        if (bush.modData.TryGetValue(BushManager.instance.modDataItem, out var itemId)
+            && !string.IsNullOrWhiteSpace(itemId))
+        {
+            if (!bush.modData.TryGetValue(BushManager.instance.modDataQuality, out var quality)
+                || !int.TryParse(quality, out var itemQuality))
+            {
+                itemQuality = 1;
+            }
+
+            if (!bush.modData.TryGetValue(BushManager.instance.modDataStack, out var stack)
+                || !int.TryParse(stack, out var itemStack))
+            {
+                itemStack = 1;
+            }
+
+            return ItemRegistry.Create(itemId, itemStack, itemQuality);
+        }
+
+        // Try to return random item
+        if (bush.modData.TryGetValue(BushManager.instance.modDataId, out var bushId)
+            && BushManager.instance.assetHandler.Data.TryGetValue(bushId, out var bushModel)
+            && BushManager.instance.TryToProduceRandomItem(bush, bushModel, out var item))
+        {
+            return item;
+        }
+
+        // Return vanilla instance
+        return i;
+    }
+
     [SuppressMessage("ReSharper", "SuggestBaseTypeForParameter", Justification = "Harmony")]
     private static void CreateObjectDebris(
         string id,
@@ -428,6 +466,7 @@ internal sealed class BushManager : BaseService
         GameLocation? location,
         Bush bush)
     {
+        // Create cached item
         if (bush.modData.TryGetValue(BushManager.instance.modDataItem, out var itemId)
             && !string.IsNullOrWhiteSpace(itemId))
         {
@@ -458,22 +497,25 @@ internal sealed class BushManager : BaseService
         bush.modData.Remove(BushManager.instance.modDataQuality);
         bush.modData.Remove(BushManager.instance.modDataStack);
 
-        if (!bush.modData.TryGetValue(BushManager.instance.modDataId, out var bushId)
-            || !BushManager.instance.assetHandler.Data.TryGetValue(bushId, out var bushModel)
-            || !BushManager.instance.TryToProduceRandomItem(bush, bushModel, out var item))
+        // Try to create random item
+        if (bush.modData.TryGetValue(BushManager.instance.modDataId, out var bushId)
+            && BushManager.instance.assetHandler.Data.TryGetValue(bushId, out var bushModel)
+            && BushManager.instance.TryToProduceRandomItem(bush, bushModel, out var item))
         {
-            Game1.createObjectDebris(id, xTile, yTile, groundLevel, itemQuality, velocityMultiplier, location);
+            Game1.createObjectDebris(
+                item.QualifiedItemId,
+                xTile,
+                yTile,
+                groundLevel,
+                item.Quality,
+                velocityMultiplier,
+                location);
+
             return;
         }
 
-        Game1.createObjectDebris(
-            item.QualifiedItemId,
-            xTile,
-            yTile,
-            groundLevel,
-            item.Quality,
-            velocityMultiplier,
-            location);
+        // Create vanilla item
+        Game1.createObjectDebris(id, xTile, yTile, groundLevel, itemQuality, velocityMultiplier, location);
     }
 
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]
@@ -524,6 +566,20 @@ internal sealed class BushManager : BaseService
 
         __result = true;
     }
+
+    private static IEnumerable<CodeInstruction>
+        JunimoHarvester_update_transpiler(IEnumerable<CodeInstruction> instructions) =>
+        new CodeMatcher(instructions)
+            .MatchEndForward(
+                new CodeMatch(OpCodes.Ldstr, "(O)815"),
+                new CodeMatch(OpCodes.Ldc_I4_1),
+                new CodeMatch(OpCodes.Ldc_I4_0),
+                new CodeMatch(OpCodes.Ldc_I4_0))
+            .Advance(2)
+            .Insert(
+                new CodeInstruction(OpCodes.Ldloc_S, (short)7),
+                CodeInstruction.Call(typeof(BushManager), nameof(BushManager.CreateItem)))
+            .InstructionEnumeration();
 
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]
     [SuppressMessage("ReSharper", "RedundantAssignment", Justification = "Harmony")]
