@@ -95,7 +95,8 @@ internal sealed class BuildingContainer : BaseContainer<Building>
         }
 
         remaining = null;
-        Game1.getFarm().getShippingBin(Game1.player).Add(item);
+        this.Items.Add(item);
+        Game1.getFarm().lastItemShipped = item;
         return true;
     }
 
