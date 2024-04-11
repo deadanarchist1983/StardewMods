@@ -1,5 +1,11 @@
 # Garbage Day Change Log
 
+## 3.1.6 (April 9, 2024)
+
+### Changed
+
+* Updated for FauxCore api changes.
+
 ## 3.1.5 (April 6, 2024)
 
 ### Fixed

@@ -1,5 +1,11 @@
 # Expanded Storage Change Log
 
+## 3.0.3 (April 9, 2024)
+
+### Changed
+
+* Updated for FauxCore api changes.
+
 ## 3.0.2 (April 2, 2024)
 
 ### Changed
