@@ -3,6 +3,7 @@ namespace StardewMods.BetterChests.Framework.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI.Utilities;
+using StardewMods.BetterChests.Framework.Interfaces;
 using StardewMods.BetterChests.Framework.Services;
 using StardewMods.Common.Models;
 using StardewValley.Menus;
@@ -29,10 +30,22 @@ internal sealed class HslComponent
 
     private Slider? holding;
 
+    /// <summary>Initializes a new instance of the <see cref="HslComponent" /> class.</summary>
+    /// <param name="assetHandler">Dependency used for handling assets.</param>
+    /// <param name="colorPicker">The vanilla color picker component.</param>
+    /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
+    /// <param name="itemGrabMenuManager">Dependency used for managing the item grab menu.</param>
+    /// <param name="modConfig">Dependency used for accessing config data.</param>
+    /// <param name="getColor">Get method for the current color.</param>
+    /// <param name="setColor">Set method for the current color.</param>
+    /// <param name="xPosition">The x-coordinate of the component.</param>
+    /// <param name="yPosition">The y-coordinate of the component.</param>
     public HslComponent(
         AssetHandler assetHandler,
         DiscreteColorPicker colorPicker,
         IInputHelper inputHelper,
+        ItemGrabMenuManager itemGrabMenuManager,
+        IModConfig modConfig,
         Func<Color> getColor,
         Action<Color> setColor,
         int xPosition,
@@ -45,13 +58,18 @@ internal sealed class HslComponent
         this.xPosition = xPosition;
         this.yPosition = yPosition;
 
+        var playerChoiceColor = getColor();
         this.CurrentColor = HslComponent.Transparent;
-        if (colorPicker.colorSelection != 0)
+        if (!playerChoiceColor.Equals(Color.Black))
         {
-            var playerChoiceColor = getColor();
             this.CurrentColor = HslColor.FromColor(playerChoiceColor);
             colorPicker.colorSelection =
                 (playerChoiceColor.R << 0) | (playerChoiceColor.G << 8) | (playerChoiceColor.B << 16);
+
+            if (colorPicker.itemToDrawColored is Chest chest)
+            {
+                chest.playerChoiceColor.Value = playerChoiceColor;
+            }
         }
 
         this.copyArea = new Rectangle(xPosition + 30, yPosition - 4, 36, 36);
@@ -80,7 +98,7 @@ internal sealed class HslComponent
                 this.UpdateColor();
             },
             new Rectangle(xPosition, yPosition + 36, 23, 522),
-            29);
+            modConfig.HslColorPickerHueSteps);
 
         this.saturation = new Slider(
             value => (this.CurrentColor with
@@ -102,7 +120,7 @@ internal sealed class HslComponent
                 this.UpdateColor();
             },
             new Rectangle(xPosition + 32, yPosition + 300, 23, 256),
-            16);
+            modConfig.HslColorPickerSaturationSteps);
 
         this.lightness = new Slider(
             value => (this.CurrentColor with
@@ -117,7 +135,99 @@ internal sealed class HslComponent
                 this.UpdateColor();
             },
             new Rectangle(xPosition + 32, yPosition + 36, 23, 256),
-            16);
+            modConfig.HslColorPickerLightnessSteps);
+
+        if (itemGrabMenuManager.CurrentMenu is null)
+        {
+            return;
+        }
+
+        this.copyComponent.myID = 5554001;
+        this.defaultColorComponent.myID = 5554002;
+        this.hue.SetId(5555000);
+        this.saturation.SetId(5556000);
+        this.lightness.SetId(5557000);
+
+        this.defaultColorComponent.rightNeighborID = this.copyComponent.myID;
+        this.copyComponent.leftNeighborID = this.defaultColorComponent.myID;
+
+        this.defaultColorComponent.downNeighborID = this.hue.Bars[0].myID;
+        this.hue.Bars[0].upNeighborID = this.defaultColorComponent.myID;
+
+        this.copyComponent.downNeighborID = this.lightness.Bars[0].myID;
+        this.lightness.Bars[0].upNeighborID = this.copyComponent.myID;
+
+        this.lightness.Bars[^1].downNeighborID = this.saturation.Bars[0].myID;
+        this.saturation.Bars[0].upNeighborID = this.lightness.Bars[^1].myID;
+
+        var neighborComponents = new List<ClickableComponent>();
+        neighborComponents.AddRange(this.lightness.Bars);
+        neighborComponents.AddRange(this.saturation.Bars);
+
+        var slotsToRight = new List<ClickableComponent>();
+        for (var index = 0; index < itemGrabMenuManager.Top.Capacity; index += itemGrabMenuManager.Top.Columns)
+        {
+            if (itemGrabMenuManager.Top.Menu is not
+                    { } menu
+                || index >= menu.inventory.Count)
+            {
+                continue;
+            }
+
+            slotsToRight.Add(menu.inventory[index]);
+        }
+
+        for (var index = 0; index < itemGrabMenuManager.Bottom.Capacity; index += itemGrabMenuManager.Bottom.Columns)
+        {
+            if (itemGrabMenuManager.Bottom.Menu is not
+                    { } menu
+                || index >= menu.inventory.Count)
+            {
+                continue;
+            }
+
+            slotsToRight.Add(menu.inventory[index]);
+        }
+
+        // Assign right neighbors to hue bars
+        foreach (var component in this.hue.Bars)
+        {
+            var neighborComponent = neighborComponents
+                .OrderBy(c => Math.Abs(c.bounds.Center.Y - component.bounds.Center.Y))
+                .First();
+
+            component.rightNeighborID = neighborComponent.myID;
+        }
+
+        // Assign left and right neighbors to saturation and lightness bars
+        foreach (var component in neighborComponents)
+        {
+            var neighborComponent =
+                this.hue.Bars.OrderBy(c => Math.Abs(c.bounds.Center.Y - component.bounds.Center.Y)).First();
+
+            var slotToRight =
+                slotsToRight.OrderBy(c => Math.Abs(c.bounds.Center.Y - component.bounds.Center.Y)).First();
+
+            component.leftNeighborID = neighborComponent.myID;
+            component.rightNeighborID = slotToRight.myID;
+        }
+
+        // Assign left neighbors to slots
+        foreach (var component in slotsToRight)
+        {
+            var neighborComponent = neighborComponents
+                .OrderByDescending(c => c.bounds.Right)
+                .ThenBy(c => Math.Abs(c.bounds.Center.Y - component.bounds.Center.Y))
+                .First();
+
+            component.leftNeighborID = neighborComponent.myID;
+        }
+
+        itemGrabMenuManager.CurrentMenu.allClickableComponents.Add(this.copyComponent);
+        itemGrabMenuManager.CurrentMenu.allClickableComponents.Add(this.defaultColorComponent);
+        itemGrabMenuManager.CurrentMenu.allClickableComponents.AddRange(this.hue.Bars);
+        itemGrabMenuManager.CurrentMenu.allClickableComponents.AddRange(this.lightness.Bars);
+        itemGrabMenuManager.CurrentMenu.allClickableComponents.AddRange(this.saturation.Bars);
     }
 
     /// <summary>Gets the current hsl color.</summary>
@@ -186,16 +296,6 @@ internal sealed class HslComponent
     /// <param name="spriteBatch">The sprite batch used for drawing.</param>
     public void Draw(SpriteBatch spriteBatch)
     {
-        var isDown = this.inputHelper.IsDown(SButton.MouseLeft) || this.inputHelper.IsSuppressed(SButton.MouseLeft);
-        if (!isDown)
-        {
-            if (this.holding is not null)
-            {
-                this.holding.Holding = false;
-                this.holding = null;
-            }
-        }
-
         // Get Input states
         var (mouseX, mouseY) = Game1.getMousePosition(true);
 
@@ -250,6 +350,16 @@ internal sealed class HslComponent
             this.xPosition,
             this.yPosition - Game1.tileSize - (IClickableMenu.borderWidth / 2),
             local: true);
+
+        var isDown = this.inputHelper.IsDown(SButton.MouseLeft) || this.inputHelper.IsSuppressed(SButton.MouseLeft);
+        if (!isDown)
+        {
+            if (this.holding is not null)
+            {
+                this.holding.Holding = false;
+                this.holding = null;
+            }
+        }
     }
 
     private void UpdateColor()

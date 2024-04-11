@@ -139,14 +139,14 @@ internal sealed class ContainerHandler : BaseService
                 }
 
                 var stack = item.Stack;
-                items.TryAdd(item.Name, 0);
+                items.TryAdd(item.QualifiedItemId, 0);
                 if (!to.TryAdd(item, out var remaining) || !from.TryRemove(item))
                 {
                     return true;
                 }
 
                 var amount = stack - (remaining?.Stack ?? 0);
-                items[item.Name] += amount;
+                items[item.QualifiedItemId] += amount;
                 return true;
             });
 

@@ -31,6 +31,15 @@ internal sealed class DefaultConfig : IModConfig
     public int CraftFromWorkbenchDistance { get; set; } = -1;
 
     /// <inheritdoc />
+    public int HslColorPickerHueSteps { get; set; } = 29;
+
+    /// <inheritdoc />
+    public int HslColorPickerSaturationSteps { get; set; } = 16;
+
+    /// <inheritdoc />
+    public int HslColorPickerLightnessSteps { get; set; } = 16;
+
+    /// <inheritdoc />
     public FilterMethod InventoryTabMethod { get; set; } = FilterMethod.Hidden;
 
     /// <inheritdoc />
@@ -66,6 +75,18 @@ internal sealed class DefaultConfig : IModConfig
         sb.AppendLine(
             CultureInfo.InvariantCulture,
             $"{nameof(this.CraftFromWorkbenchDistance)}: {this.CraftFromWorkbenchDistance}");
+
+        sb.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"{nameof(this.HslColorPickerHueSteps)}: {this.HslColorPickerHueSteps}");
+
+        sb.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"{nameof(this.HslColorPickerSaturationSteps)}: {this.HslColorPickerSaturationSteps}");
+
+        sb.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"{nameof(this.HslColorPickerLightnessSteps)}: {this.HslColorPickerLightnessSteps}");
 
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.InventoryTabMethod)}: {this.InventoryTabMethod}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.LockItem)}: {this.LockItem}");

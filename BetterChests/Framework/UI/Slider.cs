@@ -10,7 +10,6 @@ using StardewValley.Menus;
 internal sealed class Slider
 {
     private static readonly Range<float> Unit = new(0, 1);
-    private readonly ClickableComponent[] bars;
     private readonly Func<float> getMethod;
     private readonly Action<float> setMethod;
     private readonly Func<float, Color> shadeFunction;
@@ -57,11 +56,11 @@ internal sealed class Slider
         this.setMethod = setMethod;
         this.area = area;
         this.track = new Range<int>(area.Top, area.Bottom);
-        this.bars = new ClickableComponent[steps];
+        this.Bars = new ClickableComponent[steps];
         var height = this.area.Height / steps;
         for (var step = 0; step < steps; ++step)
         {
-            this.bars[step] =
+            this.Bars[step] =
                 new ClickableComponent(
                     new Rectangle(area.X, area.Y + (step * height), area.Width, height),
                     string.Empty)
@@ -77,6 +76,9 @@ internal sealed class Slider
         this.selected = this.GetSelected(y);
     }
 
+    /// <summary>Gets the slider bars.</summary>
+    public ClickableComponent[] Bars { get; }
+
     /// <summary>Gets or sets a value indicating whether the slider is currently being held or not.</summary>
     public bool Holding { get; set; }
 
@@ -91,16 +93,16 @@ internal sealed class Slider
         }
         else
         {
-            for (var i = 0; i < this.bars.Length; ++i)
+            for (var i = 0; i < this.Bars.Length; ++i)
             {
-                spriteBatch.Draw(Game1.staminaRect, this.bars[i].bounds, this.shades[i]);
+                spriteBatch.Draw(Game1.staminaRect, this.Bars[i].bounds, this.shades[i]);
             }
         }
 
         // Draw thumb
         spriteBatch.Draw(
             Game1.mouseCursors,
-            new Rectangle(this.bars[this.selected].bounds.Left - 8, this.bars[this.selected].bounds.Center.Y, 20, 16),
+            new Rectangle(this.Bars[this.selected].bounds.Left - 8, this.Bars[this.selected].bounds.Center.Y, 20, 16),
             new Rectangle(412, 495, 5, 4),
             Color.White,
             MathHelper.PiOver2,
@@ -117,6 +119,27 @@ internal sealed class Slider
     {
         this.Holding = this.area.Contains(mouseX, mouseY);
         return this.Holding;
+    }
+
+    /// <summary>Assign the id to components.</summary>
+    /// <param name="startId">The starting id.</param>
+    public void SetId(int startId)
+    {
+        for (var index = 0; index < this.Bars.Length; ++index)
+        {
+            var id = startId + index;
+            this.Bars[index].myID = id;
+
+            if (index > 0)
+            {
+                this.Bars[index].upNeighborID = id - 1;
+            }
+
+            if (index < this.Bars.Length - 1)
+            {
+                this.Bars[index].downNeighborID = id + 1;
+            }
+        }
     }
 
     /// <summary>Updates the slider based on the mouse position.</summary>
@@ -142,19 +165,19 @@ internal sealed class Slider
     {
         mouseY = mouseY == 0 ? this.getMethod().Remap(Slider.Unit, this.track) : this.track.Clamp(mouseY);
 
-        if (mouseY <= this.bars[0].bounds.Bottom)
+        if (mouseY <= this.Bars[0].bounds.Bottom)
         {
             return 0;
         }
 
-        if (mouseY >= this.bars[^1].bounds.Top)
+        if (mouseY >= this.Bars[^1].bounds.Top)
         {
-            return this.bars.Length - 1;
+            return this.Bars.Length - 1;
         }
 
-        for (var i = 1; i < this.bars.Length - 1; ++i)
+        for (var i = 1; i < this.Bars.Length - 1; ++i)
         {
-            if (mouseY >= this.bars[i].bounds.Top)
+            if (mouseY >= this.Bars[i].bounds.Top)
             {
                 continue;
             }
@@ -162,7 +185,7 @@ internal sealed class Slider
             return i - 1;
         }
 
-        return this.bars.Length - 1;
+        return this.Bars.Length - 1;
     }
 
     private void UpdateShade()

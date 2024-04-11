@@ -33,6 +33,7 @@ internal sealed class TemporaryStorageOptions : DefaultStorageOptions
         this.OpenHeldChest = storageOptions.OpenHeldChest;
         this.ResizeChest = storageOptions.ResizeChest;
         this.SearchItems = storageOptions.SearchItems;
+        this.ShopFromChest = this.storageOptions.ShopFromChest;
         this.StashToChest = storageOptions.StashToChest;
         this.StashToChestDistance = storageOptions.StashToChestDistance;
         this.StashToChestPriority = storageOptions.StashToChestPriority;
@@ -65,6 +66,7 @@ internal sealed class TemporaryStorageOptions : DefaultStorageOptions
         this.OpenHeldChest = this.defaultOptions.OpenHeldChest;
         this.ResizeChest = this.defaultOptions.ResizeChest;
         this.SearchItems = this.defaultOptions.SearchItems;
+        this.ShopFromChest = this.defaultOptions.ShopFromChest;
         this.StashToChest = this.defaultOptions.StashToChest;
         this.StashToChestDistance = this.defaultOptions.StashToChestDistance;
         this.StashToChestPriority = this.defaultOptions.StashToChestPriority;
@@ -91,6 +93,7 @@ internal sealed class TemporaryStorageOptions : DefaultStorageOptions
         this.storageOptions.OpenHeldChest = this.OpenHeldChest;
         this.storageOptions.ResizeChest = this.ResizeChest;
         this.storageOptions.SearchItems = this.SearchItems;
+        this.storageOptions.ShopFromChest = this.ShopFromChest;
         this.storageOptions.StashToChest = this.StashToChest;
         this.storageOptions.StashToChestDistance = this.StashToChestDistance;
         this.storageOptions.StashToChestPriority = this.StashToChestPriority;

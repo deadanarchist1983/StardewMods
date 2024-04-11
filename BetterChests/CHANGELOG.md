@@ -1,5 +1,18 @@
 ﻿# Better Chests Change Log
 
+## 2.12.0 (Unreleased)
+
+### Added
+
+* Added controller support for the HSL Color Picker.
+
+### Changed
+
+### Fixed
+
+* Fixed color picker forgetting colors.
+* Fixed shipping bin not showing last item.
+
 ## 2.11.0 (April 9, 2024)
 
 ### Added

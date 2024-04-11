@@ -183,7 +183,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
         if (this.colorPicker.Value is null
-            || e.Button is not (SButton.MouseLeft or SButton.MouseRight or SButton.ControllerA or SButton.ControllerB))
+            || e.Button is not (SButton.MouseLeft or SButton.MouseRight or SButton.ControllerA or SButton.ControllerX))
         {
             return;
         }
@@ -204,9 +204,9 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
 
         switch (e.Button)
         {
-            case SButton.MouseLeft when this.colorPicker.Value.LeftClick(mouseX, mouseY):
-            case SButton.MouseRight when this.colorPicker.Value.RightClick(mouseX, mouseY):
-                this.inputHelper.Suppress(SButton.MouseLeft);
+            case SButton.MouseLeft or SButton.ControllerA when this.colorPicker.Value.LeftClick(mouseX, mouseY):
+            case SButton.MouseRight or SButton.ControllerX when this.colorPicker.Value.RightClick(mouseX, mouseY):
+                this.inputHelper.Suppress(e.Button);
                 Game1.playSound("coin");
                 break;
         }
@@ -229,6 +229,8 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
             this.assetHandler,
             chestColorPicker,
             this.inputHelper,
+            this.itemGrabMenuManager,
+            this.Config,
             () => container.Chest.playerChoiceColor.Value,
             c => container.Chest.playerChoiceColor.Value = c,
             this.itemGrabMenuManager.CurrentMenu.xPositionOnScreen

@@ -70,6 +70,15 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
     public int CraftFromWorkbenchDistance => this.Config.CraftFromWorkbenchDistance;
 
     /// <inheritdoc />
+    public int HslColorPickerHueSteps => this.Config.HslColorPickerHueSteps;
+
+    /// <inheritdoc />
+    public int HslColorPickerSaturationSteps => this.Config.HslColorPickerSaturationSteps;
+
+    /// <inheritdoc />
+    public int HslColorPickerLightnessSteps => this.Config.HslColorPickerLightnessSteps;
+
+    /// <inheritdoc />
     public FilterMethod InventoryTabMethod => this.Config.InventoryTabMethod;
 
     /// <inheritdoc />
@@ -390,6 +399,21 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                 this.localizedTextManager.FormatOption);
         }
 
+        // Shop from Chest
+        if (isDefault || this.DefaultOptions.ShopFromChest != FeatureOption.Disabled)
+        {
+            gmcm.AddTextOption(
+                this.manifest,
+                () => options.ShopFromChest.ToStringFast(),
+                value => options.ShopFromChest = FeatureOptionExtensions.TryParse(value, out var option)
+                    ? option
+                    : FeatureOption.Default,
+                I18n.Config_ShopFromChest_Name,
+                I18n.Config_ShopFromChest_Tooltip,
+                FeatureOptionExtensions.GetNames(),
+                this.localizedTextManager.FormatOption);
+        }
+
         // Stash to Chest
         if (isDefault || this.DefaultOptions.StashToChest != RangeOption.Disabled)
         {
@@ -642,6 +666,37 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
             (int)RangeOption.World,
             1,
             this.localizedTextManager.Distance);
+
+        // Hsl Color Picker Steps
+        gmcm.AddNumberOption(
+            this.manifest,
+            () => config.HslColorPickerHueSteps,
+            value => config.HslColorPickerHueSteps = value,
+            I18n.Config_HslColorPickerHueSteps_Name,
+            I18n.Config_HslColorPickerHueSteps_Tooltip,
+            1,
+            29,
+            1);
+
+        gmcm.AddNumberOption(
+            this.manifest,
+            () => config.HslColorPickerSaturationSteps,
+            value => config.HslColorPickerSaturationSteps = value,
+            I18n.Config_HslColorPickerSaturationSteps_Name,
+            I18n.Config_HslColorPickerSaturationSteps_Tooltip,
+            1,
+            29,
+            1);
+
+        gmcm.AddNumberOption(
+            this.manifest,
+            () => config.HslColorPickerLightnessSteps,
+            value => config.HslColorPickerLightnessSteps = value,
+            I18n.Config_HslColorPickerLightnessSteps_Name,
+            I18n.Config_HslColorPickerSaturationSteps_Tooltip,
+            1,
+            29,
+            1);
 
         // Inventory Tab Method
         gmcm.AddTextOption(
