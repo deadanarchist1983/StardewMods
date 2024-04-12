@@ -367,17 +367,27 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         }
 
         // Resize Chest
-        if (isDefault || this.DefaultOptions.ResizeChest != CapacityOption.Disabled)
+        gmcm.AddNumberOption(
+            this.manifest,
+            () => options.ResizeChestCapacity,
+            value => options.ResizeChestCapacity = value,
+            I18n.Config_ResizeChest_Name,
+            I18n.Config_ResizeChest_Tooltip,
+            -1,
+            2520);
+
+        // Resize Chest Menu
+        if (isDefault || this.DefaultOptions.ResizeChest != ChestMenuOption.Disabled)
         {
             gmcm.AddTextOption(
                 this.manifest,
                 () => options.ResizeChest.ToStringFast(),
-                value => options.ResizeChest = CapacityOptionExtensions.TryParse(value, out var capacity)
+                value => options.ResizeChest = ChestMenuOptionExtensions.TryParse(value, out var capacity)
                     ? capacity
-                    : CapacityOption.Default,
-                I18n.Config_ResizeChest_Name,
-                I18n.Config_ResizeChest_Tooltip,
-                CapacityOptionExtensions.GetNames(),
+                    : ChestMenuOption.Default,
+                I18n.Config_ResizeChestMenu_Name,
+                I18n.Config_ResizeChestMenu_Tooltip,
+                ChestMenuOptionExtensions.GetNames(),
                 this.localizedTextManager.Capacity);
         }
 

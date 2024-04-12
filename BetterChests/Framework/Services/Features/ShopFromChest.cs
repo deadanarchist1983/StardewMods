@@ -183,24 +183,11 @@ internal sealed class ShopFromChest : BaseFeature<ShopFromChest>
         __result = true;
     }
 
-    private static IEnumerable<CodeInstruction> CarpenterMenu_draw_transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        foreach (var instruction in instructions)
-        {
-            if (instruction.Calls(
-                AccessTools.DeclaredMethod(
-                    typeof(Inventory),
-                    nameof(Inventory.ContainsId),
-                    [typeof(string), typeof(int)])))
-            {
-                yield return CodeInstruction.Call(typeof(ShopFromChest), nameof(ShopFromChest.ContainsId));
-            }
-            else
-            {
-                yield return instruction;
-            }
-        }
-    }
+    private static IEnumerable<CodeInstruction>
+        CarpenterMenu_draw_transpiler(IEnumerable<CodeInstruction> instructions) =>
+        instructions.MethodReplacer(
+            AccessTools.DeclaredMethod(typeof(Inventory), nameof(Inventory.ContainsId), [typeof(string), typeof(int)]),
+            AccessTools.DeclaredMethod(typeof(ShopFromChest), nameof(ShopFromChest.ContainsId)));
 
     private static bool ShopMenu_ConsumeTradeItem_prefix(string itemId, int count)
     {

@@ -60,7 +60,10 @@ internal class DefaultStorageOptions : IStorageOptions
     public FeatureOption OpenHeldChest { get; set; } = FeatureOption.Enabled;
 
     /// <inheritdoc />
-    public CapacityOption ResizeChest { get; set; } = CapacityOption.Large;
+    public ChestMenuOption ResizeChest { get; set; } = ChestMenuOption.Large;
+
+    /// <inheritdoc />
+    public int ResizeChestCapacity { get; set; }
 
     /// <inheritdoc />
     public FeatureOption SearchItems { get; set; } = FeatureOption.Enabled;
@@ -122,6 +125,7 @@ internal class DefaultStorageOptions : IStorageOptions
 
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.OpenHeldChest)}: {this.OpenHeldChest}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ResizeChest)}: {this.ResizeChest}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ResizeChestCapacity)}: {this.ResizeChestCapacity}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.SearchItems)}: {this.SearchItems}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ShopFromChest)}: {this.ShopFromChest}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.StashToChest)}: {this.StashToChest}");

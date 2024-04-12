@@ -285,18 +285,13 @@ internal sealed class ModPatches : BaseService
             .GetDeclaredMethods(typeof(ItemRegistry))
             .First(method => method.Name == nameof(ItemRegistry.Create) && !method.IsGenericMethod);
 
-        foreach (var instruction in instructions)
-        {
-            if (instruction.Calls(method))
-            {
-                yield return new CodeInstruction(OpCodes.Ldarg_0);
-                yield return CodeInstruction.Call(typeof(ModPatches), nameof(ModPatches.CreateBushItem));
-            }
-            else
-            {
-                yield return instruction;
-            }
-        }
+        return new CodeMatcher(instructions)
+            .MatchStartForward(new CodeMatch(instruction => instruction.Calls(method)))
+            .RemoveInstruction()
+            .InsertAndAdvance(
+                new CodeInstruction(OpCodes.Ldarg_0),
+                CodeInstruction.Call(typeof(ModPatches), nameof(ModPatches.CreateBushItem)))
+            .InstructionEnumeration();
     }
 
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]
@@ -323,33 +318,28 @@ internal sealed class ModPatches : BaseService
         ___sourceRect.Value = new Rectangle(x, y, 16, 32);
     }
 
-    private static IEnumerable<CodeInstruction> Bush_shake_transpiler(IEnumerable<CodeInstruction> instructions)
-    {
-        foreach (var instruction in instructions)
-        {
-            if (instruction.Calls(
-                AccessTools.DeclaredMethod(
-                    typeof(Game1),
-                    nameof(Game1.createObjectDebris),
-                    [
-                        typeof(string),
-                        typeof(int),
-                        typeof(int),
-                        typeof(int),
-                        typeof(int),
-                        typeof(float),
-                        typeof(GameLocation),
-                    ])))
-            {
-                yield return new CodeInstruction(OpCodes.Ldarg_0);
-                yield return CodeInstruction.Call(typeof(ModPatches), nameof(ModPatches.CreateObjectDebris));
-            }
-            else
-            {
-                yield return instruction;
-            }
-        }
-    }
+    private static IEnumerable<CodeInstruction> Bush_shake_transpiler(IEnumerable<CodeInstruction> instructions) =>
+        new CodeMatcher(instructions)
+            .MatchStartForward(
+                new CodeMatch(
+                    instruction => instruction.Calls(
+                        AccessTools.DeclaredMethod(
+                            typeof(Game1),
+                            nameof(Game1.createObjectDebris),
+                            [
+                                typeof(string),
+                                typeof(int),
+                                typeof(int),
+                                typeof(int),
+                                typeof(int),
+                                typeof(float),
+                                typeof(GameLocation),
+                            ]))))
+            .RemoveInstruction()
+            .InsertAndAdvance(
+                new CodeInstruction(OpCodes.Ldarg_0),
+                CodeInstruction.Call(typeof(ModPatches), nameof(ModPatches.CreateObjectDebris)))
+            .InstructionEnumeration();
 
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]
     [SuppressMessage("StyleCop", "SA1313", Justification = "Harmony")]
@@ -560,27 +550,20 @@ internal sealed class ModPatches : BaseService
         }
     }
 
-    private static IEnumerable<CodeInstruction> Object_placementAction_transpiler(
-        IEnumerable<CodeInstruction> instructions)
-    {
-        foreach (var instruction in instructions)
-        {
-            if (instruction.Is(
-                OpCodes.Newobj,
-                AccessTools.Constructor(
-                    typeof(Bush),
-                    [typeof(Vector2), typeof(int), typeof(GameLocation), typeof(int)])))
-            {
-                yield return instruction;
-                yield return new CodeInstruction(OpCodes.Ldarg_0);
-                yield return CodeInstruction.Call(typeof(ModPatches), nameof(ModPatches.AddModData));
-            }
-            else
-            {
-                yield return instruction;
-            }
-        }
-    }
+    private static IEnumerable<CodeInstruction>
+        Object_placementAction_transpiler(IEnumerable<CodeInstruction> instructions) =>
+        new CodeMatcher(instructions)
+            .MatchEndForward(
+                new CodeMatch(
+                    OpCodes.Newobj,
+                    AccessTools.Constructor(
+                        typeof(Bush),
+                        [typeof(Vector2), typeof(int), typeof(GameLocation), typeof(int)])))
+            .Advance(1)
+            .InsertAndAdvance(
+                new CodeInstruction(OpCodes.Ldarg_0),
+                CodeInstruction.Call(typeof(ModPatches), nameof(ModPatches.AddModData)))
+            .InstructionEnumeration();
 
     private bool TryToProduceRandomItem(Bush bush, CustomBush customBush, [NotNullWhen(true)] out Item? item)
     {

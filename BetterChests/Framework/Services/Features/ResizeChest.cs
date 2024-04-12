@@ -47,7 +47,7 @@ internal sealed class ResizeChest : BaseFeature<ResizeChest>
     }
 
     /// <inheritdoc />
-    public override bool ShouldBeActive => this.Config.DefaultOptions.ResizeChest != CapacityOption.Disabled;
+    public override bool ShouldBeActive => this.Config.DefaultOptions.ResizeChest != ChestMenuOption.Disabled;
 
     /// <inheritdoc />
     protected override void Activate() => this.patchManager.Patch(this.UniqueId);
@@ -61,19 +61,18 @@ internal sealed class ResizeChest : BaseFeature<ResizeChest>
     private static void Chest_GetActualCapacity_postfix(Chest __instance, ref int __result)
     {
         if (!ResizeChest.instance.containerFactory.TryGetOne(__instance, out var container)
-            || container.Options.ResizeChest == CapacityOption.Disabled)
+            || container.Options.ResizeChest == ChestMenuOption.Disabled)
         {
             return;
         }
 
         __result = Math.Max(
             container.Items.Count,
-            container.Options.ResizeChest switch
+            container.Options.ResizeChestCapacity switch
             {
-                CapacityOption.Small => 9,
-                CapacityOption.Medium => 36,
-                CapacityOption.Large => 70,
-                CapacityOption.Unlimited => Math.Max(70, container.Items.Count + 1),
+                < 0 => Math.Max(container.Items.Count + 1, 70),
+                0 => __result,
+                _ => container.Options.ResizeChestCapacity,
             });
     }
 }

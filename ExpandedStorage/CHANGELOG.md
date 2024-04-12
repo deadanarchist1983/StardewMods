@@ -5,6 +5,7 @@
 ### Changed
 
 * Initialize ExpandedStorage DI container on Entry.
+* Update transpilers to use CodeMatchers.
 
 ## 3.0.3 (April 9, 2024)
 

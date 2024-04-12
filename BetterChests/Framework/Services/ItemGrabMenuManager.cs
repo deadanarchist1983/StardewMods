@@ -1,6 +1,7 @@
 namespace StardewMods.BetterChests.Framework.Services;
 
 using System.Globalization;
+using System.Reflection.Emit;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -9,15 +10,17 @@ using StardewModdingAPI.Utilities;
 using StardewMods.BetterChests.Framework.Interfaces;
 using StardewMods.BetterChests.Framework.Models.Events;
 using StardewMods.BetterChests.Framework.Services.Factory;
+using StardewMods.Common.Enums;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Models;
 using StardewMods.Common.Services;
+using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewValley.Menus;
 using StardewValley.Objects;
 
 /// <summary>Manages the item grab menu in the game.</summary>
-internal sealed class ItemGrabMenuManager : BaseService
+internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
 {
     private static ItemGrabMenuManager instance = null!;
 
@@ -30,21 +33,21 @@ internal sealed class ItemGrabMenuManager : BaseService
     private readonly PerScreen<InventoryMenuManager> topMenu;
 
     /// <summary>Initializes a new instance of the <see cref="ItemGrabMenuManager" /> class.</summary>
+    /// <param name="containerFactory">Dependency used for accessing containers.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
-    /// <param name="harmony">Dependency used to patch external code.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
-    /// <param name="containerFactory">Dependency used for accessing containers.</param>
+    /// <param name="patchManager">Dependency used for managing patches.</param>
     public ItemGrabMenuManager(
+        ContainerFactory containerFactory,
         IEventManager eventManager,
         ILog log,
         IManifest manifest,
         IModConfig modConfig,
-        Harmony harmony,
         IInputHelper inputHelper,
-        ContainerFactory containerFactory)
+        IPatchManager patchManager)
         : base(log, manifest)
     {
         // Init
@@ -67,25 +70,42 @@ internal sealed class ItemGrabMenuManager : BaseService
         eventManager.Subscribe<MouseWheelScrolledEventArgs>(this.OnMouseWheelScrolled);
 
         // Patches
-        harmony.Patch(
-            AccessTools.DeclaredMethod(typeof(IClickableMenu), nameof(IClickableMenu.SetChildMenu)),
-            postfix: new HarmonyMethod(
-                typeof(ItemGrabMenuManager),
-                nameof(ItemGrabMenuManager.IClickableMenu_SetChildMenu_postfix)));
+        patchManager.Add(
+            this.UniqueId,
+            new SavedPatch(
+                AccessTools.DeclaredMethod(typeof(IClickableMenu), nameof(IClickableMenu.SetChildMenu)),
+                AccessTools.DeclaredMethod(
+                    typeof(ItemGrabMenuManager),
+                    nameof(ItemGrabMenuManager.IClickableMenu_SetChildMenu_postfix)),
+                PatchType.Postfix),
+            new SavedPatch(
+                AccessTools.DeclaredMethod(
+                    typeof(InventoryMenu),
+                    nameof(InventoryMenu.draw),
+                    [typeof(SpriteBatch), typeof(int), typeof(int), typeof(int)]),
+                AccessTools.DeclaredMethod(
+                    typeof(ItemGrabMenuManager),
+                    nameof(ItemGrabMenuManager.InventoryMenu_draw_prefix)),
+                PatchType.Prefix),
+            new SavedPatch(
+                AccessTools.DeclaredMethod(
+                    typeof(InventoryMenu),
+                    nameof(InventoryMenu.draw),
+                    [typeof(SpriteBatch), typeof(int), typeof(int), typeof(int)]),
+                AccessTools.DeclaredMethod(
+                    typeof(ItemGrabMenuManager),
+                    nameof(ItemGrabMenuManager.InventoryMenu_draw_postfix)),
+                PatchType.Postfix),
+            new SavedPatch(
+                AccessTools
+                    .GetDeclaredConstructors(typeof(ItemGrabMenu))
+                    .Single(ctor => ctor.GetParameters().Length > 5),
+                AccessTools.DeclaredMethod(
+                    typeof(ItemGrabMenuManager),
+                    nameof(ItemGrabMenuManager.ItemGrabMenu_constructor_transpiler)),
+                PatchType.Transpiler));
 
-        harmony.Patch(
-            AccessTools.DeclaredMethod(
-                typeof(InventoryMenu),
-                nameof(InventoryMenu.draw),
-                [typeof(SpriteBatch), typeof(int), typeof(int), typeof(int)]),
-            new HarmonyMethod(typeof(ItemGrabMenuManager), nameof(ItemGrabMenuManager.InventoryMenu_draw_prefix)),
-            new HarmonyMethod(typeof(ItemGrabMenuManager), nameof(ItemGrabMenuManager.InventoryMenu_draw_postfix)));
-
-        harmony.Patch(
-            AccessTools.GetDeclaredConstructors(typeof(ItemGrabMenu)).Single(ctor => ctor.GetParameters().Length > 5),
-            transpiler: new HarmonyMethod(
-                typeof(ItemGrabMenuManager),
-                nameof(ItemGrabMenuManager.ItemGrabMenu_constructor_transpiler)));
+        patchManager.Patch(this.UniqueId);
     }
 
     /// <summary>Gets the current item grab menu.</summary>
@@ -157,28 +177,44 @@ internal sealed class ItemGrabMenuManager : BaseService
         __instance.actualInventory = __state.Container.Items;
     }
 
-    private static IEnumerable<CodeInstruction> ItemGrabMenu_constructor_transpiler(
-        IEnumerable<CodeInstruction> instructions)
-    {
-        var counter = 0;
-        foreach (var instruction in instructions)
-        {
-            if (instruction.Calls(AccessTools.DeclaredMethod(typeof(Chest), nameof(Chest.GetActualCapacity)))
-                && ++counter == 2)
-            {
-                yield return instruction;
-                yield return CodeInstruction.Call(
-                    typeof(ItemGrabMenuManager),
-                    nameof(ItemGrabMenuManager.GetActualCapacity));
-            }
-            else
-            {
-                yield return instruction;
-            }
-        }
-    }
+    private static IEnumerable<CodeInstruction>
+        ItemGrabMenu_constructor_transpiler(IEnumerable<CodeInstruction> instructions) =>
+        new CodeMatcher(instructions)
+            .MatchStartForward(
+                new CodeMatch(
+                    instruction => instruction.Calls(
+                        AccessTools.DeclaredMethod(typeof(Chest), nameof(Chest.GetActualCapacity)))))
+            .Advance(1)
+            .MatchStartForward(
+                new CodeMatch(
+                    instruction => instruction.Calls(
+                        AccessTools.DeclaredMethod(typeof(Chest), nameof(Chest.GetActualCapacity)))))
+            .Advance(1)
+            .InsertAndAdvance(
+                new CodeInstruction(OpCodes.Ldloc_1),
+                new CodeInstruction(
+                    OpCodes.Call,
+                    AccessTools.DeclaredMethod(
+                        typeof(ItemGrabMenuManager),
+                        nameof(ItemGrabMenuManager.GetMenuCapacity))))
+            .InstructionEnumeration();
 
-    private static int GetActualCapacity(int capacity) => capacity > 70 ? 70 : capacity;
+    private static int GetMenuCapacity(int capacity, Chest chest)
+    {
+        if (!ItemGrabMenuManager.instance.containerFactory.TryGetOne(chest, out var container))
+        {
+            return capacity > 70 ? 70 : capacity;
+        }
+
+        return container.Options.ResizeChest switch
+        {
+            ChestMenuOption.Small => 9,
+            ChestMenuOption.Medium => 36,
+            ChestMenuOption.Large => 70,
+            _ when capacity is > 70 or -1 => 70,
+            _ => capacity,
+        };
+    }
 
     private void OnUpdateTicking(UpdateTickingEventArgs e) => this.UpdateMenu();
 

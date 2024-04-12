@@ -134,10 +134,17 @@ internal class ChildStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
-    public CapacityOption ResizeChest
+    public ChestMenuOption ResizeChest
     {
         get => this.Get(storage => storage.ResizeChest);
         set => this.child.ResizeChest = value;
+    }
+
+    /// <inheritdoc />
+    public int ResizeChestCapacity
+    {
+        get => this.child.ResizeChestCapacity;
+        set => this.child.ResizeChestCapacity = value;
     }
 
     /// <inheritdoc />
@@ -187,14 +194,14 @@ internal class ChildStorageOptions : IStorageOptions
     /// <inheritdoc />
     public virtual string GetDisplayName() => this.getParent().GetDisplayName();
 
-    private CapacityOption Get(Func<IStorageOptions, CapacityOption> selector)
+    private ChestMenuOption Get(Func<IStorageOptions, ChestMenuOption> selector)
     {
         var childValue = selector(this.child);
         var parentValue = selector(this.getParent());
         return childValue switch
         {
-            _ when parentValue == CapacityOption.Disabled => CapacityOption.Disabled,
-            CapacityOption.Default => parentValue,
+            _ when parentValue == ChestMenuOption.Disabled => ChestMenuOption.Disabled,
+            ChestMenuOption.Default => parentValue,
             _ => childValue,
         };
     }

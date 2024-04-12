@@ -1,10 +1,15 @@
 ﻿# Better Chests Change Log
 
-## 2.12.1 (Unreleased)
+## 2.13.0 (Unreleased)
+
+## Added
+
+* Allow chest menu to be resized independently of capacity.
 
 ### Changed
 
 * Initialize BetterChests DI container on Entry.
+* Update transpilers to use CodeMatchers.
 
 ## 2.12.0 (April 10, 2024)
 

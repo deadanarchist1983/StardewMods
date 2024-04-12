@@ -5,6 +5,7 @@
 ### Changed
 
 * Initialize CustomBush DI container on Entry.
+* Update transpilers to use CodeMatchers.
 
 ## 1.1.0 (April 10, 2024)
 
