@@ -8,7 +8,9 @@ using StardewMods.BetterChests.Framework.Interfaces;
 using StardewMods.BetterChests.Framework.Models.Containers;
 using StardewMods.BetterChests.Framework.Models.Events;
 using StardewMods.BetterChests.Framework.UI;
+using StardewMods.Common.Enums;
 using StardewMods.Common.Interfaces;
+using StardewMods.Common.Models;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewValley.Menus;
@@ -23,35 +25,66 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
 
     private readonly AssetHandler assetHandler;
     private readonly PerScreen<HslComponent?> colorPicker = new();
-    private readonly Harmony harmony;
     private readonly IInputHelper inputHelper;
     private readonly ItemGrabMenuManager itemGrabMenuManager;
+    private readonly IPatchManager patchManager;
 
     /// <summary>Initializes a new instance of the <see cref="HslColorPicker" /> class.</summary>
     /// <param name="assetHandler">Dependency used for handling assets.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
-    /// <param name="harmony">Dependency used to patch external code.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="itemGrabMenuManager">Dependency used for managing the item grab menu.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
+    /// <param name="patchManager">Dependency used for managing patches.</param>
     public HslColorPicker(
         AssetHandler assetHandler,
         IEventManager eventManager,
-        Harmony harmony,
         IInputHelper inputHelper,
         ItemGrabMenuManager itemGrabMenuManager,
         ILog log,
         IManifest manifest,
-        IModConfig modConfig)
+        IModConfig modConfig,
+        IPatchManager patchManager)
         : base(eventManager, log, manifest, modConfig)
     {
         HslColorPicker.instance = this;
         this.assetHandler = assetHandler;
-        this.harmony = harmony;
         this.inputHelper = inputHelper;
         this.itemGrabMenuManager = itemGrabMenuManager;
+        this.patchManager = patchManager;
+
+        this.patchManager.Add(
+            this.UniqueId,
+            new SavedPatch(
+                AccessTools.DeclaredMethod(typeof(DiscreteColorPicker), nameof(DiscreteColorPicker.draw)),
+                AccessTools.DeclaredMethod(
+                    typeof(HslColorPicker),
+                    nameof(HslColorPicker.DiscreteColorPicker_draw_prefix)),
+                PatchType.Prefix),
+            new SavedPatch(
+                AccessTools.DeclaredMethod(
+                    typeof(DiscreteColorPicker),
+                    nameof(DiscreteColorPicker.getColorFromSelection)),
+                AccessTools.DeclaredMethod(
+                    typeof(HslColorPicker),
+                    nameof(HslColorPicker.DiscreteColorPicker_getColorFromSelection_postfix)),
+                PatchType.Postfix),
+            new SavedPatch(
+                AccessTools.DeclaredMethod(
+                    typeof(DiscreteColorPicker),
+                    nameof(DiscreteColorPicker.getSelectionFromColor)),
+                AccessTools.DeclaredMethod(
+                    typeof(HslColorPicker),
+                    nameof(HslColorPicker.DiscreteColorPicker_getSelectionFromColor_postfix)),
+                PatchType.Postfix),
+            new SavedPatch(
+                AccessTools.DeclaredMethod(typeof(DiscreteColorPicker), nameof(DiscreteColorPicker.receiveLeftClick)),
+                AccessTools.DeclaredMethod(
+                    typeof(HslColorPicker),
+                    nameof(HslColorPicker.DiscreteColorPicker_receiveLeftClick_prefix)),
+                PatchType.Prefix));
     }
 
     /// <inheritdoc />
@@ -66,27 +99,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
         this.Events.Subscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
 
         // Patches
-        this.harmony.Patch(
-            AccessTools.DeclaredMethod(typeof(DiscreteColorPicker), nameof(DiscreteColorPicker.draw)),
-            new HarmonyMethod(typeof(HslColorPicker), nameof(HslColorPicker.DiscreteColorPicker_draw_prefix)));
-
-        this.harmony.Patch(
-            AccessTools.DeclaredMethod(typeof(DiscreteColorPicker), nameof(DiscreteColorPicker.getColorFromSelection)),
-            postfix: new HarmonyMethod(
-                typeof(HslColorPicker),
-                nameof(HslColorPicker.DiscreteColorPicker_getColorFromSelection_postfix)));
-
-        this.harmony.Patch(
-            AccessTools.DeclaredMethod(typeof(DiscreteColorPicker), nameof(DiscreteColorPicker.getSelectionFromColor)),
-            postfix: new HarmonyMethod(
-                typeof(HslColorPicker),
-                nameof(HslColorPicker.DiscreteColorPicker_getSelectionFromColor_postfix)));
-
-        this.harmony.Patch(
-            AccessTools.DeclaredMethod(typeof(DiscreteColorPicker), nameof(DiscreteColorPicker.receiveLeftClick)),
-            new HarmonyMethod(
-                typeof(HslColorPicker),
-                nameof(HslColorPicker.DiscreteColorPicker_receiveLeftClick_prefix)));
+        this.patchManager.Patch(this.UniqueId);
     }
 
     /// <inheritdoc />
@@ -98,27 +111,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
         this.Events.Unsubscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
 
         // Patches
-        this.harmony.Unpatch(
-            AccessTools.DeclaredMethod(typeof(DiscreteColorPicker), nameof(DiscreteColorPicker.draw)),
-            AccessTools.DeclaredMethod(typeof(HslColorPicker), nameof(HslColorPicker.DiscreteColorPicker_draw_prefix)));
-
-        this.harmony.Unpatch(
-            AccessTools.DeclaredMethod(typeof(DiscreteColorPicker), nameof(DiscreteColorPicker.getColorFromSelection)),
-            AccessTools.DeclaredMethod(
-                typeof(HslColorPicker),
-                nameof(HslColorPicker.DiscreteColorPicker_getColorFromSelection_postfix)));
-
-        this.harmony.Unpatch(
-            AccessTools.DeclaredMethod(typeof(DiscreteColorPicker), nameof(DiscreteColorPicker.getSelectionFromColor)),
-            AccessTools.DeclaredMethod(
-                typeof(HslColorPicker),
-                nameof(HslColorPicker.DiscreteColorPicker_getSelectionFromColor_postfix)));
-
-        this.harmony.Unpatch(
-            AccessTools.DeclaredMethod(typeof(DiscreteColorPicker), nameof(DiscreteColorPicker.receiveLeftClick)),
-            AccessTools.DeclaredMethod(
-                typeof(HslColorPicker),
-                nameof(HslColorPicker.DiscreteColorPicker_receiveLeftClick_prefix)));
+        this.patchManager.Unpatch(this.UniqueId);
     }
 
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]

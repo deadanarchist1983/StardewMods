@@ -25,6 +25,7 @@ internal sealed class GarbageCanManager : BaseService<GarbageCanManager>
     private readonly IInputHelper inputHelper;
     private readonly IModConfig modConfig;
     private readonly IReflectedField<Multiplayer> multiplayer;
+    private readonly ToolbarIconsIntegration toolbarIconsIntegration;
 
     /// <summary>Initializes a new instance of the <see cref="GarbageCanManager" /> class.</summary>
     /// <param name="assetHandler">Dependency used for handling assets.</param>
@@ -50,27 +51,32 @@ internal sealed class GarbageCanManager : BaseService<GarbageCanManager>
         this.assetHandler = assetHandler;
         this.inputHelper = inputHelper;
         this.modConfig = modConfig;
+        this.toolbarIconsIntegration = toolbarIconsIntegration;
         this.multiplayer = reflectionHelper.GetField<Multiplayer>(typeof(Game1), "multiplayer");
 
         // Events
+        eventSubscriber.Subscribe<GameLaunchedEventArgs>(this.OnGameLaunched);
         eventSubscriber.Subscribe<MenuChangedEventArgs>(this.OnMenuChanged);
         eventSubscriber.Subscribe<ButtonPressedEventArgs>(this.OnButtonPressed);
         eventSubscriber.Subscribe<DayEndingEventArgs>(this.OnDayEnding);
         eventSubscriber.Subscribe<DayStartedEventArgs>(this.OnDayStarted);
+    }
 
+    private void OnGameLaunched(GameLaunchedEventArgs e)
+    {
         // Integrations
-        if (!toolbarIconsIntegration.IsLoaded)
+        if (!this.toolbarIconsIntegration.IsLoaded)
         {
             return;
         }
 
-        toolbarIconsIntegration.Api.AddToolbarIcon(
+        this.toolbarIconsIntegration.Api.AddToolbarIcon(
             this.Id,
             this.assetHandler.IconTexturePath,
             new Rectangle(0, 0, 16, 16),
             I18n.Button_GarbageFill_Name());
 
-        toolbarIconsIntegration.Api.Subscribe(this.OnIconPressed);
+        this.toolbarIconsIntegration.Api.Subscribe(this.OnIconPressed);
     }
 
     private void OnButtonPressed(ButtonPressedEventArgs e)

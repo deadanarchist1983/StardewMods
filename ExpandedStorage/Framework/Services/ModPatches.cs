@@ -4,6 +4,7 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using StardewModdingAPI.Events;
 using StardewMods.Common.Enums;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Models;
@@ -23,31 +24,39 @@ internal sealed class ModPatches : BaseService
     private const string MiniShippingBinOpenSound = "shwip";
 
     private static ModPatches instance = null!;
+    private readonly AssetHandler assetHandler;
 
-    private readonly IEventPublisher eventPublisher;
-    private readonly StorageManager storageManager;
+    private readonly IEventManager eventManager;
+    private readonly IPatchManager patchManager;
 
     /// <summary>Initializes a new instance of the <see cref="ModPatches" /> class.</summary>
-    /// <param name="eventPublisher">Dependency used for publishing events.</param>
+    /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="patchManager">Dependency used for managing patches.</param>
-    /// <param name="storageManager">Dependency used to handle the objects which should be managed by Expanded Storages.</param>
+    /// <param name="assetHandler">Dependency used to handle the objects which should be managed by Expanded Storages.</param>
     public ModPatches(
-        IEventPublisher eventPublisher,
+        IEventManager eventManager,
         ILog log,
         IManifest manifest,
         IPatchManager patchManager,
-        StorageManager storageManager)
+        AssetHandler assetHandler)
         : base(log, manifest)
     {
         // Init
         ModPatches.instance = this;
-        this.eventPublisher = eventPublisher;
-        this.storageManager = storageManager;
+        this.eventManager = eventManager;
+        this.patchManager = patchManager;
+        this.assetHandler = assetHandler;
 
+        // Events
+        this.eventManager.Subscribe<GameLaunchedEventArgs>(this.OnGameLaunched);
+    }
+
+    private void OnGameLaunched(GameLaunchedEventArgs e)
+    {
         // Patches
-        patchManager.Add(
+        this.patchManager.Add(
             this.ModId,
             new SavedPatch(
                 AccessTools.DeclaredMethod(typeof(Chest), nameof(Chest.checkForAction)),
@@ -138,7 +147,7 @@ internal sealed class ModPatches : BaseService
                 AccessTools.DeclaredMethod(typeof(ModPatches), nameof(ModPatches.Object_placementAction_postfix)),
                 PatchType.Postfix));
 
-        patchManager.Patch(this.ModId);
+        this.patchManager.Patch(this.ModId);
     }
 
     private static IEnumerable<CodeInstruction> Chest_checkForAction_transpiler(
@@ -175,8 +184,7 @@ internal sealed class ModPatches : BaseService
         int y,
         float alpha)
     {
-        if (!__instance.playerChest.Value
-            || !ModPatches.instance.storageManager.TryGetData(__instance, out var storage))
+        if (!__instance.playerChest.Value || !ModPatches.instance.assetHandler.TryGetData(__instance, out var storage))
         {
             return true;
         }
@@ -263,8 +271,7 @@ internal sealed class ModPatches : BaseService
         float alpha,
         bool local)
     {
-        if (!__instance.playerChest.Value
-            || !ModPatches.instance.storageManager.TryGetData(__instance, out var storage))
+        if (!__instance.playerChest.Value || !ModPatches.instance.assetHandler.TryGetData(__instance, out var storage))
         {
             return true;
         }
@@ -318,8 +325,7 @@ internal sealed class ModPatches : BaseService
     [SuppressMessage("StyleCop", "SA1313", Justification = "Harmony")]
     private static void Chest_getLastLidFrame_postfix(Chest __instance, ref int __result)
     {
-        if (!__instance.playerChest.Value
-            || !ModPatches.instance.storageManager.TryGetData(__instance, out var storage))
+        if (!__instance.playerChest.Value || !ModPatches.instance.assetHandler.TryGetData(__instance, out var storage))
         {
             return;
         }
@@ -374,7 +380,7 @@ internal sealed class ModPatches : BaseService
     [SuppressMessage("ReSharper", "SuggestBaseTypeForParameter", Justification = "Harmony")]
     private static string GetSound(Chest chest, string sound)
     {
-        if (!ModPatches.instance.storageManager.TryGetData(chest, out var storage))
+        if (!ModPatches.instance.assetHandler.TryGetData(chest, out var storage))
         {
             return sound;
         }
@@ -434,7 +440,7 @@ internal sealed class ModPatches : BaseService
         Chest.SpecialChestTypes specialChestType,
         Item sourceItem)
     {
-        if (!ModPatches.instance.storageManager.TryGetData(sourceItem, out var storage) || !storage.OpenNearby)
+        if (!ModPatches.instance.assetHandler.TryGetData(sourceItem, out var storage) || !storage.OpenNearby)
         {
             return specialChestType;
         }
@@ -463,7 +469,7 @@ internal sealed class ModPatches : BaseService
         int x,
         int y)
     {
-        if (!__result || !ModPatches.instance.storageManager.TryGetData(__instance, out var storage))
+        if (!__result || !ModPatches.instance.assetHandler.TryGetData(__instance, out var storage))
         {
             return;
         }
@@ -487,12 +493,12 @@ internal sealed class ModPatches : BaseService
         location.Objects[tile] = chest;
         location.playSound(storage.PlaceSound);
         __result = true;
-        ModPatches.instance.eventPublisher.Publish(new ChestCreatedEventArgs(chest, location, tile, storage));
+        ModPatches.instance.eventManager.Publish(new ChestCreatedEventArgs(chest, location, tile, storage));
     }
 
     private static void UpdateColorPicker(ItemGrabMenu itemGrabMenu, Item sourceItem)
     {
-        if (sourceItem is not Chest chest || !ModPatches.instance.storageManager.TryGetData(chest, out var storage))
+        if (sourceItem is not Chest chest || !ModPatches.instance.assetHandler.TryGetData(chest, out var storage))
         {
             return;
         }

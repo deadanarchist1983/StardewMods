@@ -9,7 +9,9 @@ using StardewMods.BetterChests.Framework.Models.Events;
 using StardewMods.BetterChests.Framework.Models.StorageOptions;
 using StardewMods.BetterChests.Framework.Services.Factory;
 using StardewMods.BetterChests.Framework.UI;
+using StardewMods.Common.Enums;
 using StardewMods.Common.Interfaces;
+using StardewMods.Common.Models;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 using StardewMods.Common.Services.Integrations.FauxCore;
@@ -28,12 +30,12 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     private readonly GenericModConfigMenuIntegration genericModConfigMenuIntegration;
 
     private readonly Func<CategorizeOption> getCategorizeOption;
-    private readonly Harmony harmony;
     private readonly IInputHelper inputHelper;
     private readonly PerScreen<bool> isActive = new();
     private readonly ItemGrabMenuManager itemGrabMenuManager;
     private readonly PerScreen<IStorageContainer?> lastContainer = new();
     private readonly IManifest manifest;
+    private readonly IPatchManager patchManager;
 
     /// <summary>Initializes a new instance of the <see cref="ConfigureChest" /> class.</summary>
     /// <param name="assetHandler">Dependency used for handling assets.</param>
@@ -42,11 +44,11 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="genericModConfigMenuIntegration">Dependency for Generic Mod Config Menu integration.</param>
     /// <param name="getCategorizeOption">Gets a new instance of <see cref="CategorizeOption" />.</param>
-    /// <param name="harmony">Dependency used to patch external code.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="itemGrabMenuManager">Dependency used for managing the item grab menu.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
+    /// <param name="patchManager">Dependency used for managing patches.</param>
     public ConfigureChest(
         AssetHandler assetHandler,
         ConfigManager configManager,
@@ -54,11 +56,11 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         IEventManager eventManager,
         GenericModConfigMenuIntegration genericModConfigMenuIntegration,
         Func<CategorizeOption> getCategorizeOption,
-        Harmony harmony,
         IInputHelper inputHelper,
         ItemGrabMenuManager itemGrabMenuManager,
         ILog log,
-        IManifest manifest)
+        IManifest manifest,
+        IPatchManager patchManager)
         : base(eventManager, log, manifest, configManager)
     {
         ConfigureChest.instance = this;
@@ -67,10 +69,10 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         this.genericModConfigMenuIntegration = genericModConfigMenuIntegration;
 
         this.getCategorizeOption = getCategorizeOption;
-        this.harmony = harmony;
         this.inputHelper = inputHelper;
         this.itemGrabMenuManager = itemGrabMenuManager;
         this.manifest = manifest;
+        this.patchManager = patchManager;
         this.configButton = new PerScreen<ClickableTextureComponent>(
             () => new ClickableTextureComponent(
                 new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
@@ -82,6 +84,15 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
                 hoverText = I18n.Button_Configure_Name(),
                 myID = 42069,
             });
+
+        this.patchManager.Add(
+            this.UniqueId,
+            new SavedPatch(
+                AccessTools.DeclaredMethod(typeof(ItemGrabMenu), nameof(ItemGrabMenu.RepositionSideButtons)),
+                AccessTools.DeclaredMethod(
+                    typeof(ConfigureChest),
+                    nameof(ConfigureChest.ItemGrabMenu_RepositionSideButtons_postfix)),
+                PatchType.Postfix));
     }
 
     /// <inheritdoc />
@@ -100,11 +111,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         this.Events.Subscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
 
         // Patches
-        this.harmony.Patch(
-            AccessTools.DeclaredMethod(typeof(ItemGrabMenu), nameof(ItemGrabMenu.RepositionSideButtons)),
-            postfix: new HarmonyMethod(
-                typeof(ConfigureChest),
-                nameof(ConfigureChest.ItemGrabMenu_RepositionSideButtons_postfix)));
+        this.patchManager.Patch(this.UniqueId);
     }
 
     /// <inheritdoc />
@@ -118,11 +125,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         this.Events.Unsubscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
 
         // Patches
-        this.harmony.Unpatch(
-            AccessTools.DeclaredMethod(typeof(ItemGrabMenu), nameof(ItemGrabMenu.RepositionSideButtons)),
-            AccessTools.DeclaredMethod(
-                typeof(ConfigureChest),
-                nameof(ConfigureChest.ItemGrabMenu_RepositionSideButtons_postfix)));
+        this.patchManager.Unpatch(this.UniqueId);
     }
 
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]

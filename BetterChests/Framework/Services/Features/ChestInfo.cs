@@ -16,7 +16,8 @@ internal sealed class ChestInfo : BaseFeature<ChestInfo>
 {
     private const string AlphaNumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-    private static readonly int LineHeight = (int)Game1.smallFont.MeasureString(ChestInfo.AlphaNumeric).Y;
+    private static readonly Lazy<int> LineHeight =
+        new(() => (int)Game1.smallFont.MeasureString(ChestInfo.AlphaNumeric).Y);
 
     private readonly PerScreen<List<Info>> cachedInfo = new(() => []);
     private readonly ContainerFactory containerFactory;
@@ -106,7 +107,7 @@ internal sealed class ChestInfo : BaseFeature<ChestInfo>
             x - IClickableMenu.borderWidth,
             y - (IClickableMenu.borderWidth / 2) - IClickableMenu.spaceToClearTopBorder,
             384,
-            (ChestInfo.LineHeight * this.cachedInfo.Value.Count)
+            (ChestInfo.LineHeight.Value * this.cachedInfo.Value.Count)
             + IClickableMenu.spaceToClearTopBorder
             + (IClickableMenu.borderWidth * 2),
             false,
@@ -134,14 +135,14 @@ internal sealed class ChestInfo : BaseFeature<ChestInfo>
                     new Vector2(x + info.NameWidth, y),
                     Game1.textColor);
 
-                y += ChestInfo.LineHeight;
+                y += ChestInfo.LineHeight.Value;
                 continue;
             }
 
-            y += ChestInfo.LineHeight;
+            y += ChestInfo.LineHeight.Value;
             e.SpriteBatch.DrawString(Game1.smallFont, info.Value, new Vector2(x, y), Game1.textColor);
 
-            y += ChestInfo.LineHeight;
+            y += ChestInfo.LineHeight.Value;
         }
     }
 

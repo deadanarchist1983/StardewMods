@@ -12,8 +12,10 @@ using StardewMods.EasyAccess.Framework.Interfaces;
 /// <summary>Handles dispensing items.</summary>
 internal sealed class DispenseService : BaseService<DispenseService>
 {
+    private readonly AssetHandler assetHandler;
     private readonly IInputHelper inputHelper;
     private readonly IModConfig modConfig;
+    private readonly ToolbarIconsIntegration toolbarIconsIntegration;
 
     /// <summary>Initializes a new instance of the <see cref="DispenseService" /> class.</summary>
     /// <param name="assetHandler">Dependency used for handling assets.</param>
@@ -34,24 +36,30 @@ internal sealed class DispenseService : BaseService<DispenseService>
         : base(log, manifest)
     {
         // Init
+        this.assetHandler = assetHandler;
         this.inputHelper = inputHelper;
         this.modConfig = modConfig;
+        this.toolbarIconsIntegration = toolbarIconsIntegration;
 
         // Events
+        eventSubscriber.Subscribe<GameLaunchedEventArgs>(this.OnGameLaunched);
         eventSubscriber.Subscribe<ButtonsChangedEventArgs>(this.OnButtonsChanged);
+    }
 
-        if (!toolbarIconsIntegration.IsLoaded)
+    private void OnGameLaunched(GameLaunchedEventArgs obj)
+    {
+        if (!this.toolbarIconsIntegration.IsLoaded)
         {
             return;
         }
 
-        toolbarIconsIntegration.Api.AddToolbarIcon(
+        this.toolbarIconsIntegration.Api.AddToolbarIcon(
             this.UniqueId,
-            assetHandler.IconTexture.Name.BaseName,
+            this.assetHandler.IconTexture.Name.BaseName,
             new Rectangle(16, 0, 16, 16),
             I18n.Button_DispenseInputs_Name());
 
-        toolbarIconsIntegration.Api.Subscribe(this.OnIconPressed);
+        this.toolbarIconsIntegration.Api.Subscribe(this.OnIconPressed);
     }
 
     private void DispenseItems()

@@ -1,5 +1,11 @@
 # Custom Bush Change Log
 
+## 1.1.1 (Unreleased)
+
+### Changed
+
+* Initialize CustomBush DI container on Entry.
+
 ## 1.1.0 (April 10, 2024)
 
 ### Added

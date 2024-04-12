@@ -15,7 +15,9 @@ internal sealed class AssetHandler : BaseService
     private readonly IDataHelper dataHelper;
     private readonly IGameContentHelper gameContentHelper;
     private readonly string hslTexturePath;
+    private readonly Lazy<IManagedTexture> icons;
     private readonly string tabDataPath;
+    private readonly Lazy<IManagedTexture> tabs;
 
     private HslColor[]? hslColors;
     private Texture2D? hslTexture;
@@ -45,13 +47,15 @@ internal sealed class AssetHandler : BaseService
         this.hslTexturePath = this.ModId + "/HueBar";
         this.tabDataPath = this.ModId + "/Tabs";
 
-        this.Icons = themeHelper.AddAsset(
-            this.ModId + "/Icons",
-            modContentHelper.Load<IRawTextureData>("assets/icons.png"));
+        this.icons = new Lazy<IManagedTexture>(
+            () => themeHelper.AddAsset(
+                this.ModId + "/Icons",
+                modContentHelper.Load<IRawTextureData>("assets/icons.png")));
 
-        this.Tabs = themeHelper.AddAsset(
-            this.ModId + "/Tabs/Texture",
-            modContentHelper.Load<IRawTextureData>("assets/tabs.png"));
+        this.tabs = new Lazy<IManagedTexture>(
+            () => themeHelper.AddAsset(
+                this.ModId + "/Tabs/Texture",
+                modContentHelper.Load<IRawTextureData>("assets/tabs.png")));
 
         // Events
         eventSubscriber.Subscribe<AssetRequestedEventArgs>(this.OnAssetRequested);
@@ -77,10 +81,10 @@ internal sealed class AssetHandler : BaseService
     public Texture2D HslTexture => this.hslTexture ??= this.gameContentHelper.Load<Texture2D>(this.hslTexturePath);
 
     /// <summary>Gets the managed icons texture.</summary>
-    public IManagedTexture Icons { get; }
+    public IManagedTexture Icons => this.icons.Value;
 
     /// <summary>Gets the managed tabs texture.</summary>
-    public IManagedTexture Tabs { get; }
+    public IManagedTexture Tabs => this.tabs.Value;
 
     /// <summary>Gets the tab data.</summary>
     public Dictionary<string, InventoryTabData> TabData =>

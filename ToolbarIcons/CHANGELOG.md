@@ -1,5 +1,11 @@
 # Toolbar Icons Change Log
 
+## 2.7.2 (Unreleased)
+
+### Changed
+
+* Initialize ToolbarIcons DI container on Entry.
+
 ## 2.7.1 (April 9, 2024)
 
 ### Changed

@@ -1,5 +1,11 @@
 # Garbage Day Change Log
 
+## 3.1.7 (Unreleased)
+
+### Changed
+
+* Initialize GarbageDay DI container on Entry.
+
 ## 3.1.6 (April 9, 2024)
 
 ### Changed

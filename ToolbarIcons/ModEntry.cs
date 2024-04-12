@@ -25,23 +25,6 @@ public sealed class ModEntry : Mod
     {
         // Init
         I18n.Init(this.Helper.Translation);
-
-        // Events
-        this.Helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
-    }
-
-    /// <inheritdoc />
-    public override object GetApi(IModInfo mod) =>
-        new ToolbarIconsApi(
-            mod,
-            this.container.GetInstance<IEventSubscriber>(),
-            this.container.GetInstance<IGameContentHelper>(),
-            this.container.GetInstance<ILog>(),
-            this.container.GetInstance<ToolbarManager>());
-
-    private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
-    {
-        // Init
         this.container = new Container();
 
         // Configuration
@@ -57,8 +40,6 @@ public sealed class ModEntry : Mod
         this.container.RegisterInstance(this.Helper.Reflection);
         this.container.RegisterInstance(this.Helper.Translation);
 
-        this.container.RegisterInstance<Func<ToolbarIconOption>>(this.GetToolbarIconsOption);
-        this.container.RegisterInstance(new Dictionary<string, ClickableTextureComponent>());
         this.container.RegisterSingleton<AssetHandler>();
         this.container.RegisterSingleton<ContentPatcherIntegration>();
         this.container.RegisterSingleton<IEventManager, EventManager>();
@@ -73,6 +54,8 @@ public sealed class ModEntry : Mod
         this.container.RegisterSingleton<IThemeHelper, Themer>();
         this.container.RegisterSingleton<ToolbarManager>();
 
+        this.container.RegisterInstance(new Dictionary<string, ClickableTextureComponent>());
+        this.container.RegisterInstance<Func<ToolbarIconOption>>(this.container.GetInstance<ToolbarIconOption>);
         this.container.Register<ToolbarIconOption>();
 
         this.container.Collection.Register<ICustomIntegration>(
@@ -90,9 +73,23 @@ public sealed class ModEntry : Mod
         // Verify
         this.container.Verify();
 
+        // Events
+        var eventSubscriber = this.container.GetInstance<IEventSubscriber>();
+        eventSubscriber.Subscribe<GameLaunchedEventArgs>(this.OnGameLaunched);
+    }
+
+    /// <inheritdoc />
+    public override object GetApi(IModInfo mod) =>
+        new ToolbarIconsApi(
+            mod,
+            this.container.GetInstance<IEventSubscriber>(),
+            this.container.GetInstance<IGameContentHelper>(),
+            this.container.GetInstance<ILog>(),
+            this.container.GetInstance<ToolbarManager>());
+
+    private void OnGameLaunched(GameLaunchedEventArgs e)
+    {
         var configManager = this.container.GetInstance<ConfigManager>();
         configManager.Init();
     }
-
-    private ToolbarIconOption GetToolbarIconsOption() => this.container.GetInstance<ToolbarIconOption>();
 }

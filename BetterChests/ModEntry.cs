@@ -24,13 +24,8 @@ public sealed class ModEntry : Mod
     /// <inheritdoc />
     public override void Entry(IModHelper helper)
     {
-        I18n.Init(this.Helper.Translation);
-        this.Helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
-    }
-
-    private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
-    {
         // Init
+        I18n.Init(this.Helper.Translation);
         this.container = new Container();
 
         // Configuration
@@ -65,9 +60,10 @@ public sealed class ModEntry : Mod
         this.container.RegisterSingleton<ItemMatcherFactory>();
         this.container.RegisterSingleton<LocalizedTextManager>();
         this.container.RegisterSingleton<ILog, Logger>();
-        this.container.RegisterSingleton<IThemeHelper, Themer>();
+        this.container.RegisterSingleton<IPatchManager, Patcher>();
         this.container.RegisterSingleton<ProxyChestFactory>();
         this.container.RegisterSingleton<StatusEffectManager>();
+        this.container.RegisterSingleton<IThemeHelper, Themer>();
         this.container.RegisterSingleton<ToolbarIconsIntegration>();
 
         this.container.RegisterInstance<Func<CategorizeOption>>(this.container.GetInstance<CategorizeOption>);
@@ -100,6 +96,12 @@ public sealed class ModEntry : Mod
         // Verify
         this.container.Verify();
 
+        // Events
+        this.Helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
+    }
+
+    private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
+    {
         var configManager = this.container.GetInstance<ConfigManager>();
         configManager.Init();
     }

@@ -1,5 +1,11 @@
 ﻿# Better Chests Change Log
 
+## 2.12.1 (Unreleased)
+
+### Changed
+
+* Initialize BetterChests DI container on Entry.
+
 ## 2.12.0 (April 10, 2024)
 
 ### Added

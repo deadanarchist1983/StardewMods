@@ -12,9 +12,11 @@ internal sealed class AssetHandler : BaseService<AssetHandler>
     /// <summary>Represents the width of the default icon texture.</summary>
     public const int IconTextureWidth = 128;
 
-    private readonly string dataPath;
+    private readonly Lazy<IManagedTexture> arrows;
 
+    private readonly string dataPath;
     private readonly IGameContentHelper gameContentHelper;
+    private readonly Lazy<IManagedTexture> icons;
 
     /// <summary>Initializes a new instance of the <see cref="AssetHandler" /> class.</summary>
     /// <param name="eventSubscriber">Dependency used for subscribing to events.</param>
@@ -36,27 +38,29 @@ internal sealed class AssetHandler : BaseService<AssetHandler>
         this.gameContentHelper = gameContentHelper;
         this.dataPath = this.ModId + "/Data";
 
-        this.Arrows = themeHelper.AddAsset(
-            this.ModId + "/Arrows",
-            modContentHelper.Load<IRawTextureData>("assets/arrows.png"));
+        this.arrows = new Lazy<IManagedTexture>(
+            () => themeHelper.AddAsset(
+                this.ModId + "/Arrows",
+                modContentHelper.Load<IRawTextureData>("assets/arrows.png")));
 
-        this.Icons = themeHelper.AddAsset(
-            this.ModId + "/Icons",
-            modContentHelper.Load<IRawTextureData>("assets/icons.png"));
+        this.icons = new Lazy<IManagedTexture>(
+            () => themeHelper.AddAsset(
+                this.ModId + "/Icons",
+                modContentHelper.Load<IRawTextureData>("assets/icons.png")));
 
         // Events
         eventSubscriber.Subscribe<AssetRequestedEventArgs>(this.OnAssetRequested);
     }
 
     /// <summary>Gets the managed arrows texture.</summary>
-    public IManagedTexture Arrows { get; }
+    public IManagedTexture Arrows => this.arrows.Value;
 
     /// <summary>Gets the toolbar icons data model.</summary>
     public Dictionary<string, ToolbarIconData> Data =>
         this.gameContentHelper.Load<Dictionary<string, ToolbarIconData>>(this.dataPath);
 
     /// <summary>Gets the game path to the icons texture.</summary>
-    public IManagedTexture Icons { get; }
+    public IManagedTexture Icons => this.icons.Value;
 
     private void OnAssetRequested(AssetRequestedEventArgs e)
     {

@@ -1,5 +1,6 @@
 namespace StardewMods.BetterChests.Framework.Services;
 
+using StardewModdingAPI.Events;
 using StardewMods.BetterChests.Framework.Interfaces;
 using StardewMods.BetterChests.Framework.Models;
 using StardewMods.BetterChests.Framework.Models.StorageOptions;
@@ -40,12 +41,8 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         this.log = log;
         this.manifest = manifest;
 
+        eventManager.Subscribe<GameLaunchedEventArgs>(this.OnGameLaunched);
         eventManager.Subscribe<ConfigChangedEventArgs<DefaultConfig>>(this.OnConfigChanged);
-
-        if (this.genericModConfigMenuIntegration.IsLoaded)
-        {
-            this.SetupMainConfig();
-        }
     }
 
     /// <inheritdoc />
@@ -758,4 +755,12 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
 
     private void OnConfigChanged(ConfigChangedEventArgs<DefaultConfig> e) =>
         this.log.Trace("Config changed:\n{0}", e.Config);
+
+    private void OnGameLaunched(GameLaunchedEventArgs e)
+    {
+        if (this.genericModConfigMenuIntegration.IsLoaded)
+        {
+            this.SetupMainConfig();
+        }
+    }
 }

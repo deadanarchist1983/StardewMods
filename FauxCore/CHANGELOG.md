@@ -1,5 +1,11 @@
 # FauxCore Change Log
 
+### 1.1.1 (Unreleased)
+
+### Changed
+
+* Initialize FauxCore DI container on Entry.
+
 ## 1.1.0 (April 9, 2024)
 
 ### Changed

@@ -9,19 +9,19 @@ using StardewValley.TerrainFeatures;
 public sealed class CustomBushApi : ICustomBushApi
 {
     private readonly AssetHandler assetHandler;
-    private readonly BushManager bushManager;
     private readonly ILog log;
     private readonly IModInfo modInfo;
+    private readonly ModPatches modPatches;
 
     /// <summary>Initializes a new instance of the <see cref="CustomBushApi" /> class.</summary>
     /// <param name="assetHandler">Dependency used for handling assets.</param>
-    /// <param name="bushManager">Dependency for managing custom bushes.</param>
+    /// <param name="modPatches">Dependency for managing custom bushes.</param>
     /// <param name="modInfo">Mod info from the calling mod.</param>
     /// <param name="log">Dependency used for monitoring and logging.</param>
-    internal CustomBushApi(AssetHandler assetHandler, BushManager bushManager, IModInfo modInfo, ILog log)
+    internal CustomBushApi(AssetHandler assetHandler, ModPatches modPatches, IModInfo modInfo, ILog log)
     {
         this.assetHandler = assetHandler;
-        this.bushManager = bushManager;
+        this.modPatches = modPatches;
         this.modInfo = modInfo;
         this.log = log;
     }
@@ -31,12 +31,12 @@ public sealed class CustomBushApi : ICustomBushApi
         this.assetHandler.Data.Select(pair => (pair.Key, (ICustomBush)pair.Value));
 
     /// <inheritdoc />
-    public bool IsCustomBush(Bush bush) => this.bushManager.IsCustomBush(bush);
+    public bool IsCustomBush(Bush bush) => this.modPatches.IsCustomBush(bush);
 
     /// <inheritdoc />
     public bool TryGetCustomBush(Bush bush, out ICustomBush? customBush)
     {
-        if (this.bushManager.TryGetCustomBush(bush, out var customBushInstance))
+        if (this.modPatches.TryGetCustomBush(bush, out var customBushInstance))
         {
             customBush = customBushInstance;
             return true;

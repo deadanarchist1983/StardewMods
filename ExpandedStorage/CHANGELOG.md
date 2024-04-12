@@ -1,5 +1,11 @@
 # Expanded Storage Change Log
 
+## 3.0.4 (Unreleased)
+
+### Changed
+
+* Initialize ExpandedStorage DI container on Entry.
+
 ## 3.0.3 (April 9, 2024)
 
 ### Changed

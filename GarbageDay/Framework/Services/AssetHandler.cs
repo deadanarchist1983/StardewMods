@@ -16,10 +16,10 @@ using xTile.Dimensions;
 internal sealed class AssetHandler : BaseService
 {
     /// <summary>The game path where the big craftable data is stored.</summary>
-    public const string BigCraftablePath = "Data/BigCraftables";
+    private const string BigCraftablePath = "Data/BigCraftables";
 
     /// <summary>The game path where the garbage can data is stored.</summary>
-    public const string GarbageCanPath = "Data/GarbageCans";
+    private const string GarbageCanPath = "Data/GarbageCans";
 
     private readonly HashSet<string> invalidGarbageCans = [];
     private readonly string itemId;
