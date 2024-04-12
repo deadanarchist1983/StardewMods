@@ -55,7 +55,7 @@ internal sealed class CarryChest : BaseFeature<CarryChest>
         this.statusEffectManager = statusEffectManager;
 
         this.patchManager.Add(
-            this.ModId,
+            this.UniqueId,
             new SavedPatch(
                 AccessTools.DeclaredMethod(typeof(SObject), nameof(SObject.placementAction)),
                 AccessTools.DeclaredMethod(typeof(CarryChest), nameof(CarryChest.Object_placementAction_postfix)),

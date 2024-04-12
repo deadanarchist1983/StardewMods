@@ -72,14 +72,12 @@ internal sealed class DispenseService : BaseService<DispenseService>
         foreach (var pos in Game1.player.Tile.Box(this.modConfig.DispenseInputDistance))
         {
             if (!Game1.currentLocation.Objects.TryGetValue(pos, out var obj)
-                || (obj.Type?.Equals("Crafting", StringComparison.OrdinalIgnoreCase) != true
-                    && obj.Type?.Equals("interactive", StringComparison.OrdinalIgnoreCase) != true)
-                || !obj.performObjectDropInAction(Game1.player.CurrentItem, false, Game1.player))
+                || !obj.HasContextTag("machine_input")
+                || !obj.AttemptAutoLoad(Game1.player.Items, Game1.player))
             {
                 continue;
             }
 
-            Game1.player.reduceActiveItemByOne();
             this.Log.Info("Dispensed {0} into producer {1}.", Game1.player.CurrentItem.DisplayName, obj.DisplayName);
         }
     }

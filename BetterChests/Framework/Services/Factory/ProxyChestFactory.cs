@@ -78,8 +78,7 @@ internal sealed class ProxyChestFactory : BaseService<ProxyChestFactory>
     public bool TryCreateRequest(Chest chest, [NotNullWhen(true)] out ProxyChestRequest? request)
     {
         if (chest.GlobalInventoryId != null
-            && (!Game1.player.team.globalInventories.ContainsKey(chest.GlobalInventoryId)
-                || !chest.GlobalInventoryId.StartsWith(this.Prefix, StringComparison.OrdinalIgnoreCase)))
+            && !Game1.player.team.globalInventories.ContainsKey(chest.GlobalInventoryId))
         {
             request = null;
             return false;
@@ -121,7 +120,7 @@ internal sealed class ProxyChestFactory : BaseService<ProxyChestFactory>
         // Move Items to global inventory
         void Confirm()
         {
-            globalInventory.OverwriteWith(chest.Items);
+            globalInventory.OverwriteWith(chest.GetItemsForPlayer());
             this.proxyChests[id].GlobalInventoryId = id;
             this.proxyChests[id].Items.Clear();
         }

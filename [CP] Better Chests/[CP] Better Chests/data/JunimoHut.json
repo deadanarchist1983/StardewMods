@@ -21,6 +21,7 @@
         "furyx639.BetterChests/InventoryTabs": "Disabled",
         "furyx639.BetterChests/OpenHeldChest": "Disabled",
         "furyx639.BetterChests/ResizeChest": "Disabled",
+        "furyx639.BetterChests/ResizeChestCapacity": "0",
         "furyx639.BetterChests/SearchItems": "Disabled",
         "furyx639.BetterChests/ShopFromChest": "Disabled",
         "furyx639.BetterChests/StashToChest": "Disabled",

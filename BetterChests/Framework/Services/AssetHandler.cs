@@ -58,6 +58,7 @@ internal sealed class AssetHandler : BaseService
                 modContentHelper.Load<IRawTextureData>("assets/tabs.png")));
 
         // Events
+        eventSubscriber.Subscribe<GameLaunchedEventArgs>(this.OnGameLaunched);
         eventSubscriber.Subscribe<AssetRequestedEventArgs>(this.OnAssetRequested);
     }
 
@@ -89,6 +90,8 @@ internal sealed class AssetHandler : BaseService
     /// <summary>Gets the tab data.</summary>
     public Dictionary<string, InventoryTabData> TabData =>
         this.gameContentHelper.Load<Dictionary<string, InventoryTabData>>(this.tabDataPath);
+
+    private void OnGameLaunched(GameLaunchedEventArgs e) => _ = this.Tabs.Value;
 
     private void OnAssetRequested(AssetRequestedEventArgs e)
     {

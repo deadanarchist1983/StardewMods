@@ -1,6 +1,6 @@
 # Expanded Storage Change Log
 
-## 3.0.4 (Unreleased)
+## 3.0.4 (April 12, 2024)
 
 ### Changed
 

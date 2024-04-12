@@ -21,6 +21,7 @@
         "furyx639.BetterChests/InventoryTabs": "Default",
         "furyx639.BetterChests/OpenHeldChest": "Default",
         "furyx639.BetterChests/ResizeChest": "Large",
+        "furyx639.BetterChests/ResizeChestCapacity": "70",
         "furyx639.BetterChests/SearchItems": "Default",
         "furyx639.BetterChests/ShopFromChest": "Default",
         "furyx639.BetterChests/StashToChest": "Location",

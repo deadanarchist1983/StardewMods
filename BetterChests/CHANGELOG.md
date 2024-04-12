@@ -1,15 +1,21 @@
 ﻿# Better Chests Change Log
 
-## 2.13.0 (Unreleased)
+## 2.13.0 (April 12, 2024)
 
 ## Added
 
 * Allow chest menu to be resized independently of capacity.
+* Added ShopFromChest options to generic mod config menu.
+* Added ResizeChestCapacity options to generic mod config menu.
 
 ### Changed
 
 * Initialize BetterChests DI container on Entry.
 * Update transpilers to use CodeMatchers.
+
+### Fixed
+
+* Fixed carried Junimo Chests losing their inventory.
 
 ## 2.12.0 (April 10, 2024)
 

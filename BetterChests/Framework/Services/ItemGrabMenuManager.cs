@@ -185,6 +185,13 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
                     instruction => instruction.Calls(
                         AccessTools.DeclaredMethod(typeof(Chest), nameof(Chest.GetActualCapacity)))))
             .Advance(1)
+            .InsertAndAdvance(
+                new CodeInstruction(OpCodes.Ldloc_1),
+                new CodeInstruction(
+                    OpCodes.Call,
+                    AccessTools.DeclaredMethod(
+                        typeof(ItemGrabMenuManager),
+                        nameof(ItemGrabMenuManager.GetMenuCapacity))))
             .MatchStartForward(
                 new CodeMatch(
                     instruction => instruction.Calls(

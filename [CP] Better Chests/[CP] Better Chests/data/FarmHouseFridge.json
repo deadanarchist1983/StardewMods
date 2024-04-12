@@ -4,7 +4,7 @@
       "LogName": "Other - Farmhouse Fridge",
       "Action": "EditData",
       "Target": "Data/Locations",
-      "TargetField": ["Farmhouse", "CustomFields"],
+      "TargetField": ["FarmHouse", "CustomFields"],
       "Entries": {
         "furyx639.BetterChests/AutoOrganize": "Disabled",
         "furyx639.BetterChests/CarryChest": "Disabled",
@@ -20,7 +20,8 @@
         "furyx639.BetterChests/HslColorPicker": "Disabled",
         "furyx639.BetterChests/InventoryTabs": "Disabled",
         "furyx639.BetterChests/OpenHeldChest": "Disabled",
-        "furyx639.BetterChests/ResizeChest": "Unlimited",
+        "furyx639.BetterChests/ResizeChest": "Large",
+        "furyx639.BetterChests/ResizeChestCapacity": "-1",
         "furyx639.BetterChests/SearchItems": "Disabled",
         "furyx639.BetterChests/ShopFromChest": "Disabled",
         "furyx639.BetterChests/StashToChest": "Disabled",

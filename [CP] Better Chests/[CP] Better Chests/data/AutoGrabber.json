@@ -1,10 +1,10 @@
 {
   "Changes": [
     {
-      "LogName": "Building - Shipping Bin",
+      "LogName": "Other - Island Fridge",
       "Action": "EditData",
-      "Target": "Data/Buildings",
-      "TargetField": ["Shipping Bin", "CustomFields"],
+      "Target": "Data/BigCraftables",
+      "TargetField": ["165", "CustomFields"],
       "Entries": {
         "furyx639.BetterChests/AutoOrganize": "Disabled",
         "furyx639.BetterChests/CarryChest": "Disabled",
@@ -21,7 +21,7 @@
         "furyx639.BetterChests/InventoryTabs": "Disabled",
         "furyx639.BetterChests/OpenHeldChest": "Disabled",
         "furyx639.BetterChests/ResizeChest": "Disabled",
-        "furyx639.BetterChests/ResizeChestCapacity": "-1",
+        "furyx639.BetterChests/ResizeChestCapacity": "0",
         "furyx639.BetterChests/SearchItems": "Disabled",
         "furyx639.BetterChests/ShopFromChest": "Disabled",
         "furyx639.BetterChests/StashToChest": "Disabled",

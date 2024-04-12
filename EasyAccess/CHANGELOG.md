@@ -1,10 +1,14 @@
 # Easy Access Change Log
 
-## 2.1.4 (Unreleased)
+## 2.1.4 (April 12, 2024)
 
 ### Changed
 
 * Initialize EasyAccess DI container on Entry.
+
+### Fixed
+
+* Fixed machines taking an extra item when dispensing.
 
 ## 2.1.3 (April 9, 2024)
 
