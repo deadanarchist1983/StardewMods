@@ -1,5 +1,11 @@
 ﻿# Better Chests Change Log
 
+## 2.13.1 (Unreleased)
+
+## Fixed
+
+* Fixed crash when generating a new tab.json file.
+
 ## 2.13.0 (April 12, 2024)
 
 ## Added

@@ -58,10 +58,7 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
         this.inputHelper = inputHelper;
         this.toolbarIconsIntegration = toolbarIconsIntegration;
 
-        if (!this.betterCraftingIntegration.IsLoaded)
-        {
-            this.Log.Warn("Better Crafting is not loaded. CraftFromChest will not be active.");
-        }
+        this.Events.Subscribe<GameLaunchedEventArgs>(this.OnGameLaunched);
     }
 
     /// <inheritdoc />
@@ -166,6 +163,14 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
             CraftFromChest.instance.Config.CraftFromWorkbenchDistance,
             container.Location,
             container.TileLocation);
+
+    private void OnGameLaunched(GameLaunchedEventArgs obj)
+    {
+        if (!this.betterCraftingIntegration.IsLoaded)
+        {
+            this.Log.Warn("Better Crafting is not loaded. CraftFromChest will not be active.");
+        }
+    }
 
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {

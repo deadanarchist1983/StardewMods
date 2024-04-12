@@ -18,6 +18,7 @@ internal sealed class AssetHandler : BaseService
     private readonly Lazy<IManagedTexture> icons;
     private readonly string tabDataPath;
     private readonly Lazy<IManagedTexture> tabs;
+    private readonly string tabTexturePath;
 
     private HslColor[]? hslColors;
     private Texture2D? hslTexture;
@@ -46,6 +47,7 @@ internal sealed class AssetHandler : BaseService
         this.gameContentHelper = gameContentHelper;
         this.hslTexturePath = this.ModId + "/HueBar";
         this.tabDataPath = this.ModId + "/Tabs";
+        this.tabTexturePath = this.ModId + "/Tabs/Texture";
 
         this.icons = new Lazy<IManagedTexture>(
             () => themeHelper.AddAsset(
@@ -53,9 +55,7 @@ internal sealed class AssetHandler : BaseService
                 modContentHelper.Load<IRawTextureData>("assets/icons.png")));
 
         this.tabs = new Lazy<IManagedTexture>(
-            () => themeHelper.AddAsset(
-                this.ModId + "/Tabs/Texture",
-                modContentHelper.Load<IRawTextureData>("assets/tabs.png")));
+            () => themeHelper.AddAsset(this.tabTexturePath, modContentHelper.Load<IRawTextureData>("assets/tabs.png")));
 
         // Events
         eventSubscriber.Subscribe<GameLaunchedEventArgs>(this.OnGameLaunched);
@@ -130,7 +130,7 @@ internal sealed class AssetHandler : BaseService
                 "Clothing",
                 new InventoryTabData(
                     "Clothing",
-                    this.Tabs.Name.BaseName,
+                    this.tabTexturePath,
                     2,
                     ["category_clothing", "category_boots", "category_hat"])
             },
@@ -138,7 +138,7 @@ internal sealed class AssetHandler : BaseService
                 "Cooking",
                 new InventoryTabData(
                     "Cooking",
-                    this.Tabs.Name.BaseName,
+                    this.tabTexturePath,
                     3,
                     [
                         "category_syrup",
@@ -156,7 +156,7 @@ internal sealed class AssetHandler : BaseService
                 "Crops",
                 new InventoryTabData(
                     "Crops",
-                    this.Tabs.Name.BaseName,
+                    this.tabTexturePath,
                     4,
                     ["category_greens", "category_flowers", "category_fruits", "category_vegetable"])
             },
@@ -164,7 +164,7 @@ internal sealed class AssetHandler : BaseService
                 "Equipment",
                 new InventoryTabData(
                     "Equipment",
-                    this.Tabs.Name.BaseName,
+                    this.tabTexturePath,
                     5,
                     ["category_equipment", "category_ring", "category_tool", "category_weapon"])
             },
@@ -172,7 +172,7 @@ internal sealed class AssetHandler : BaseService
                 "Fishing",
                 new InventoryTabData(
                     "Fishing",
-                    this.Tabs.Name.BaseName,
+                    this.tabTexturePath,
                     6,
                     ["category_bait", "category_fish", "category_tackle", "category_sell_at_fish_shop"])
             },
@@ -180,7 +180,7 @@ internal sealed class AssetHandler : BaseService
                 "Materials",
                 new InventoryTabData(
                     "Materials",
-                    this.Tabs.Name.BaseName,
+                    this.tabTexturePath,
                     7,
                     [
                         "category_monster_loot",
@@ -195,13 +195,13 @@ internal sealed class AssetHandler : BaseService
                 "Misc",
                 new InventoryTabData(
                     "Misc",
-                    this.Tabs.Name.BaseName,
+                    this.tabTexturePath,
                     8,
                     ["category_big_craftable", "category_furniture", "category_junk"])
             },
             {
                 "Seeds",
-                new InventoryTabData("Seeds", this.Tabs.Name.BaseName, 9, ["category_seeds", "category_fertilizer"])
+                new InventoryTabData("Seeds", this.tabTexturePath, 9, ["category_seeds", "category_fertilizer"])
             },
         };
 
