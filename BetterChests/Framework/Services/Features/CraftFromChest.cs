@@ -133,6 +133,8 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
             this.betterCraftingIntegration.Api.MenuPopulateContainers -= this.OnMenuPopulateContainers;
         }
 
+        this.Log.Trace("Test");
+
         if (this.toolbarIconsIntegration.IsLoaded)
         {
             this.toolbarIconsIntegration.Api.RemoveToolbarIcon(this.Id);
