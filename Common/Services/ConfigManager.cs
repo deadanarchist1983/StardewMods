@@ -23,18 +23,7 @@ internal class ConfigManager<TConfig>
     {
         this.eventPublisher = eventPublisher;
         this.modHelper = modHelper;
-
-        TConfig? config;
-        try
-        {
-            config = this.modHelper.ReadConfig<TConfig>();
-        }
-        catch
-        {
-            config = null;
-        }
-
-        this.Config = config ?? new TConfig();
+        this.Config = this.GetNew();
     }
 
     /// <summary>Gets the backing config.</summary>
@@ -58,7 +47,20 @@ internal class ConfigManager<TConfig>
 
     /// <summary>Returns a new instance of IModConfig by reading the DefaultConfig from the mod helper.</summary>
     /// <returns>The new instance of IModConfig.</returns>
-    public virtual TConfig GetNew() => this.modHelper.ReadConfig<TConfig>();
+    public virtual TConfig GetNew()
+    {
+        TConfig? config;
+        try
+        {
+            config = this.modHelper.ReadConfig<TConfig>();
+        }
+        catch
+        {
+            config = null;
+        }
+
+        return config ?? this.GetDefault();
+    }
 
     /// <summary>Resets the configuration by reassigning to <see cref="TConfig" />.</summary>
     public void Reset()

@@ -25,6 +25,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\Range.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\BaseEventManager.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\BetterChests\Enums\FilterMethod.cs"/>
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\BetterChests\Enums\StashPriority.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\ContentPatcher\ConditionsApiReadyEventArgs.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\CustomBush\CustomBushIntegration.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\CustomBush\ICustomBush.cs"/>
