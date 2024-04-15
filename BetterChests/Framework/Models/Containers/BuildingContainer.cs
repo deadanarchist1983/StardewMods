@@ -1,9 +1,11 @@
 namespace StardewMods.BetterChests.Framework.Models.Containers;
 
+using System.Reflection;
 using Microsoft.Xna.Framework;
 using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 using StardewValley.Buildings;
 using StardewValley.Inventories;
+using StardewValley.Menus;
 using StardewValley.Mods;
 using StardewValley.Network;
 using StardewValley.Objects;
@@ -78,10 +80,40 @@ internal sealed class BuildingContainer : BaseContainer<Building>
             return;
         }
 
-        if (Game1.activeClickableMenu.readyToClose())
+        if (this.Building is not ShippingBin shippingBin)
         {
-            Game1.activeClickableMenu.exitThisMenuNoSound();
+            return;
         }
+
+        var method = typeof(ShippingBin).GetMethod("shipItem", BindingFlags.Instance | BindingFlags.NonPublic);
+        var shipItem = (ItemGrabMenu.behaviorOnItemSelect)Delegate.CreateDelegate(
+            typeof(ItemGrabMenu.behaviorOnItemSelect),
+            shippingBin,
+            method!);
+
+        var itemGrabMenu = new ItemGrabMenu(
+            null,
+            true,
+            false,
+            Utility.highlightShippableObjects,
+            shipItem,
+            string.Empty,
+            null,
+            true,
+            true,
+            false,
+            true,
+            false,
+            0,
+            null,
+            -1,
+            this);
+
+        itemGrabMenu.initializeUpperRightCloseButton();
+        itemGrabMenu.setBackgroundTransparency(false);
+        itemGrabMenu.setDestroyItemOnClick(true);
+        itemGrabMenu.initializeShippingBin();
+        Game1.activeClickableMenu = itemGrabMenu;
     }
 
     /// <inheritdoc />

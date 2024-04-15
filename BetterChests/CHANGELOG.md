@@ -1,5 +1,28 @@
 ﻿# Better Chests Change Log
 
+## 2.15.0 (April 15, 2024)
+
+### Added
+
+* Adjust the position of Chests Anywhere UI to not overlap with Better Chests UI.
+* Added feature to remotely access chests.
+* Added feature to include chests when cooking.
+
+### Changed
+
+* Indicate the parent value in config options.
+* Craft from Workbench settings is now configurable under Workbench as the storage type.
+* Relocated the HSL Color Picker to the right side of the menu.
+* Improved controller support for the menu components.
+* Chest types in the config options menu are sorted by name.
+* Simplified stash priority options in the config menu.
+
+### Fixed
+
+* GMCM was not loading if the config.json file was incompatible.
+* AutoOrganize skipped any chest that was full even if additional items could be stacked.
+* Added null-safe access for inventory tabs.
+
 ## 2.14.0 (April 12, 2024)
 
 ### Added

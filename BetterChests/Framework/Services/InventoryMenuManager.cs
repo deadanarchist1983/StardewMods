@@ -36,7 +36,7 @@ internal sealed class InventoryMenuManager : BaseService, IInventoryMenuManager
             new Rectangle(0, 0, 11 * Game1.pixelZoom, 12 * Game1.pixelZoom),
             Game1.mouseCursors,
             new Rectangle(421, 472, 11, 12),
-            Game1.pixelZoom) { myID = 5318009 };
+            Game1.pixelZoom) { myID = 5318008 };
     }
 
     /// <summary>Gets or sets the method used to highlight an item in the inventory menu.</summary>

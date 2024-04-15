@@ -34,6 +34,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     private readonly PerScreen<bool> isActive = new();
     private readonly ItemGrabMenuManager itemGrabMenuManager;
     private readonly PerScreen<IStorageContainer?> lastContainer = new();
+    private readonly LocalizedTextManager localizedTextManager;
     private readonly IManifest manifest;
     private readonly IPatchManager patchManager;
 
@@ -46,6 +47,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     /// <param name="getCategorizeOption">Gets a new instance of <see cref="CategorizeOption" />.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="itemGrabMenuManager">Dependency used for managing the item grab menu.</param>
+    /// <param name="localizedTextManager">Dependency used for formatting and translating text.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="patchManager">Dependency used for managing patches.</param>
@@ -58,6 +60,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         Func<CategorizeOption> getCategorizeOption,
         IInputHelper inputHelper,
         ItemGrabMenuManager itemGrabMenuManager,
+        LocalizedTextManager localizedTextManager,
         ILog log,
         IManifest manifest,
         IPatchManager patchManager)
@@ -71,6 +74,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         this.getCategorizeOption = getCategorizeOption;
         this.inputHelper = inputHelper;
         this.itemGrabMenuManager = itemGrabMenuManager;
+        this.localizedTextManager = localizedTextManager;
         this.manifest = manifest;
         this.patchManager = patchManager;
         this.configButton = new PerScreen<ClickableTextureComponent>(
@@ -82,7 +86,8 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             {
                 name = this.Id,
                 hoverText = I18n.Button_Configure_Name(),
-                myID = 42069,
+                myID = 42_069,
+                region = ItemGrabMenu.region_organizationButtons,
             });
 
         this.patchManager.Add(
@@ -182,6 +187,12 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             button.bounds.X = xPosition;
             button.bounds.Y = yOffset - (stepSize * index);
         }
+
+        foreach (var component in __instance.ItemsToGrabMenu.GetBorder(InventoryMenu.BorderSide.Right))
+        {
+            component.rightNeighborID =
+                buttons.MinBy(c => Math.Abs(c.bounds.Center.Y - component.bounds.Center.Y))?.myID ?? -1;
+        }
     }
 
     private void OnButtonPressed(ButtonPressedEventArgs e)
@@ -189,7 +200,8 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         if (!this.isActive.Value
             || e.Button is not (SButton.MouseLeft or SButton.ControllerA)
             || this.itemGrabMenuManager.CurrentMenu is null
-            || this.itemGrabMenuManager.Top.Container is null)
+            || this.itemGrabMenuManager.Top.Container is null
+            || !this.itemGrabMenuManager.CanFocus(this))
         {
             return;
         }
@@ -206,7 +218,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
 
     private void OnButtonsChanged(ButtonsChangedEventArgs e)
     {
-        if (!this.isActive.Value)
+        if (!this.isActive.Value || !this.itemGrabMenuManager.CanFocus(this))
         {
             return;
         }
@@ -223,6 +235,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         this.ShowMenu(container);
     }
 
+    [Priority(1000)]
     private void OnItemGrabMenuChanged(ItemGrabMenuChangedEventArgs e)
     {
         if (this.itemGrabMenuManager.CurrentMenu is null
@@ -297,19 +310,30 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
 
         var gmcm = this.genericModConfigMenuIntegration.Api;
         var defaultOptions = new DefaultStorageOptions();
-        var options = new TemporaryStorageOptions(container.Options, defaultOptions);
+        var options = new TemporaryStorageOptions(container.Options.GetActualOptions(), defaultOptions);
         this.genericModConfigMenuIntegration.Register(options.Reset, Save);
 
         gmcm.AddSectionTitle(this.manifest, () => container.DisplayName, container.ToString);
+
+        gmcm.AddTextOption(
+            this.manifest,
+            () => options.StorageName,
+            value => options.StorageName = value,
+            I18n.Config_StorageName_Name,
+            I18n.Config_StorageName_Tooltip);
 
         if (container.Options.StashToChest is not (RangeOption.Disabled or RangeOption.Default))
         {
             gmcm.AddNumberOption(
                 this.manifest,
-                () => options.StashToChestPriority,
-                value => options.StashToChestPriority = value,
+                () => (int)options.StashToChestPriority,
+                value => options.StashToChestPriority = (StashPriority)value,
                 I18n.Config_StashToChestPriority_Name,
-                I18n.Config_StashToChestPriority_Tooltip);
+                I18n.Config_StashToChestPriority_Tooltip,
+                -3,
+                3,
+                1,
+                this.localizedTextManager.FormatStashPriority);
         }
 
         gmcm.AddPageLink(this.manifest, "Main", I18n.Section_Main_Name, I18n.Section_Main_Description);
@@ -319,8 +343,11 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             I18n.Section_Categorize_Name,
             I18n.Section_Categorize_Description);
 
-        gmcm.AddPage(this.manifest, "Main", I18n.Section_Main_Name);
-        this.configManager.AddMainOption(options);
+        this.configManager.AddMainOption(
+            "Main",
+            I18n.Section_Main_Name,
+            options,
+            parentOptions: container.Options.GetParentOptions());
 
         gmcm.AddPage(this.manifest, "Categories", I18n.Section_Categorize_Name);
 

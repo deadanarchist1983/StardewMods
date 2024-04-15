@@ -15,6 +15,7 @@ internal sealed class TemporaryStorageOptions : DefaultStorageOptions
     {
         this.storageOptions = storageOptions;
         this.defaultOptions = defaultOptions;
+        this.AccessChest = storageOptions.AccessChest;
         this.AutoOrganize = storageOptions.AutoOrganize;
         this.CarryChest = storageOptions.CarryChest;
         this.CategorizeChest = storageOptions.CategorizeChest;
@@ -25,6 +26,7 @@ internal sealed class TemporaryStorageOptions : DefaultStorageOptions
         this.ChestInfo = storageOptions.ChestInfo;
         this.CollectItems = storageOptions.CollectItems;
         this.ConfigureChest = storageOptions.ConfigureChest;
+        this.CookFromChest = storageOptions.CookFromChest;
         this.CraftFromChest = storageOptions.CraftFromChest;
         this.CraftFromChestDistance = storageOptions.CraftFromChestDistance;
         this.HslColorPicker = storageOptions.HslColorPicker;
@@ -38,6 +40,7 @@ internal sealed class TemporaryStorageOptions : DefaultStorageOptions
         this.StashToChest = storageOptions.StashToChest;
         this.StashToChestDistance = storageOptions.StashToChestDistance;
         this.StashToChestPriority = storageOptions.StashToChestPriority;
+        this.StorageName = storageOptions.StorageName;
     }
 
     /// <inheritdoc />
@@ -49,6 +52,7 @@ internal sealed class TemporaryStorageOptions : DefaultStorageOptions
     /// <summary>Saves the options back to the default.</summary>
     public void Reset()
     {
+        this.AccessChest = this.defaultOptions.AccessChest;
         this.AutoOrganize = this.defaultOptions.AutoOrganize;
         this.CarryChest = this.defaultOptions.CarryChest;
         this.CategorizeChest = this.defaultOptions.CategorizeChest;
@@ -59,6 +63,7 @@ internal sealed class TemporaryStorageOptions : DefaultStorageOptions
         this.ChestInfo = this.defaultOptions.ChestInfo;
         this.CollectItems = this.defaultOptions.CollectItems;
         this.ConfigureChest = this.defaultOptions.ConfigureChest;
+        this.CookFromChest = this.defaultOptions.CookFromChest;
         this.CraftFromChest = this.defaultOptions.CraftFromChest;
         this.CraftFromChestDistance = this.defaultOptions.CraftFromChestDistance;
         this.HslColorPicker = this.defaultOptions.HslColorPicker;
@@ -72,11 +77,13 @@ internal sealed class TemporaryStorageOptions : DefaultStorageOptions
         this.StashToChest = this.defaultOptions.StashToChest;
         this.StashToChestDistance = this.defaultOptions.StashToChestDistance;
         this.StashToChestPriority = this.defaultOptions.StashToChestPriority;
+        this.StorageName = this.defaultOptions.StorageName;
     }
 
     /// <summary>Saves the changes back to storage options.</summary>
     public void Save()
     {
+        this.storageOptions.AccessChest = this.AccessChest;
         this.storageOptions.AutoOrganize = this.AutoOrganize;
         this.storageOptions.CarryChest = this.CarryChest;
         this.storageOptions.CategorizeChest = this.CategorizeChest;
@@ -87,6 +94,7 @@ internal sealed class TemporaryStorageOptions : DefaultStorageOptions
         this.storageOptions.ChestInfo = this.ChestInfo;
         this.storageOptions.CollectItems = this.CollectItems;
         this.storageOptions.ConfigureChest = this.ConfigureChest;
+        this.storageOptions.CookFromChest = this.CookFromChest;
         this.storageOptions.CraftFromChest = this.CraftFromChest;
         this.storageOptions.CraftFromChestDistance = this.CraftFromChestDistance;
         this.storageOptions.HslColorPicker = this.HslColorPicker;
@@ -100,5 +108,6 @@ internal sealed class TemporaryStorageOptions : DefaultStorageOptions
         this.storageOptions.StashToChest = this.StashToChest;
         this.storageOptions.StashToChestDistance = this.StashToChestDistance;
         this.storageOptions.StashToChestPriority = this.StashToChestPriority;
+        this.storageOptions.StorageName = this.StorageName;
     }
 }

@@ -1,5 +1,7 @@
 namespace StardewMods.BetterChests.Framework.Models.Containers;
 
+using System.Globalization;
+using System.Text;
 using Microsoft.Xna.Framework;
 using StardewMods.BetterChests.Framework.Interfaces;
 using StardewMods.BetterChests.Framework.Models.StorageOptions;
@@ -93,6 +95,16 @@ internal abstract class BaseContainer : IStorageContainer
     public abstract bool TryRemove(Item item);
 
     /// <inheritdoc />
-    public override string ToString() =>
-        $"{this.DisplayName} at {this.Location?.DisplayName ?? "Unknown"} ({this.TileLocation.X:n0}, {this.TileLocation.Y:n0})";
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+
+        sb.Append(
+            !string.IsNullOrWhiteSpace(this.Options.StorageName) ? this.Options.StorageName.Trim() : this.DisplayName);
+
+        sb.Append(" at ");
+        sb.Append(this.Location.DisplayName);
+        sb.Append(CultureInfo.InvariantCulture, $"({this.TileLocation.X:n0}, {this.TileLocation.Y:n0})");
+        return sb.ToString();
+    }
 }

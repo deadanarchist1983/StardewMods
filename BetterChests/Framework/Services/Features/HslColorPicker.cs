@@ -191,6 +191,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
             this.inputHelper.Suppress(e.Button);
             Game1.playSound("drumkit6");
             Game1.player.showChestColorPicker = !Game1.player.showChestColorPicker;
+            this.colorPicker.Value.SetupBorderNeighbors();
             return;
         }
 
@@ -236,9 +237,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
             this.Config,
             () => container.Chest.playerChoiceColor.Value,
             c => container.Chest.playerChoiceColor.Value = c,
-            this.itemGrabMenuManager.CurrentMenu.xPositionOnScreen
-            - (2 * Game1.tileSize)
-            - (IClickableMenu.borderWidth / 2),
+            this.itemGrabMenuManager.CurrentMenu.colorPickerToggleButton.bounds.Right + Game1.tileSize,
             this.itemGrabMenuManager.CurrentMenu.yPositionOnScreen - 56 + (IClickableMenu.borderWidth / 2));
     }
 

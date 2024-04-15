@@ -18,6 +18,13 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
     private readonly Dictionary<string, CachedValue<RangeOption>> cachedRangeOption = new();
 
     /// <inheritdoc />
+    public RangeOption AccessChest
+    {
+        get => this.Get(RangeOptionKey.AccessChest);
+        set => this.Set(RangeOptionKey.AccessChest, value);
+    }
+
+    /// <inheritdoc />
     public FeatureOption AutoOrganize
     {
         get => this.Get(OptionKey.AutoOrganize);
@@ -85,6 +92,13 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
     {
         get => this.Get(OptionKey.ConfigureChest);
         set => this.Set(OptionKey.ConfigureChest, value);
+    }
+
+    /// <inheritdoc />
+    public RangeOption CookFromChest
+    {
+        get => this.Get(RangeOptionKey.CookFromChest);
+        set => this.Set(RangeOptionKey.CookFromChest, value);
     }
 
     /// <inheritdoc />
@@ -175,11 +189,27 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
-    public int StashToChestPriority
+    public StashPriority StashToChestPriority
     {
-        get => this.Get(IntegerKey.StashToChestPriority);
-        set => this.Set(IntegerKey.StashToChestPriority, value);
+        get =>
+            StashPriorityExtensions.TryParse(this.Get(StringKey.StashToChestPriority), out var stashPriority)
+                ? stashPriority
+                : StashPriority.Default;
+        set => this.Set(StringKey.StashToChestPriority, value.ToStringFast());
     }
+
+    /// <inheritdoc />
+    public string StorageName
+    {
+        get => this.Get(StringKey.StorageName);
+        set => this.Set(StringKey.StorageName, value);
+    }
+
+    /// <inheritdoc />
+    public IStorageOptions GetActualOptions() => this;
+
+    /// <inheritdoc />
+    public IStorageOptions GetParentOptions() => this;
 
     /// <inheritdoc />
     public string GetDescription() => I18n.Storage_Other_Tooltip();
@@ -378,7 +408,6 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
         CraftFromChestDistance,
         ResizeChestCapacity,
         StashToChestDistance,
-        StashToChestPriority,
     }
 
     [EnumExtensions]
@@ -401,7 +430,6 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
         HslColorPicker,
         InventoryTabs,
         OpenHeldChest,
-        OrganizeItems,
         SearchItems,
         ShopFromChest,
         TransferItems,
@@ -411,6 +439,8 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
     [EnumExtensions]
     internal enum RangeOptionKey
     {
+        AccessChest,
+        CookFromChest,
         CraftFromChest,
         StashToChest,
     }
@@ -418,7 +448,8 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
     [EnumExtensions]
     internal enum StringKey
     {
-        ChestLabel,
         ResizeChest,
+        StashToChestPriority,
+        StorageName,
     }
 }

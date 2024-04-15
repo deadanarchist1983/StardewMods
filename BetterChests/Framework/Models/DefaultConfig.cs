@@ -10,7 +10,31 @@ using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 internal sealed class DefaultConfig : IModConfig
 {
     /// <inheritdoc />
-    public DefaultStorageOptions DefaultOptions { get; set; } = new();
+    public DefaultStorageOptions DefaultOptions { get; set; } = new()
+    {
+        AccessChest = RangeOption.Location,
+        AutoOrganize = FeatureOption.Enabled,
+        CarryChest = FeatureOption.Enabled,
+        CategorizeChest = FeatureOption.Enabled,
+        CategorizeChestAutomatically = FeatureOption.Enabled,
+        CategorizeChestMethod = FilterMethod.GrayedOut,
+        CategorizeChestTags = [],
+        ChestFinder = FeatureOption.Enabled,
+        ConfigureChest = FeatureOption.Enabled,
+        CookFromChest = RangeOption.Location,
+        CraftFromChest = RangeOption.Location,
+        CraftFromChestDistance = -1,
+        HslColorPicker = FeatureOption.Enabled,
+        InventoryTabs = FeatureOption.Enabled,
+        InventoryTabList = ["Clothing", "Cooking", "Crops", "Equipment", "Fishing", "Materials", "Misc", "Seeds"],
+        OpenHeldChest = FeatureOption.Enabled,
+        ResizeChest = ChestMenuOption.Large,
+        ResizeChestCapacity = 70,
+        SearchItems = FeatureOption.Enabled,
+        ShopFromChest = FeatureOption.Enabled,
+        StashToChest = RangeOption.Location,
+        StashToChestDistance = 16,
+    };
 
     /// <inheritdoc />
     public Dictionary<string, Dictionary<string, DefaultStorageOptions>> StorageOptions { get; set; } = [];
@@ -26,12 +50,6 @@ internal sealed class DefaultConfig : IModConfig
 
     /// <inheritdoc />
     public HashSet<string> CraftFromChestDisableLocations { get; set; } = [];
-
-    /// <inheritdoc />
-    public RangeOption CraftFromWorkbench { get; set; } = RangeOption.Location;
-
-    /// <inheritdoc />
-    public int CraftFromWorkbenchDistance { get; set; } = -1;
 
     /// <inheritdoc />
     public int HslColorPickerHueSteps { get; set; } = 29;
@@ -73,11 +91,6 @@ internal sealed class DefaultConfig : IModConfig
         sb.AppendLine(
             CultureInfo.InvariantCulture,
             $"{nameof(this.CraftFromChestDisableLocations)}: {string.Join(", ", this.CraftFromChestDisableLocations)}");
-
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CraftFromWorkbench)}: {this.CraftFromWorkbench}");
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.CraftFromWorkbenchDistance)}: {this.CraftFromWorkbenchDistance}");
 
         sb.AppendLine(
             CultureInfo.InvariantCulture,

@@ -7,6 +7,15 @@ using StardewModdingAPI.Utilities;
 /// <summary>Controls config data.</summary>
 internal sealed class Controls
 {
+    /// <summary>Gets or sets controls to access chests.</summary>
+    public KeybindList AccessChests { get; set; } = new(SButton.B);
+
+    /// <summary>Gets or sets a value to access the previous chest.</summary>
+    public KeybindList AccessPreviousChest { get; set; } = new(SButton.LeftTrigger);
+
+    /// <summary>Gets or sets a value to access the next chest.</summary>
+    public KeybindList AccessNextChest { get; set; } = new(SButton.RightTrigger);
+
     /// <summary>Gets or sets controls to close the chest finder.</summary>
     public KeybindList CloseChestFinder { get; set; } = new(SButton.Escape);
 
@@ -66,6 +75,7 @@ internal sealed class Controls
     public override string ToString()
     {
         StringBuilder sb = new();
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.AccessChests)}: {this.AccessChests}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CloseChestFinder)}: {this.CloseChestFinder}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ConfigureChest)}: {this.ConfigureChest}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.FindChest)}: {this.FindChest}");

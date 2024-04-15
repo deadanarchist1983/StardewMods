@@ -96,7 +96,8 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>, IItemFilter
         if (!this.isActive.Value
             || this.resetCache.Value
             || !this.cachedTabs.Value.Any()
-            || e.Button is not (SButton.MouseLeft or SButton.MouseRight or SButton.ControllerA))
+            || e.Button is not (SButton.MouseLeft or SButton.MouseRight or SButton.ControllerA)
+            || !this.itemGrabMenuManager.CanFocus(this))
         {
             return;
         }
@@ -119,7 +120,10 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>, IItemFilter
 
     private void OnButtonsChanged(ButtonsChangedEventArgs e)
     {
-        if (!this.isActive.Value || this.resetCache.Value || !this.cachedTabs.Value.Any())
+        if (!this.isActive.Value
+            || this.resetCache.Value
+            || !this.cachedTabs.Value.Any()
+            || !this.itemGrabMenuManager.CanFocus(this))
         {
             return;
         }
@@ -139,7 +143,10 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>, IItemFilter
 
     private void OnMouseWheelScrolled(MouseWheelScrolledEventArgs e)
     {
-        if (!this.isActive.Value || this.resetCache.Value || !this.cachedTabs.Value.Any())
+        if (!this.isActive.Value
+            || this.resetCache.Value
+            || !this.cachedTabs.Value.Any()
+            || !this.itemGrabMenuManager.CanFocus(this))
         {
             return;
         }
@@ -198,17 +205,17 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>, IItemFilter
             // Deselect previous tab
             if (this.currentIndex.Value != -1)
             {
-                this.cachedTabs.Value[this.currentIndex.Value].Deselect();
+                this.cachedTabs.Value.ElementAtOrDefault(this.currentIndex.Value)?.Deselect();
             }
 
             // Select current tab
             if (this.newIndex.Value != -1)
             {
-                this.cachedTabs.Value[this.newIndex.Value].Select();
+                this.cachedTabs.Value.ElementAtOrDefault(this.newIndex.Value)?.Select();
                 this.Log.Info(
                     "{0}: Set tab to {1}",
                     this.Id,
-                    this.cachedTabs.Value[this.newIndex.Value].Component.hoverText);
+                    this.cachedTabs.Value.ElementAtOrDefault(this.newIndex.Value)?.Component.hoverText);
             }
             else
             {
@@ -225,9 +232,9 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>, IItemFilter
             tab.Draw(e.SpriteBatch);
 
             // Hover text
-            if (tab.Component.containsPoint(x, y))
+            if (this.itemGrabMenuManager.CanFocus(this) && tab.Component.containsPoint(x, y))
             {
-                (Game1.activeClickableMenu as ItemGrabMenu)!.hoverText = tab.Component.hoverText;
+                this.itemGrabMenuManager.CurrentMenu.hoverText = tab.Component.hoverText;
             }
         }
     }
@@ -280,23 +287,23 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>, IItemFilter
         var components = this.cachedTabs.Value.Select(tab => tab.Component).ToImmutableArray();
         for (var i = 0; i < components.Length; ++i)
         {
-            components[i].myID = 69_420 + i;
+            this.cachedTabs.Value[i].Deselect();
+            components[i].bounds.X = i > 0 ? components[i - 1].bounds.Right : top.Menu.inventory[0].bounds.Left;
+            components[i].bounds.Y = yPosition;
+
+            components[i].myID = (int)Math.Pow(components[i].bounds.Y, 2) + components[i].bounds.X;
             this.itemGrabMenuManager.CurrentMenu.allClickableComponents.Add(components[i]);
             if (i > 0)
             {
-                components[i - 1].rightNeighborID = 69_420 + i;
-                components[i].leftNeighborID = 69_419 + i;
+                components[i - 1].rightNeighborID = components[i].myID;
+                components[i].leftNeighborID = components[i - 1].myID;
             }
 
             if (i < below.Length)
             {
-                below[i].upNeighborID = 69_420 + i;
+                below[i].upNeighborID = components[i].myID;
                 components[i].downNeighborID = below[i].myID;
             }
-
-            this.cachedTabs.Value[i].Deselect();
-            components[i].bounds.X = i > 0 ? components[i - 1].bounds.Right : top.Menu.inventory[0].bounds.Left;
-            components[i].bounds.Y = yPosition;
         }
     }
 }

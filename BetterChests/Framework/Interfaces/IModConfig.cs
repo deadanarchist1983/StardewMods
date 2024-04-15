@@ -28,12 +28,6 @@ internal interface IModConfig
     /// </summary>
     public HashSet<string> CraftFromChestDisableLocations { get; }
 
-    /// <summary>Gets a value indicating the range which workbenches will craft from.</summary>
-    public RangeOption CraftFromWorkbench { get; }
-
-    /// <summary>Gets a value indicating the distance in tiles that the workbench can be remotely crafted from.</summary>
-    public int CraftFromWorkbenchDistance { get; }
-
     /// <summary>Gets a value for the number of steps in the hue color picker.</summary>
     public int HslColorPickerHueSteps { get; }
 

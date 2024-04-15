@@ -35,6 +35,60 @@ internal sealed class ContainerFactory : BaseService
         this.proxyChestFactory = proxyChestFactory;
     }
 
+    /// <summary>Retrieves the storage options for a given item.</summary>
+    /// <param name="item">The item for which to retrieve the storage options.</param>
+    /// <returns>The storage options for the given item.</returns>
+    public IStorageOptions GetStorageOptions(Item item)
+    {
+        if (this.storageOptions.TryGetValue(item.QualifiedItemId, out var storageOption))
+        {
+            return storageOption;
+        }
+
+        storageOption = new BigCraftableStorageOptions(() => this.modConfig.DefaultOptions, GetData);
+        this.storageOptions.Add(item.QualifiedItemId, storageOption);
+        return storageOption;
+
+        BigCraftableData GetData() =>
+            Game1.bigCraftableData.TryGetValue(item.ItemId, out var data) ? data : new BigCraftableData();
+    }
+
+    /// <summary>Retrieves the storage options for a given location.</summary>
+    /// <param name="location">The location for which to retrieve the storage options.</param>
+    /// <returns>The storage options for the given item.</returns>
+    public IStorageOptions GetStorageOptions(GameLocation location)
+    {
+        if (this.storageOptions.TryGetValue($"(L){location.Name}", out var storageOption))
+        {
+            return storageOption;
+        }
+
+        storageOption = new LocationStorageOptions(() => this.modConfig.DefaultOptions, GetData);
+        this.storageOptions.Add($"(L){location.Name}", storageOption);
+        return storageOption;
+
+        LocationData GetData() =>
+            DataLoader.Locations(Game1.content).TryGetValue(location.Name, out var data) ? data : new LocationData();
+    }
+
+    /// <summary>Retrieves the storage options for a given building.</summary>
+    /// <param name="building">The building for which to retrieve the storage options.</param>
+    /// <returns>The storage options for the given item.</returns>
+    public IStorageOptions GetStorageOptions(Building building)
+    {
+        if (this.storageOptions.TryGetValue($"(B){building.buildingType.Value}", out var storageOptions))
+        {
+            return storageOptions;
+        }
+
+        storageOptions = new BuildingStorageOptions(() => this.modConfig.DefaultOptions, GetData);
+        this.storageOptions.Add($"(B){building.buildingType.Value}", storageOptions);
+        return storageOptions;
+
+        BuildingData GetData() =>
+            Game1.buildingData.TryGetValue(building.buildingType.Value, out var data) ? data : new BuildingData();
+    }
+
     /// <summary>
     /// Retrieves all container items that satisfy the specified predicate, if provided. If no predicate is provided,
     /// returns all container items.
@@ -125,20 +179,10 @@ internal sealed class ContainerFactory : BaseService
         if (location.GetFridge() is
             { } fridge)
         {
-            if (!this.storageOptions.TryGetValue($"(L){location.Name}", out var storageType))
-            {
-                LocationData GetData() =>
-                    DataLoader.Locations(Game1.content).TryGetValue(location.Name, out var data)
-                        ? data
-                        : new LocationData();
-
-                storageType = new LocationStorageOptions(() => this.modConfig.DefaultOptions, GetData);
-                this.storageOptions.Add($"(L){location.Name}", storageType);
-            }
-
+            var storageOption = this.GetStorageOptions(location);
             if (!this.cachedContainers.TryGetValue(fridge, out var container))
             {
-                container = new FridgeContainer(storageType, location, fridge);
+                container = new FridgeContainer(storageOption, location, fridge);
 
                 this.cachedContainers.AddOrUpdate(fridge, container);
             }
@@ -197,15 +241,7 @@ internal sealed class ContainerFactory : BaseService
             return false;
         }
 
-        if (!this.storageOptions.TryGetValue($"(B){building.buildingType.Value}", out var storageType))
-        {
-            BuildingData GetData() =>
-                Game1.buildingData.TryGetValue(building.buildingType.Value, out var data) ? data : new BuildingData();
-
-            storageType = new BuildingStorageOptions(() => this.modConfig.DefaultOptions, GetData);
-            this.storageOptions.Add($"(B){building.buildingType.Value}", storageType);
-        }
-
+        var storageType = this.GetStorageOptions(building);
         if (building is ShippingBin shippingBin)
         {
             if (this.cachedContainers.TryGetValue(shippingBin, out container))
@@ -480,15 +516,7 @@ internal sealed class ContainerFactory : BaseService
             return false;
         }
 
-        if (!this.storageOptions.TryGetValue(item.QualifiedItemId, out var storageOption))
-        {
-            BigCraftableData GetData() =>
-                Game1.bigCraftableData.TryGetValue(item.ItemId, out var data) ? data : new BigCraftableData();
-
-            storageOption = new BigCraftableStorageOptions(() => this.modConfig.DefaultOptions, GetData);
-            this.storageOptions.Add(item.QualifiedItemId, storageOption);
-        }
-
+        var storageOption = this.GetStorageOptions(item);
         container = item switch
         {
             Chest => new ChestContainer(storageOption, chest),

@@ -74,6 +74,7 @@ public sealed class ModEntry : Mod
         this.container.Collection.Register<IFeature>(
             new[]
             {
+                typeof(AccessChest),
                 typeof(AutoOrganize),
                 typeof(CarryChest),
                 typeof(CategorizeChest),

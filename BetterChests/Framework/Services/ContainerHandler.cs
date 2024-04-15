@@ -1,6 +1,5 @@
 namespace StardewMods.BetterChests.Framework.Services;
 
-using System.Reflection;
 using HarmonyLib;
 using StardewMods.BetterChests.Framework.Models.Events;
 using StardewMods.BetterChests.Framework.Services.Factory;
@@ -29,7 +28,6 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
     /// <param name="eventPublisher">Dependency used for publishing events.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
-    /// <param name="modRegistry">Dependency used for fetching metadata about loaded mods.</param>
     /// <param name="patchManager">Dependency used for managing patches.</param>
     /// <param name="reflectionHelper">Dependency used for reflecting into external code.</param>
     public ContainerHandler(
@@ -38,7 +36,6 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
         IEventPublisher eventPublisher,
         ILog log,
         IManifest manifest,
-        IModRegistry modRegistry,
         IPatchManager patchManager,
         IReflectionHelper reflectionHelper)
         : base(log, manifest)
@@ -62,18 +59,16 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
             return;
         }
 
-        var storeMethod = modRegistry
-            .Get(automateIntegration.UniqueId)
-            ?.GetType()
-            .Assembly.GetType("Pathoschild.Stardew.Automate.Framework.Storage.ChestContainer")
-            ?.GetMethod("Store", BindingFlags.Public | BindingFlags.Instance);
+        var methodStore = AccessTools.DeclaredMethod(
+            Type.GetType("Pathoschild.Stardew.Automate.Framework.Storage.ChestContainer, Automate"),
+            "Store");
 
-        if (storeMethod is not null)
+        if (methodStore is not null)
         {
             patchManager.Add(
                 this.UniqueId,
                 new SavedPatch(
-                    storeMethod,
+                    methodStore,
                     AccessTools.DeclaredMethod(
                         typeof(ContainerHandler),
                         nameof(ContainerHandler.Automate_Store_prefix)),

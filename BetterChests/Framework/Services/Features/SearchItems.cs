@@ -94,7 +94,9 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
-        if (!this.isActive.Value || this.itemGrabMenuManager.CurrentMenu is null)
+        if (!this.isActive.Value
+            || this.itemGrabMenuManager.CurrentMenu is null
+            || !this.itemGrabMenuManager.CanFocus(this))
         {
             return;
         }

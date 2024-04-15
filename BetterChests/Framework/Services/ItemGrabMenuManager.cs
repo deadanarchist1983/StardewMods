@@ -28,6 +28,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
     private readonly ContainerFactory containerFactory;
     private readonly PerScreen<IClickableMenu?> currentMenu = new();
     private readonly IEventManager eventManager;
+    private readonly PerScreen<ServiceLock?> focus = new();
     private readonly IInputHelper inputHelper;
     private readonly IModConfig modConfig;
     private readonly PerScreen<InventoryMenuManager> topMenu;
@@ -38,6 +39,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
+    /// <param name="modRegistry">Dependency used for fetching metadata about loaded mods.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="patchManager">Dependency used for managing patches.</param>
     public ItemGrabMenuManager(
@@ -46,16 +48,17 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
         ILog log,
         IManifest manifest,
         IModConfig modConfig,
+        IModRegistry modRegistry,
         IInputHelper inputHelper,
         IPatchManager patchManager)
         : base(log, manifest)
     {
         // Init
         ItemGrabMenuManager.instance = this;
-        this.eventManager = eventManager;
-        this.modConfig = modConfig;
-        this.inputHelper = inputHelper;
         this.containerFactory = containerFactory;
+        this.eventManager = eventManager;
+        this.inputHelper = inputHelper;
+        this.modConfig = modConfig;
         this.topMenu = new PerScreen<InventoryMenuManager>(() => new InventoryMenuManager(log, manifest));
         this.bottomMenu = new PerScreen<InventoryMenuManager>(() => new InventoryMenuManager(log, manifest));
 
@@ -105,6 +108,28 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
                     nameof(ItemGrabMenuManager.ItemGrabMenu_constructor_transpiler)),
                 PatchType.Transpiler));
 
+        if (!modRegistry.IsLoaded("PathosChild.ChestsAnywhere"))
+        {
+            patchManager.Patch(this.UniqueId);
+            return;
+        }
+
+        var ctorBaseChestOverlay = AccessTools.FirstConstructor(
+            Type.GetType("Pathoschild.Stardew.ChestsAnywhere.Menus.Overlays.BaseChestOverlay, ChestsAnywhere"),
+            c => c.GetParameters().Any(p => p.Name == "menu"));
+
+        if (ctorBaseChestOverlay is not null)
+        {
+            patchManager.Add(
+                this.UniqueId,
+                new SavedPatch(
+                    ctorBaseChestOverlay,
+                    AccessTools.DeclaredMethod(
+                        typeof(ItemGrabMenuManager),
+                        nameof(ItemGrabMenuManager.ChestsAnywhere_BaseChestOverlay_prefix)),
+                    PatchType.Prefix));
+        }
+
         patchManager.Patch(this.UniqueId);
     }
 
@@ -119,6 +144,57 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
 
     /// <summary>Gets the inventory menu manager for the bottom inventory menu.</summary>
     public IInventoryMenuManager Bottom => this.bottomMenu.Value;
+
+    /// <summary>Determines if the specified source object can receive focus.</summary>
+    /// <param name="source">The object to check if it can receive focus.</param>
+    /// <returns>True if the source object can receive focus, otherwise false.</returns>
+    public bool CanFocus(object source) => this.focus.Value is null || this.focus.Value.Source == source;
+
+    /// <summary>Tries to request focus for a specific object.</summary>
+    /// <param name="source">The object that needs focus.</param>
+    /// <param name="serviceLock">
+    /// An optional output parameter representing the acquired service lock, or null if failed to
+    /// acquire.
+    /// </param>
+    /// <returns>True if focus was successfully acquired, otherwise false.</returns>
+    public bool TryGetFocus(object source, [NotNullWhen(true)] out IServiceLock? serviceLock)
+    {
+        serviceLock = null;
+        if (this.focus.Value is not null && this.focus.Value.Source != source)
+        {
+            return false;
+        }
+
+        if (this.focus.Value is not null && this.focus.Value.Source == source)
+        {
+            serviceLock = this.focus.Value;
+            return true;
+        }
+
+        this.focus.Value = new ServiceLock(source, this);
+        serviceLock = this.focus.Value;
+        return true;
+    }
+
+    private static void ChestsAnywhere_BaseChestOverlay_prefix(IClickableMenu menu, ref int topOffset)
+    {
+        if (menu is not ItemGrabMenu itemGrabMenu
+            || !ItemGrabMenuManager.instance.containerFactory.TryGetOneFromMenu(out var container))
+        {
+            return;
+        }
+
+        if (itemGrabMenu.ItemsToGrabMenu.capacity == 70)
+        {
+            topOffset = Game1.pixelZoom * -13;
+        }
+
+        if (container.Options.InventoryTabs is not FeatureOption.Disabled
+            || container.Options.SearchItems is not FeatureOption.Disabled)
+        {
+            topOffset -= Game1.pixelZoom * 24;
+        }
+    }
 
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]
     [SuppressMessage("StyleCop", "SA1313", Justification = "Harmony")]
@@ -257,6 +333,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
         }
 
         this.currentMenu.Value = menu;
+        this.focus.Value = null;
         if (menu is not ItemGrabMenu itemGrabMenu)
         {
             this.topMenu.Value.Reset(null, null);
@@ -289,7 +366,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
         this.eventManager.Publish(new ItemGrabMenuChangedEventArgs());
 
         // Disable background fade
-        itemGrabMenu.drawBG = false;
+        itemGrabMenu.setBackgroundTransparency(false);
     }
 
     private void OnButtonPressed(ButtonPressedEventArgs e)
@@ -376,6 +453,8 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
             Game1.fadeToBlackRect,
             new Rectangle(0, 0, Game1.uiViewport.Width, Game1.uiViewport.Height),
             Color.Black * 0.25f);
+
+        Game1.mouseCursorTransparency = 0f;
     }
 
     [Priority(int.MinValue)]
@@ -391,55 +470,71 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
         this.bottomMenu.Value.Draw(e.SpriteBatch);
 
         // Redraw foreground
-        if (this.CurrentMenu.hoverText != null
-            && (this.CurrentMenu.hoveredItem == null || this.CurrentMenu.ItemsToGrabMenu == null))
+        if (this.focus.Value is not null)
         {
-            if (this.CurrentMenu.hoverAmount > 0)
+            if (this.CurrentMenu.hoverText != null
+                && (this.CurrentMenu.hoveredItem == null || this.CurrentMenu.ItemsToGrabMenu == null))
+            {
+                if (this.CurrentMenu.hoverAmount > 0)
+                {
+                    IClickableMenu.drawToolTip(
+                        e.SpriteBatch,
+                        this.CurrentMenu.hoverText,
+                        string.Empty,
+                        null,
+                        true,
+                        -1,
+                        0,
+                        null,
+                        -1,
+                        null,
+                        this.CurrentMenu.hoverAmount);
+                }
+                else
+                {
+                    IClickableMenu.drawHoverText(e.SpriteBatch, this.CurrentMenu.hoverText, Game1.smallFont);
+                }
+            }
+
+            if (this.CurrentMenu.hoveredItem != null)
             {
                 IClickableMenu.drawToolTip(
                     e.SpriteBatch,
-                    this.CurrentMenu.hoverText,
-                    string.Empty,
-                    null,
-                    true,
-                    -1,
-                    0,
-                    null,
-                    -1,
-                    null,
-                    this.CurrentMenu.hoverAmount);
+                    this.CurrentMenu.hoveredItem.getDescription(),
+                    this.CurrentMenu.hoveredItem.DisplayName,
+                    this.CurrentMenu.hoveredItem,
+                    this.CurrentMenu.heldItem != null);
             }
-            else
+            else if (this.CurrentMenu.hoveredItem != null && this.CurrentMenu.ItemsToGrabMenu != null)
             {
-                IClickableMenu.drawHoverText(e.SpriteBatch, this.CurrentMenu.hoverText, Game1.smallFont);
+                IClickableMenu.drawToolTip(
+                    e.SpriteBatch,
+                    this.CurrentMenu.ItemsToGrabMenu.descriptionText,
+                    this.CurrentMenu.ItemsToGrabMenu.descriptionTitle,
+                    this.CurrentMenu.hoveredItem,
+                    this.CurrentMenu.heldItem != null);
             }
-        }
 
-        if (this.CurrentMenu.hoveredItem != null)
-        {
-            IClickableMenu.drawToolTip(
+            this.CurrentMenu.heldItem?.drawInMenu(
                 e.SpriteBatch,
-                this.CurrentMenu.hoveredItem.getDescription(),
-                this.CurrentMenu.hoveredItem.DisplayName,
-                this.CurrentMenu.hoveredItem,
-                this.CurrentMenu.heldItem != null);
+                new Vector2(Game1.getOldMouseX() + 8, Game1.getOldMouseY() + 8),
+                1f);
         }
-        else if (this.CurrentMenu.hoveredItem != null && this.CurrentMenu.ItemsToGrabMenu != null)
-        {
-            IClickableMenu.drawToolTip(
-                e.SpriteBatch,
-                this.CurrentMenu.ItemsToGrabMenu.descriptionText,
-                this.CurrentMenu.ItemsToGrabMenu.descriptionTitle,
-                this.CurrentMenu.hoveredItem,
-                this.CurrentMenu.heldItem != null);
-        }
-
-        this.CurrentMenu.heldItem?.drawInMenu(
-            e.SpriteBatch,
-            new Vector2(Game1.getOldMouseX() + 8, Game1.getOldMouseY() + 8),
-            1f);
 
         Game1.mouseCursorTransparency = 1f;
         this.CurrentMenu.drawMouse(e.SpriteBatch);
+    }
+
+    private class ServiceLock(object source, ItemGrabMenuManager itemGrabMenuManager) : IServiceLock
+    {
+        public object Source => source;
+
+        public void Release()
+        {
+            if (itemGrabMenuManager.focus.Value == this)
+            {
+                itemGrabMenuManager.focus.Value = null;
+            }
+        }
     }
 }

@@ -9,76 +9,88 @@ using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 internal class DefaultStorageOptions : IStorageOptions
 {
     /// <inheritdoc />
-    public FeatureOption AutoOrganize { get; set; } = FeatureOption.Enabled;
+    public RangeOption AccessChest { get; set; } = RangeOption.Default;
 
     /// <inheritdoc />
-    public FeatureOption CarryChest { get; set; } = FeatureOption.Enabled;
+    public FeatureOption AutoOrganize { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
-    public FeatureOption CategorizeChest { get; set; } = FeatureOption.Enabled;
+    public FeatureOption CarryChest { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
-    public FeatureOption CategorizeChestAutomatically { get; set; } = FeatureOption.Enabled;
+    public FeatureOption CategorizeChest { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
-    public FilterMethod CategorizeChestMethod { get; set; } = FilterMethod.GrayedOut;
+    public FeatureOption CategorizeChestAutomatically { get; set; } = FeatureOption.Default;
+
+    /// <inheritdoc />
+    public FilterMethod CategorizeChestMethod { get; set; } = FilterMethod.Default;
 
     /// <inheritdoc />
     public HashSet<string> CategorizeChestTags { get; set; } = [];
 
     /// <inheritdoc />
-    public FeatureOption ChestFinder { get; set; } = FeatureOption.Enabled;
+    public FeatureOption ChestFinder { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
-    public FeatureOption ChestInfo { get; set; } = FeatureOption.Disabled;
+    public FeatureOption ChestInfo { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
-    public FeatureOption CollectItems { get; set; } = FeatureOption.Disabled;
+    public FeatureOption CollectItems { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
-    public FeatureOption ConfigureChest { get; set; } = FeatureOption.Enabled;
+    public FeatureOption ConfigureChest { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
-    public RangeOption CraftFromChest { get; set; } = RangeOption.Location;
+    public RangeOption CookFromChest { get; set; } = RangeOption.Default;
 
     /// <inheritdoc />
-    public int CraftFromChestDistance { get; set; } = -1;
+    public RangeOption CraftFromChest { get; set; } = RangeOption.Default;
 
     /// <inheritdoc />
-    public FeatureOption HslColorPicker { get; set; } = FeatureOption.Enabled;
+    public int CraftFromChestDistance { get; set; }
 
     /// <inheritdoc />
-    public FeatureOption InventoryTabs { get; set; } = FeatureOption.Enabled;
+    public FeatureOption HslColorPicker { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
-    public HashSet<string> InventoryTabList { get; set; } =
-    [
-        "Clothing", "Cooking", "Crops", "Equipment", "Fishing", "Materials", "Misc", "Seeds",
-    ];
+    public FeatureOption InventoryTabs { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
-    public FeatureOption OpenHeldChest { get; set; } = FeatureOption.Enabled;
+    public HashSet<string> InventoryTabList { get; set; } = [];
 
     /// <inheritdoc />
-    public ChestMenuOption ResizeChest { get; set; } = ChestMenuOption.Large;
+    public FeatureOption OpenHeldChest { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
-    public int ResizeChestCapacity { get; set; } = 70;
+    public ChestMenuOption ResizeChest { get; set; } = ChestMenuOption.Default;
 
     /// <inheritdoc />
-    public FeatureOption SearchItems { get; set; } = FeatureOption.Enabled;
+    public int ResizeChestCapacity { get; set; }
 
     /// <inheritdoc />
-    public FeatureOption ShopFromChest { get; set; } = FeatureOption.Enabled;
+    public FeatureOption SearchItems { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
-    public RangeOption StashToChest { get; set; } = RangeOption.Location;
+    public FeatureOption ShopFromChest { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
-    public int StashToChestDistance { get; set; } = 10;
+    public RangeOption StashToChest { get; set; } = RangeOption.Default;
 
     /// <inheritdoc />
-    public int StashToChestPriority { get; set; }
+    public int StashToChestDistance { get; set; }
+
+    /// <inheritdoc />
+    public StashPriority StashToChestPriority { get; set; }
+
+    /// <inheritdoc />
+    public string StorageName { get; set; } = string.Empty;
+
+    /// <inheritdoc />
+    public IStorageOptions GetActualOptions() => this;
+
+    /// <inheritdoc />
+    public IStorageOptions GetParentOptions() => this;
 
     /// <inheritdoc />
     public virtual string GetDescription() => I18n.Storage_Other_Tooltip();
@@ -93,6 +105,7 @@ internal class DefaultStorageOptions : IStorageOptions
 
         sb.AppendLine(CultureInfo.InvariantCulture, $"Display Name: {this.GetDisplayName()}");
 
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.AccessChest)}: {this.AccessChest}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.AutoOrganize)}: {this.AutoOrganize}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CarryChest)}: {this.CarryChest}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CategorizeChest)}: {this.CategorizeChest}");
@@ -112,6 +125,7 @@ internal class DefaultStorageOptions : IStorageOptions
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ChestInfo)}: {this.ChestInfo}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CollectItems)}: {this.CollectItems}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ConfigureChest)}: {this.ConfigureChest}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CookFromChest)}: {this.CookFromChest}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CraftFromChest)}: {this.CraftFromChest}");
         sb.AppendLine(
             CultureInfo.InvariantCulture,

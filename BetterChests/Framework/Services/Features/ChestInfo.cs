@@ -158,17 +158,12 @@ internal sealed class ChestInfo : BaseFeature<ChestInfo>
         // Add type
         this.cachedInfo.Value.Add(new Info(I18n.ChestInfo_Type(), container.DisplayName));
 
-        if (container.Location is not null)
-        {
-            // Add location
-            this.cachedInfo.Value.Add(new Info(I18n.ChestInfo_Location(), container.Location.Name));
+        // Add location
+        this.cachedInfo.Value.Add(new Info(I18n.ChestInfo_Location(), container.Location.Name));
 
-            // Add position
-            this.cachedInfo.Value.Add(
-                new Info(
-                    I18n.ChestInfo_Position(),
-                    $"{(int)container.TileLocation.X}, {(int)container.TileLocation.Y}"));
-        }
+        // Add position
+        this.cachedInfo.Value.Add(
+            new Info(I18n.ChestInfo_Position(), $"{(int)container.TileLocation.X}, {(int)container.TileLocation.Y}"));
 
         // Add inventory
         if (container is ChildContainer
