@@ -2,9 +2,15 @@
 
 ## 2.15.1 (Unreleased)
 
+### Changed
+
+* Shipping bins accessed through the dropdown will be loaded in the chest menu.
+
 ### Fixed
 
 * Fixed all Automate items were being rejected.
+* Fixed last chest in the Access Menu dropdown was not being shown.
+* Prevent crashing when an item does not have a name.
 
 ## 2.15.0 (April 15, 2024)
 

@@ -1,6 +1,5 @@
 namespace StardewMods.BetterChests.Framework.Models.Containers;
 
-using System.Reflection;
 using Microsoft.Xna.Framework;
 using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 using StardewValley.Buildings;
@@ -85,35 +84,23 @@ internal sealed class BuildingContainer : BaseContainer<Building>
             return;
         }
 
-        var method = typeof(ShippingBin).GetMethod("shipItem", BindingFlags.Instance | BindingFlags.NonPublic);
-        var shipItem = (ItemGrabMenu.behaviorOnItemSelect)Delegate.CreateDelegate(
-            typeof(ItemGrabMenu.behaviorOnItemSelect),
-            shippingBin,
-            method!);
-
-        var itemGrabMenu = new ItemGrabMenu(
-            null,
-            true,
+        Game1.activeClickableMenu = new ItemGrabMenu(
+            this.Items,
             false,
+            true,
             Utility.highlightShippableObjects,
-            shipItem,
+            this.BehaviorOnItemSelectFunction,
             string.Empty,
-            null,
-            true,
-            true,
+            this.BehaviorOnItemGrab,
             false,
             true,
-            false,
+            true,
+            true,
+            true,
             0,
             null,
             -1,
-            this);
-
-        itemGrabMenu.initializeUpperRightCloseButton();
-        itemGrabMenu.setBackgroundTransparency(false);
-        itemGrabMenu.setDestroyItemOnClick(true);
-        itemGrabMenu.initializeShippingBin();
-        Game1.activeClickableMenu = itemGrabMenu;
+            shippingBin);
     }
 
     /// <inheritdoc />
@@ -127,6 +114,23 @@ internal sealed class BuildingContainer : BaseContainer<Building>
         }
 
         remaining = null;
+        foreach (var slot in this.Items)
+        {
+            if (slot?.canStackWith(item) != true)
+            {
+                continue;
+            }
+
+            item.Stack = slot.addToStack(item);
+            if (item.Stack > 0)
+            {
+                continue;
+            }
+
+            Game1.getFarm().lastItemShipped = slot;
+            return true;
+        }
+
         this.Items.Add(item);
         Game1.getFarm().lastItemShipped = item;
         return true;
@@ -143,5 +147,51 @@ internal sealed class BuildingContainer : BaseContainer<Building>
         this.Items.Remove(item);
         this.Items.RemoveEmptySlots();
         return true;
+    }
+
+    private void BehaviorOnItemSelectFunction(Item item, Farmer who)
+    {
+        if (item.Stack == 0)
+        {
+            item.Stack = 1;
+        }
+
+        if (!this.TryAdd(item, out var remaining))
+        {
+            return;
+        }
+
+        who.removeItemFromInventory(item);
+        var oldID = Game1.activeClickableMenu.currentlySnappedComponent != null
+            ? Game1.activeClickableMenu.currentlySnappedComponent.myID
+            : -1;
+
+        this.ShowMenu();
+        if (Game1.activeClickableMenu is not ItemGrabMenu itemGrabMenu)
+        {
+            return;
+        }
+
+        itemGrabMenu.heldItem = remaining;
+        if (oldID == -1)
+        {
+            return;
+        }
+
+        Game1.activeClickableMenu.currentlySnappedComponent = Game1.activeClickableMenu.getComponentWithID(oldID);
+        Game1.activeClickableMenu.snapCursorToCurrentSnappedComponent();
+    }
+
+    private void BehaviorOnItemGrab(Item item, Farmer who)
+    {
+        if (!who.couldInventoryAcceptThisItem(item) || !this.TryRemove(item))
+        {
+            return;
+        }
+
+        if (item == Game1.getFarm().lastItemShipped)
+        {
+            Game1.getFarm().lastItemShipped = this.Items.LastOrDefault();
+        }
     }
 }

@@ -120,7 +120,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
                     this.offset.Value = Math.Clamp(
                         this.currentContainers.Value.IndexOfValue(this.itemGrabMenuManager.Top.Container),
                         0,
-                        this.currentContainers.Value.Count - 11);
+                        this.currentContainers.Value.Count - 10);
                 }
                 else
                 {
@@ -251,7 +251,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
             default: return;
         }
 
-        this.offset.Value = Math.Clamp(this.offset.Value, 0, this.currentContainers.Value.Count - 11);
+        this.offset.Value = Math.Clamp(this.offset.Value, 0, this.currentContainers.Value.Count - 10);
     }
 
     [Priority(int.MinValue + 1)]

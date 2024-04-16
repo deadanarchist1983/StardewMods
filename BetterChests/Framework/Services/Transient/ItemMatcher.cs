@@ -151,8 +151,8 @@ internal sealed class ItemMatcher : IItemFilter
         // Partially matches name or display name
         if (!term.TagMatch)
         {
-            return item.Name.Contains(term.Value, StringComparison.OrdinalIgnoreCase)
-                || item.DisplayName.Contains(term.Value, StringComparison.OrdinalIgnoreCase);
+            return item.Name?.Contains(term.Value, StringComparison.OrdinalIgnoreCase) == true
+                || item.DisplayName?.Contains(term.Value, StringComparison.OrdinalIgnoreCase) == true;
         }
 
         // Partially matches context tag
