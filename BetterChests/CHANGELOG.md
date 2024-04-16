@@ -1,6 +1,12 @@
 ﻿# Better Chests Change Log
 
-## 2.15.1 (Unreleased)
+## 2.15.2 (April 16, 2024)
+
+### Fixed
+
+* Prevent trying to stash into the backpack.
+
+## 2.15.1 (April 16, 2024)
 
 ### Changed
 

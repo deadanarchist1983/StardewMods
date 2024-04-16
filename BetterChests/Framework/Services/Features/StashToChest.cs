@@ -3,6 +3,7 @@ namespace StardewMods.BetterChests.Framework.Services.Features;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI.Events;
 using StardewMods.BetterChests.Framework.Interfaces;
+using StardewMods.BetterChests.Framework.Models.Containers;
 using StardewMods.BetterChests.Framework.Services.Factory;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
@@ -213,7 +214,8 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
         return;
 
         bool Predicate(IStorageContainer container) =>
-            container.Options.StashToChest is not (RangeOption.Disabled or RangeOption.Default)
+            container is not FarmerContainer
+            && container.Options.StashToChest is not (RangeOption.Disabled or RangeOption.Default)
             && !this.Config.StashToChestDisableLocations.Contains(Game1.player.currentLocation.Name)
             && !(this.Config.StashToChestDisableLocations.Contains("UndergroundMine")
                 && Game1.player.currentLocation is MineShaft mineShaft
