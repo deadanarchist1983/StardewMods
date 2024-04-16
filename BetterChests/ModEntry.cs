@@ -10,7 +10,6 @@ using StardewMods.BetterChests.Framework.Services.Features;
 using StardewMods.BetterChests.Framework.UI;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Services;
-using StardewMods.Common.Services.Integrations.Automate;
 using StardewMods.Common.Services.Integrations.BetterCrafting;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewMods.Common.Services.Integrations.GenericModConfigMenu;
@@ -43,7 +42,6 @@ public sealed class ModEntry : Mod
         this.container.RegisterInstance(this.Helper.Translation);
 
         this.container.RegisterSingleton<AssetHandler>();
-        this.container.RegisterSingleton<AutomateIntegration>();
         this.container.RegisterSingleton<BetterCraftingIntegration>();
         this.container.RegisterSingleton<BetterCraftingInventoryProvider>();
         this.container.RegisterSingleton<IModConfig, ConfigManager>();

@@ -7,7 +7,6 @@ using StardewMods.Common.Enums;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Models;
 using StardewMods.Common.Services;
-using StardewMods.Common.Services.Integrations.Automate;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 using StardewMods.Common.Services.Integrations.FauxCore;
@@ -23,7 +22,6 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
     private readonly IReflectionHelper reflectionHelper;
 
     /// <summary>Initializes a new instance of the <see cref="ContainerHandler" /> class.</summary>
-    /// <param name="automateIntegration">Dependency for integration with Automate.</param>
     /// <param name="containerFactory">Dependency used for accessing containers.</param>
     /// <param name="eventPublisher">Dependency used for publishing events.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
@@ -31,7 +29,6 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
     /// <param name="patchManager">Dependency used for managing patches.</param>
     /// <param name="reflectionHelper">Dependency used for reflecting into external code.</param>
     public ContainerHandler(
-        AutomateIntegration automateIntegration,
         ContainerFactory containerFactory,
         IEventPublisher eventPublisher,
         ILog log,
@@ -53,26 +50,21 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
                 AccessTools.DeclaredMethod(typeof(ContainerHandler), nameof(ContainerHandler.Chest_addItem_prefix)),
                 PatchType.Prefix));
 
-        if (!automateIntegration.IsLoaded)
+        var automateType = Type.GetType("Pathoschild.Stardew.Automate.Framework.Storage.ChestContainer, Automate");
+        if (automateType is not null)
         {
-            patchManager.Patch(this.ModId);
-            return;
-        }
-
-        var methodStore = AccessTools.DeclaredMethod(
-            Type.GetType("Pathoschild.Stardew.Automate.Framework.Storage.ChestContainer, Automate"),
-            "Store");
-
-        if (methodStore is not null)
-        {
-            patchManager.Add(
-                this.UniqueId,
-                new SavedPatch(
-                    methodStore,
-                    AccessTools.DeclaredMethod(
-                        typeof(ContainerHandler),
-                        nameof(ContainerHandler.Automate_Store_prefix)),
-                    PatchType.Prefix));
+            var methodStore = AccessTools.DeclaredMethod(automateType, "Store");
+            if (methodStore is not null)
+            {
+                patchManager.Add(
+                    this.UniqueId,
+                    new SavedPatch(
+                        methodStore,
+                        AccessTools.DeclaredMethod(
+                            typeof(ContainerHandler),
+                            nameof(ContainerHandler.Automate_Store_prefix)),
+                        PatchType.Prefix));
+            }
         }
 
         patchManager.Patch(this.UniqueId);
@@ -81,9 +73,10 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
     /// <summary>Checks if an item is allowed to be added to a container.</summary>
     /// <param name="to">The container to add the item to.</param>
     /// <param name="item">The item to add.</param>
+    /// <param name="allowByDefault">Indicates whether it should be allowed by default.</param>
     /// <param name="force">Indicates whether it should be a forced attempt.</param>
     /// <returns>True if the item can be added, otherwise False.</returns>
-    public bool CanAddItem(IStorageContainer to, Item item, bool force = false)
+    public bool CanAddItem(IStorageContainer to, Item item, bool allowByDefault = false, bool force = false)
     {
         // Prevent if destination container is already at capacity
         if (to.Items.CountItemStacks() >= to.Capacity && !to.Items.ContainsId(item.QualifiedItemId))
@@ -91,8 +84,8 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
             return false;
         }
 
-        var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, force);
-        if (force || to.Items.ContainsId(item.QualifiedItemId))
+        var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, allowByDefault, force);
+        if (allowByDefault || to.Items.ContainsId(item.QualifiedItemId))
         {
             itemTransferringEventArgs.AllowTransfer();
         }
@@ -129,7 +122,7 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
                     return false;
                 }
 
-                var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, force);
+                var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, false, force);
                 if (to.Items.ContainsId(item.QualifiedItemId))
                 {
                     itemTransferringEventArgs.AllowTransfer();
@@ -176,7 +169,7 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
     {
         var item = ContainerHandler.instance.reflectionHelper.GetProperty<Item>(stack, "Sample").GetValue();
         return !ContainerHandler.instance.containerFactory.TryGetOne(___Chest, out var container)
-            || ContainerHandler.instance.CanAddItem(container, item);
+            || ContainerHandler.instance.CanAddItem(container, item, true);
     }
 
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]
@@ -186,7 +179,7 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
     private static bool Chest_addItem_prefix(Chest __instance, ref Item __result, Item item)
     {
         if (!ContainerHandler.instance.containerFactory.TryGetOne(__instance, out var container)
-            || ContainerHandler.instance.CanAddItem(container, item, true))
+            || ContainerHandler.instance.CanAddItem(container, item, true, true))
         {
             return true;
         }

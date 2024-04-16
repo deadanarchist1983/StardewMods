@@ -1,5 +1,11 @@
 ﻿# Better Chests Change Log
 
+## 2.15.1 (Unreleased)
+
+### Fixed
+
+* Fixed all Automate items were being rejected.
+
 ## 2.15.0 (April 15, 2024)
 
 ### Added

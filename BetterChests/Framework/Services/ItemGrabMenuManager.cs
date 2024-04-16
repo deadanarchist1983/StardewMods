@@ -525,7 +525,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
         this.CurrentMenu.drawMouse(e.SpriteBatch);
     }
 
-    private class ServiceLock(object source, ItemGrabMenuManager itemGrabMenuManager) : IServiceLock
+    private sealed class ServiceLock(object source, ItemGrabMenuManager itemGrabMenuManager) : IServiceLock
     {
         public object Source => source;
 

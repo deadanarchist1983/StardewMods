@@ -143,9 +143,17 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
 
         // Allow transfer if item does matches category
         var itemMatcher = this.GetOrCreateItemMatcher(e.Into);
-        if (!itemMatcher.IsEmpty && itemMatcher.MatchesFilter(e.Item))
+        if (e.IsAllowedByDefault && itemMatcher.IsEmpty)
         {
             e.AllowTransfer();
+        }
+        else if (!itemMatcher.IsEmpty && itemMatcher.MatchesFilter(e.Item))
+        {
+            e.AllowTransfer();
+        }
+        else if (e.IsAllowedByDefault && !itemMatcher.IsEmpty)
+        {
+            e.PreventTransfer();
         }
     }
 
