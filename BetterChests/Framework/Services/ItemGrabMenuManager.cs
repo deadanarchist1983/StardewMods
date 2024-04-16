@@ -16,6 +16,7 @@ using StardewMods.Common.Models;
 using StardewMods.Common.Services;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewMods.Common.Services.Integrations.FauxCore;
+using StardewValley.Buildings;
 using StardewValley.Menus;
 using StardewValley.Objects;
 
@@ -256,13 +257,22 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
     private static IEnumerable<CodeInstruction>
         ItemGrabMenu_constructor_transpiler(IEnumerable<CodeInstruction> instructions) =>
         new CodeMatcher(instructions)
+            .MatchStartForward(new CodeMatch(OpCodes.Stloc_1))
+            .Advance(-1)
+            .InsertAndAdvance(
+                new CodeInstruction(OpCodes.Ldarg_S, (short)16),
+                new CodeInstruction(
+                    OpCodes.Call,
+                    AccessTools.DeclaredMethod(
+                        typeof(ItemGrabMenuManager),
+                        nameof(ItemGrabMenuManager.GetChestContext))))
             .MatchStartForward(
                 new CodeMatch(
                     instruction => instruction.Calls(
                         AccessTools.DeclaredMethod(typeof(Chest), nameof(Chest.GetActualCapacity)))))
             .Advance(1)
             .InsertAndAdvance(
-                new CodeInstruction(OpCodes.Ldloc_1),
+                new CodeInstruction(OpCodes.Ldarg_S, (short)16),
                 new CodeInstruction(
                     OpCodes.Call,
                     AccessTools.DeclaredMethod(
@@ -274,7 +284,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
                         AccessTools.DeclaredMethod(typeof(Chest), nameof(Chest.GetActualCapacity)))))
             .Advance(1)
             .InsertAndAdvance(
-                new CodeInstruction(OpCodes.Ldloc_1),
+                new CodeInstruction(OpCodes.Ldarg_S, (short)16),
                 new CodeInstruction(
                     OpCodes.Call,
                     AccessTools.DeclaredMethod(
@@ -282,21 +292,37 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
                         nameof(ItemGrabMenuManager.GetMenuCapacity))))
             .InstructionEnumeration();
 
-    private static int GetMenuCapacity(int capacity, Chest chest)
-    {
-        if (!ItemGrabMenuManager.instance.containerFactory.TryGetOne(chest, out var container))
+    private static object? GetChestContext(Item? sourceItem, object? context) =>
+        context switch
         {
-            return capacity > 70 ? 70 : capacity;
-        }
-
-        return container.Options.ResizeChest switch
-        {
-            ChestMenuOption.Small => 9,
-            ChestMenuOption.Medium => 36,
-            ChestMenuOption.Large => 70,
-            _ when capacity is > 70 or -1 => 70,
-            _ => capacity,
+            Chest chest => chest,
+            SObject
+            {
+                heldObject.Value: Chest heldChest,
+            } => heldChest,
+            Building building when building.buildingChests.Any() => building.buildingChests.First(),
+            GameLocation location when location.GetFridge() is Chest fridge => fridge,
+            _ => sourceItem,
         };
+
+    private static int GetMenuCapacity(int capacity, object? context)
+    {
+        switch (context)
+        {
+            case Item item when ItemGrabMenuManager.instance.containerFactory.TryGetOne(item, out var container):
+            case Building building
+                when ItemGrabMenuManager.instance.containerFactory.TryGetOneFromBuilding(building, out container):
+                return container.Options.ResizeChest switch
+                {
+                    ChestMenuOption.Small => 9,
+                    ChestMenuOption.Medium => 36,
+                    ChestMenuOption.Large => 70,
+                    _ when capacity is > 70 or -1 => 70,
+                    _ => capacity,
+                };
+
+            default: return capacity > 70 ? 70 : capacity;
+        }
     }
 
     private void OnUpdateTicking(UpdateTickingEventArgs e) => this.UpdateMenu();
@@ -344,9 +370,10 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
 
         // Update top menu
         this.topMenu.Value.Reset(itemGrabMenu, itemGrabMenu.ItemsToGrabMenu);
-        if (!this.containerFactory.TryGetOneFromMenu(out var topContainer))
+        if (this.containerFactory.TryGetOneFromMenu(out var topContainer))
         {
-            topContainer = null;
+            itemGrabMenu.behaviorFunction = topContainer.GrabItemFromInventory;
+            itemGrabMenu.behaviorOnItemGrab = topContainer.GrabItemFromChest;
         }
 
         this.topMenu.Value.Container = topContainer;

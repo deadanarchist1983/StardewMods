@@ -7,6 +7,7 @@ using StardewMods.BetterChests.Framework.Interfaces;
 using StardewMods.BetterChests.Framework.Models.StorageOptions;
 using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 using StardewValley.Inventories;
+using StardewValley.Menus;
 using StardewValley.Mods;
 using StardewValley.Network;
 
@@ -93,6 +94,59 @@ internal abstract class BaseContainer : IStorageContainer
 
     /// <inheritdoc />
     public abstract bool TryRemove(Item item);
+
+    /// <inheritdoc />
+    public virtual void GrabItemFromInventory(Item item, Farmer who)
+    {
+        if (item.Stack == 0)
+        {
+            item.Stack = 1;
+        }
+
+        if (!this.TryAdd(item, out var remaining))
+        {
+            return;
+        }
+
+        if (remaining == null)
+        {
+            who.removeItemFromInventory(item);
+        }
+        else
+        {
+            remaining = who.addItemToInventory(remaining);
+        }
+
+        var oldID = Game1.activeClickableMenu.currentlySnappedComponent != null
+            ? Game1.activeClickableMenu.currentlySnappedComponent.myID
+            : -1;
+
+        this.ShowMenu();
+        if (Game1.activeClickableMenu is not ItemGrabMenu itemGrabMenu)
+        {
+            return;
+        }
+
+        itemGrabMenu.heldItem = remaining;
+        if (oldID == -1)
+        {
+            return;
+        }
+
+        Game1.activeClickableMenu.currentlySnappedComponent = Game1.activeClickableMenu.getComponentWithID(oldID);
+        Game1.activeClickableMenu.snapCursorToCurrentSnappedComponent();
+    }
+
+    /// <inheritdoc />
+    public virtual void GrabItemFromChest(Item item, Farmer who)
+    {
+        if (!who.couldInventoryAcceptThisItem(item) || !this.TryRemove(item))
+        {
+            return;
+        }
+
+        this.ShowMenu();
+    }
 
     /// <inheritdoc />
     public override string ToString()

@@ -68,39 +68,84 @@ internal sealed class BuildingContainer : BaseContainer<Building>
     /// <inheritdoc />
     public override void ShowMenu(bool playSound = false)
     {
-        if (this.chest is not null)
+        switch (this.Building)
         {
-            if (playSound)
-            {
-                Game1.player.currentLocation.localSound("openChest");
-            }
+            case ShippingBin shippingBin:
+                if (playSound)
+                {
+                    Game1.player.currentLocation.localSound("shwip");
+                }
 
-            this.chest.ShowMenu();
-            return;
+                Game1.activeClickableMenu = new ItemGrabMenu(
+                    this.Items,
+                    false,
+                    true,
+                    Utility.highlightShippableObjects,
+                    this.GrabItemFromInventory,
+                    null,
+                    this.GrabItemFromChest,
+                    false,
+                    true,
+                    true,
+                    true,
+                    true,
+                    0,
+                    null,
+                    -1,
+                    shippingBin);
+
+                break;
+
+            case JunimoHut when this.chest is not null:
+                Game1.activeClickableMenu = new ItemGrabMenu(
+                    this.Items,
+                    false,
+                    true,
+                    InventoryMenu.highlightAllItems,
+                    this.GrabItemFromInventory,
+                    null,
+                    this.GrabItemFromChest,
+                    false,
+                    true,
+                    true,
+                    true,
+                    true,
+                    1,
+                    null,
+                    1,
+                    this.Building);
+
+                break;
+
+            default:
+                if (this.chest is not null)
+                {
+                    if (playSound)
+                    {
+                        Game1.player.currentLocation.localSound("openChest");
+                    }
+
+                    Game1.activeClickableMenu = new ItemGrabMenu(
+                        this.Items,
+                        false,
+                        true,
+                        InventoryMenu.highlightAllItems,
+                        this.GrabItemFromInventory,
+                        null,
+                        this.GrabItemFromChest,
+                        false,
+                        true,
+                        true,
+                        true,
+                        true,
+                        1,
+                        null,
+                        -1,
+                        this.Building);
+                }
+
+                break;
         }
-
-        if (this.Building is not ShippingBin shippingBin)
-        {
-            return;
-        }
-
-        Game1.activeClickableMenu = new ItemGrabMenu(
-            this.Items,
-            false,
-            true,
-            Utility.highlightShippableObjects,
-            this.BehaviorOnItemSelectFunction,
-            string.Empty,
-            this.BehaviorOnItemGrab,
-            false,
-            true,
-            true,
-            true,
-            true,
-            0,
-            null,
-            -1,
-            shippingBin);
     }
 
     /// <inheritdoc />
@@ -149,49 +194,19 @@ internal sealed class BuildingContainer : BaseContainer<Building>
         return true;
     }
 
-    private void BehaviorOnItemSelectFunction(Item item, Farmer who)
-    {
-        if (item.Stack == 0)
-        {
-            item.Stack = 1;
-        }
-
-        if (!this.TryAdd(item, out var remaining))
-        {
-            return;
-        }
-
-        who.removeItemFromInventory(item);
-        var oldID = Game1.activeClickableMenu.currentlySnappedComponent != null
-            ? Game1.activeClickableMenu.currentlySnappedComponent.myID
-            : -1;
-
-        this.ShowMenu();
-        if (Game1.activeClickableMenu is not ItemGrabMenu itemGrabMenu)
-        {
-            return;
-        }
-
-        itemGrabMenu.heldItem = remaining;
-        if (oldID == -1)
-        {
-            return;
-        }
-
-        Game1.activeClickableMenu.currentlySnappedComponent = Game1.activeClickableMenu.getComponentWithID(oldID);
-        Game1.activeClickableMenu.snapCursorToCurrentSnappedComponent();
-    }
-
-    private void BehaviorOnItemGrab(Item item, Farmer who)
+    /// <inheritdoc />
+    public override void GrabItemFromChest(Item item, Farmer who)
     {
         if (!who.couldInventoryAcceptThisItem(item) || !this.TryRemove(item))
         {
             return;
         }
 
-        if (item == Game1.getFarm().lastItemShipped)
+        if (this.Building is ShippingBin && item == Game1.getFarm().lastItemShipped)
         {
             Game1.getFarm().lastItemShipped = this.Items.LastOrDefault();
         }
+
+        this.ShowMenu();
     }
 }

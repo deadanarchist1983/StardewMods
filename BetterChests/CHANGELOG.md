@@ -5,12 +5,14 @@
 ### Changed
 
 * Shipping bins accessed through the dropdown will be loaded in the chest menu.
+* Improved the method for detecting storages.
 
 ### Fixed
 
 * Fixed all Automate items were being rejected.
 * Fixed last chest in the Access Menu dropdown was not being shown.
 * Prevent crashing when an item does not have a name.
+* Prevent loading non playerChests as containers.
 
 ## 2.15.0 (April 15, 2024)
 

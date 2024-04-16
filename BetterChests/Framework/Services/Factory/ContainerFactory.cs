@@ -316,21 +316,38 @@ internal sealed class ContainerFactory : BaseService
         switch (itemGrabMenu.context)
         {
             case Chest chest:
+                if (chest == Game1.player.ActiveObject && this.TryGetOneFromPlayer(Game1.player, out container))
+                {
+                    return true;
+                }
+
                 if (chest.Location is not null
                     && this.TryGetOneFromLocation(chest.Location, chest.TileLocation, out container))
                 {
                     return true;
                 }
 
-                if (chest == Game1.player.ActiveObject && this.TryGetOneFromPlayer(Game1.player, out container))
+                break;
+
+            case SObject
+            {
+                heldObject.Value: Chest chest,
+            } obj:
+                if (obj.Location is not null
+                    && this.TryGetOneFromLocation(obj.Location, obj.TileLocation, out container))
+                {
+                    return true;
+                }
+
+                if (obj == Game1.player.ActiveObject && this.TryGetOneFromPlayer(Game1.player, out container))
                 {
                     return true;
                 }
 
                 break;
 
-            case ShippingBin shippingBin:
-                if (this.TryGetOneFromBuilding(shippingBin, out container))
+            case Building building:
+                if (this.TryGetOneFromBuilding(building, out container))
                 {
                     return true;
                 }
@@ -339,8 +356,8 @@ internal sealed class ContainerFactory : BaseService
 
             // Chests Anywhere
             case Farm farm:
-                var building = farm.getBuildingByType("Shipping Bin");
-                if (building is not null && this.TryGetOneFromBuilding(building, out container))
+                var shippingBin = farm.getBuildingByType("Shipping Bin");
+                if (shippingBin is not null && this.TryGetOneFromBuilding(shippingBin, out container))
                 {
                     return true;
                 }
@@ -509,8 +526,23 @@ internal sealed class ContainerFactory : BaseService
             return true;
         }
 
-        var chest = item as Chest ?? (item as SObject)?.heldObject.Value as Chest;
-        if (chest is null && !this.proxyChestFactory.TryGetProxy(item, out chest))
+        if (item is Chest chest)
+        {
+            if (!chest.playerChest.Value)
+            {
+                container = null;
+                return false;
+            }
+        }
+        else if (item is SObject obj && obj.heldObject.Value is Chest objChest)
+        {
+            chest = objChest;
+        }
+        else if (this.proxyChestFactory.TryGetProxy(item, out var proxyChest))
+        {
+            chest = proxyChest;
+        }
+        else
         {
             container = null;
             return false;
