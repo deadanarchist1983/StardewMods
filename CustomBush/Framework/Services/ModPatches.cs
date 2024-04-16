@@ -36,6 +36,7 @@ internal sealed class ModPatches : BaseService
     private readonly string modDataStack;
     private readonly string modDataTexture;
     private readonly IPatchManager patchManager;
+    private readonly IReflectionHelper reflectionHelper;
 
     /// <summary>Initializes a new instance of the <see cref="ModPatches" /> class.</summary>
     /// <param name="assetHandler">Dependency used for handling assets.</param>
@@ -44,13 +45,15 @@ internal sealed class ModPatches : BaseService
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="patchManager">Dependency used for managing patches.</param>
+    /// <param name="reflectionHelper">Dependency used for reflecting into external code.</param>
     public ModPatches(
         AssetHandler assetHandler,
         IEventManager eventManager,
         IGameContentHelper gameContentHelper,
         ILog log,
         IManifest manifest,
-        IPatchManager patchManager)
+        IPatchManager patchManager,
+        IReflectionHelper reflectionHelper)
         : base(log, manifest)
     {
         // Init
@@ -64,6 +67,7 @@ internal sealed class ModPatches : BaseService
         this.eventManager = eventManager;
         this.gameContentHelper = gameContentHelper;
         this.patchManager = patchManager;
+        this.reflectionHelper = reflectionHelper;
         this.checkItemPlantRules =
             typeof(GameLocation).GetMethod("CheckItemPlantRules", BindingFlags.NonPublic | BindingFlags.Instance)
             ?? throw new MethodAccessException("Unable to access CheckItemPlantRules");
@@ -90,6 +94,27 @@ internal sealed class ModPatches : BaseService
         customBush = null;
         return bush.modData.TryGetValue(this.modDataId, out var id)
             && this.assetHandler.Data.TryGetValue(id, out customBush);
+    }
+
+    [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]
+    [SuppressMessage("StyleCop", "SA1313", Justification = "Harmony")]
+    private static void Automate_GetOutput_postfix(object __instance, ref object __result)
+    {
+        var bush = ModPatches.instance.reflectionHelper.GetProperty<Bush>(__instance, "Machine", false).GetValue();
+        if (bush is null)
+        {
+            return;
+        }
+
+        var item = ModPatches.instance.reflectionHelper.GetField<Item>(__result, "Item");
+        var count = ModPatches.instance.reflectionHelper.GetProperty<int>(__result, "Count");
+        var oldItem = item.GetValue();
+        var newItem = ModPatches.CreateItem(oldItem, bush);
+        if (oldItem != newItem)
+        {
+            item.SetValue(newItem);
+            count.SetValue(newItem.Stack);
+        }
     }
 
     [SuppressMessage("ReSharper", "SuggestBaseTypeForParameter", Justification = "Harmony")]
@@ -702,6 +727,23 @@ internal sealed class ModPatches : BaseService
                 AccessTools.DeclaredMethod(typeof(SObject), nameof(SObject.placementAction)),
                 AccessTools.DeclaredMethod(typeof(ModPatches), nameof(ModPatches.Object_placementAction_transpiler)),
                 PatchType.Transpiler));
+
+        var automateType = Type.GetType(
+            "Pathoschild.Stardew.Automate.Framework.Machines.TerrainFeatures.BushMachine, Automate");
+
+        if (automateType is not null)
+        {
+            var methodGetOutput = AccessTools.DeclaredMethod(automateType, "GetOutput");
+            if (methodGetOutput is not null)
+            {
+                this.patchManager.Add(
+                    this.ModId,
+                    new SavedPatch(
+                        methodGetOutput,
+                        AccessTools.DeclaredMethod(typeof(ModPatches), nameof(ModPatches.Automate_GetOutput_postfix)),
+                        PatchType.Postfix));
+            }
+        }
 
         this.patchManager.Patch(this.ModId);
     }
