@@ -30,9 +30,6 @@ internal sealed class Controls
     /// <summary>Gets or sets controls to lock an item slot.</summary>
     public KeybindList LockSlot { get; set; } = new(SButton.LeftAlt);
 
-    /// <summary>Gets or sets controls to switch to next tab.</summary>
-    public KeybindList NextTab { get; set; } = new(SButton.DPadRight);
-
     /// <summary>Gets or sets controls to open <see cref="StardewValley.Menus.CraftingPage" />.</summary>
     public KeybindList OpenCrafting { get; set; } = new(SButton.K);
 
@@ -40,9 +37,6 @@ internal sealed class Controls
     public KeybindList OpenFoundChest { get; set; } = new(
         new Keybind(SButton.LeftShift, SButton.Enter),
         new Keybind(SButton.RightShift, SButton.Enter));
-
-    /// <summary>Gets or sets controls to switch to previous tab.</summary>
-    public KeybindList PreviousTab { get; set; } = new(SButton.DPadLeft);
 
     /// <summary>Gets or sets controls to scroll <see cref="StardewValley.Menus.ItemGrabMenu" /> down.</summary>
     public KeybindList ScrollDown { get; set; } = new(SButton.DPadDown);
@@ -71,19 +65,29 @@ internal sealed class Controls
         new Keybind(SButton.LeftControl, SButton.F),
         new Keybind(SButton.RightControl, SButton.F));
 
+    /// <summary>Gets or sets controls to lock an item slot.</summary>
+    public KeybindList TransferItems { get; set; } = new(
+        new Keybind(SButton.LeftShift),
+        new Keybind(SButton.RightShift));
+
+    /// <summary>Gets or sets controls to lock an item slot.</summary>
+    public KeybindList TransferItemsReverse { get; set; } = new(
+        new Keybind(SButton.LeftAlt),
+        new Keybind(SButton.RightAlt));
+
     /// <inheritdoc />
     public override string ToString()
     {
         StringBuilder sb = new();
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.AccessChests)}: {this.AccessChests}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.AccessNextChest)}: {this.AccessNextChest}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.AccessPreviousChest)}: {this.AccessPreviousChest}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CloseChestFinder)}: {this.CloseChestFinder}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ConfigureChest)}: {this.ConfigureChest}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.FindChest)}: {this.FindChest}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.LockSlot)}: {this.LockSlot}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.NextTab)}: {this.NextTab}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.OpenCrafting)}: {this.OpenCrafting}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.OpenFoundChest)}: {this.OpenFoundChest}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.PreviousTab)}: {this.PreviousTab}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ScrollDown)}: {this.ScrollDown}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ScrollPage)}: {this.ScrollPage}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ScrollUp)}: {this.ScrollUp}");
@@ -91,6 +95,11 @@ internal sealed class Controls
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ToggleCollectItems)}: {this.ToggleCollectItems}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ToggleInfo)}: {this.ToggleInfo}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ToggleSearch)}: {this.ToggleSearch}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.TransferItems)}: {this.TransferItems}");
+        sb.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"{nameof(this.TransferItemsReverse)}: {this.TransferItemsReverse}");
+
         return sb.ToString();
     }
 }

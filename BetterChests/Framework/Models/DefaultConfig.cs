@@ -10,6 +10,12 @@ using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 internal sealed class DefaultConfig : IModConfig
 {
     /// <inheritdoc />
+    public char SearchTagSymbol { get; set; } = '#';
+
+    /// <inheritdoc />
+    public char SearchNegationSymbol { get; set; } = '!';
+
+    /// <inheritdoc />
     public DefaultStorageOptions DefaultOptions { get; set; } = new()
     {
         AccessChest = RangeOption.Location,
@@ -25,8 +31,6 @@ internal sealed class DefaultConfig : IModConfig
         CraftFromChest = RangeOption.Location,
         CraftFromChestDistance = -1,
         HslColorPicker = FeatureOption.Enabled,
-        InventoryTabs = FeatureOption.Enabled,
-        InventoryTabList = ["Clothing", "Cooking", "Crops", "Equipment", "Fishing", "Materials", "Misc", "Seeds"],
         OpenHeldChest = FeatureOption.Enabled,
         ResizeChest = ChestMenuOption.Large,
         ResizeChestCapacity = 70,
@@ -41,6 +45,9 @@ internal sealed class DefaultConfig : IModConfig
 
     /// <inheritdoc />
     public int CarryChestLimit { get; set; } = 3;
+
+    /// <inheritdoc />
+    public float CarryChestSlowAmount { get; set; } = -1f;
 
     /// <inheritdoc />
     public int CarryChestSlowLimit { get; set; } = 1;
@@ -61,9 +68,6 @@ internal sealed class DefaultConfig : IModConfig
     public int HslColorPickerLightnessSteps { get; set; } = 16;
 
     /// <inheritdoc />
-    public FilterMethod InventoryTabMethod { get; set; } = FilterMethod.Hidden;
-
-    /// <inheritdoc />
     public FeatureOption LockItem { get; set; }
 
     /// <inheritdoc />
@@ -71,12 +75,6 @@ internal sealed class DefaultConfig : IModConfig
 
     /// <inheritdoc />
     public FilterMethod SearchItemsMethod { get; set; } = FilterMethod.GrayedOut;
-
-    /// <inheritdoc />
-    public char SearchTagSymbol { get; set; } = '#';
-
-    /// <inheritdoc />
-    public char SearchNegationSymbol { get; set; } = '!';
 
     /// <inheritdoc />
     public HashSet<string> StashToChestDisableLocations { get; set; } = [];
@@ -104,7 +102,6 @@ internal sealed class DefaultConfig : IModConfig
             CultureInfo.InvariantCulture,
             $"{nameof(this.HslColorPickerLightnessSteps)}: {this.HslColorPickerLightnessSteps}");
 
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.InventoryTabMethod)}: {this.InventoryTabMethod}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.LockItem)}: {this.LockItem}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.LockItemHold)}: {this.LockItemHold}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.SearchItemsMethod)}: {this.SearchItemsMethod}");

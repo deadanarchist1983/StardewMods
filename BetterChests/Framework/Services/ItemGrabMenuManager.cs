@@ -25,8 +25,10 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
 {
     private static ItemGrabMenuManager instance = null!;
 
+    private readonly AssetHandler assetHandler;
     private readonly PerScreen<InventoryMenuManager> bottomMenu;
     private readonly ContainerFactory containerFactory;
+    private readonly ContainerHandler containerHandler;
     private readonly PerScreen<IClickableMenu?> currentMenu = new();
     private readonly IEventManager eventManager;
     private readonly PerScreen<ServiceLock?> focus = new();
@@ -35,7 +37,9 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
     private readonly PerScreen<InventoryMenuManager> topMenu;
 
     /// <summary>Initializes a new instance of the <see cref="ItemGrabMenuManager" /> class.</summary>
+    /// <param name="assetHandler">Dependency used for handling assets.</param>
     /// <param name="containerFactory">Dependency used for accessing containers.</param>
+    /// <param name="containerHandler">Dependency used for handling operations between containers.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
@@ -44,7 +48,9 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="patchManager">Dependency used for managing patches.</param>
     public ItemGrabMenuManager(
+        AssetHandler assetHandler,
         ContainerFactory containerFactory,
+        ContainerHandler containerHandler,
         IEventManager eventManager,
         ILog log,
         IManifest manifest,
@@ -56,7 +62,9 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
     {
         // Init
         ItemGrabMenuManager.instance = this;
+        this.assetHandler = assetHandler;
         this.containerFactory = containerFactory;
+        this.containerHandler = containerHandler;
         this.eventManager = eventManager;
         this.inputHelper = inputHelper;
         this.modConfig = modConfig;
@@ -190,8 +198,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
             topOffset = Game1.pixelZoom * -13;
         }
 
-        if (container.Options.InventoryTabs is not FeatureOption.Disabled
-            || container.Options.SearchItems is not FeatureOption.Disabled)
+        if (container.Options.SearchItems is not FeatureOption.Disabled)
         {
             topOffset -= Game1.pixelZoom * 24;
         }
@@ -398,20 +405,50 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
 
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
-        if (this.CurrentMenu is null)
+        if (this.CurrentMenu is null || e.Button is not SButton.MouseLeft)
         {
             return;
         }
 
         var (mouseX, mouseY) = Game1.getMousePosition(true);
-        switch (e.Button)
+        if (this.topMenu.Value.LeftClick(mouseX, mouseY) || this.bottomMenu.Value.LeftClick(mouseX, mouseY))
         {
-            case SButton.MouseLeft when this.topMenu.Value.LeftClick(mouseX, mouseY): break;
-            case SButton.MouseLeft when this.bottomMenu.Value.LeftClick(mouseX, mouseY): break;
-            default: return;
+            this.inputHelper.Suppress(e.Button);
+            return;
+        }
+
+        if (this.Top.Container is null
+            || this.Bottom.Container is null
+            || !this.modConfig.Controls.TransferItems.IsDown()
+            || this.CurrentMenu.fillStacksButton is null
+            || !this.CurrentMenu.fillStacksButton.containsPoint(mouseX, mouseY))
+        {
+            return;
         }
 
         this.inputHelper.Suppress(e.Button);
+        var (from, to) = this.modConfig.Controls.TransferItemsReverse.IsDown()
+            ? (this.Top.Container, this.Bottom.Container)
+            : (this.Bottom.Container, this.Top.Container);
+
+        if (!this.containerHandler.Transfer(this.Bottom.Container, this.Top.Container, out var amounts, true))
+        {
+            return;
+        }
+
+        foreach (var (name, amount) in amounts)
+        {
+            if (amount > 0)
+            {
+                this.Log.Trace(
+                    "{0}: {{ Item: {1}, Quantity: {2}, From: {3}, To: {4} }}",
+                    this.Id,
+                    name,
+                    amount,
+                    from,
+                    to);
+            }
+        }
     }
 
     private void OnButtonsChanged(ButtonsChangedEventArgs e)
@@ -479,9 +516,34 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
         e.SpriteBatch.Draw(
             Game1.fadeToBlackRect,
             new Rectangle(0, 0, Game1.uiViewport.Width, Game1.uiViewport.Height),
-            Color.Black * 0.25f);
+            Color.Black * 0.5f);
 
         Game1.mouseCursorTransparency = 0f;
+
+        if (this.CurrentMenu.fillStacksButton is null)
+        {
+            return;
+        }
+
+        var (mouseX, mouseY) = Game1.getMousePosition(true);
+        if (!this.modConfig.Controls.TransferItems.IsDown()
+            || !this.CurrentMenu.fillStacksButton.containsPoint(mouseX, mouseY))
+        {
+            this.CurrentMenu.fillStacksButton.texture = Game1.mouseCursors;
+            this.CurrentMenu.fillStacksButton.sourceRect = new Rectangle(103, 469, 16, 16);
+            this.CurrentMenu.fillStacksButton.hoverText = Game1.content.LoadString("Strings\\UI:ItemGrab_FillStacks");
+            return;
+        }
+
+        this.CurrentMenu.fillStacksButton.texture = this.assetHandler.Icons.Value;
+
+        this.CurrentMenu.fillStacksButton.sourceRect = this.modConfig.Controls.TransferItemsReverse.IsDown()
+            ? new Rectangle(96, 0, 16, 16)
+            : new Rectangle(80, 0, 16, 16);
+
+        this.CurrentMenu.fillStacksButton.hoverText = this.modConfig.Controls.TransferItemsReverse.IsDown()
+            ? I18n.Button_TransferDown_Name()
+            : I18n.Button_TransferUp_Name();
     }
 
     [Priority(int.MinValue)]
@@ -497,7 +559,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
         this.bottomMenu.Value.Draw(e.SpriteBatch);
 
         // Redraw foreground
-        if (this.focus.Value is not null)
+        if (this.focus.Value is null)
         {
             if (this.CurrentMenu.hoverText != null
                 && (this.CurrentMenu.hoveredItem == null || this.CurrentMenu.ItemsToGrabMenu == null))

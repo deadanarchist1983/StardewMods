@@ -16,8 +16,6 @@ using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewValley.Menus;
 using StardewValley.Objects;
 
-// TODO: Draw farmer nearby using cursor distance
-
 /// <summary>Adds a color picker that support hue, saturation, and lightness.</summary>
 internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
 {
@@ -227,6 +225,9 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
         {
             chest.modData[key] = value;
         }
+
+        this.itemGrabMenuManager.CurrentMenu.colorPickerToggleButton.texture = this.assetHandler.Icons.Value;
+        this.itemGrabMenuManager.CurrentMenu.colorPickerToggleButton.sourceRect = new Rectangle(126, 0, 16, 16);
 
         this.colorPicker.Value = new HslComponent(
             this.assetHandler,

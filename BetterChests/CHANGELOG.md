@@ -1,5 +1,24 @@
 ﻿# Better Chests Change Log
 
+## 2.16.0 (Unreleased)
+
+### Added
+
+* Overhauled searching and categorizing items.
+* Added config option to adjust the overburdened speed debuff.
+* Added controls for transferring items up and down.
+
+### Changed
+
+* Inventory Tabs have been removed.
+* Customize icons for the HSL color picker.
+* 
+
+### Fixed
+
+* Fixed config options for inventory tab method and search items method.
+* Fixed grabbing items from chests leaving empty slots until organized.
+
 ## 2.15.2 (April 16, 2024)
 
 ### Fixed

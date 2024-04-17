@@ -123,20 +123,6 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
-    public FeatureOption InventoryTabs
-    {
-        get => this.Get(OptionKey.InventoryTabs);
-        set => this.Set(OptionKey.InventoryTabs, value);
-    }
-
-    /// <inheritdoc />
-    public HashSet<string> InventoryTabList
-    {
-        get => this.Get(HashSetKey.InventoryTabList);
-        set => this.Set(HashSetKey.InventoryTabList, value);
-    }
-
-    /// <inheritdoc />
     public FeatureOption OpenHeldChest
     {
         get => this.Get(OptionKey.OpenHeldChest);
@@ -399,7 +385,6 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
     internal enum HashSetKey
     {
         FilterItemsList,
-        InventoryTabList,
     }
 
     [EnumExtensions]
@@ -428,7 +413,6 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
         CollectItems,
         ConfigureChest,
         HslColorPicker,
-        InventoryTabs,
         OpenHeldChest,
         SearchItems,
         ShopFromChest,

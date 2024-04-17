@@ -54,12 +54,6 @@ internal class DefaultStorageOptions : IStorageOptions
     public FeatureOption HslColorPicker { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
-    public FeatureOption InventoryTabs { get; set; } = FeatureOption.Default;
-
-    /// <inheritdoc />
-    public HashSet<string> InventoryTabList { get; set; } = [];
-
-    /// <inheritdoc />
     public FeatureOption OpenHeldChest { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
@@ -132,11 +126,6 @@ internal class DefaultStorageOptions : IStorageOptions
             $"{nameof(this.CraftFromChestDistance)}: {this.CraftFromChestDistance}");
 
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.HslColorPicker)}: {this.HslColorPicker}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.InventoryTabs)}: {this.InventoryTabs}");
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.InventoryTabList)}: {string.Join(", ", this.InventoryTabList)}");
-
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.OpenHeldChest)}: {this.OpenHeldChest}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ResizeChest)}: {this.ResizeChest}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ResizeChestCapacity)}: {this.ResizeChestCapacity}");

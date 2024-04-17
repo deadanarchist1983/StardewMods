@@ -8,7 +8,6 @@ using StardewModdingAPI.Utilities;
 using StardewMods.BetterChests.Framework.Models.Events;
 using StardewMods.BetterChests.Framework.Models.StorageOptions;
 using StardewMods.BetterChests.Framework.Services.Factory;
-using StardewMods.BetterChests.Framework.UI;
 using StardewMods.Common.Enums;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Models;
@@ -26,10 +25,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     private readonly PerScreen<ClickableTextureComponent> configButton;
     private readonly ConfigManager configManager;
     private readonly ContainerFactory containerFactory;
-
     private readonly GenericModConfigMenuIntegration genericModConfigMenuIntegration;
-
-    private readonly Func<CategorizeOption> getCategorizeOption;
     private readonly IInputHelper inputHelper;
     private readonly PerScreen<bool> isActive = new();
     private readonly ItemGrabMenuManager itemGrabMenuManager;
@@ -40,11 +36,11 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
 
     /// <summary>Initializes a new instance of the <see cref="ConfigureChest" /> class.</summary>
     /// <param name="assetHandler">Dependency used for handling assets.</param>
+    /// <param name="commandHelper">Dependency used for handling console commands.</param>
     /// <param name="configManager">Dependency used for accessing config data.</param>
     /// <param name="containerFactory">Dependency used for accessing containers.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="genericModConfigMenuIntegration">Dependency for Generic Mod Config Menu integration.</param>
-    /// <param name="getCategorizeOption">Gets a new instance of <see cref="CategorizeOption" />.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="itemGrabMenuManager">Dependency used for managing the item grab menu.</param>
     /// <param name="localizedTextManager">Dependency used for formatting and translating text.</param>
@@ -53,11 +49,11 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     /// <param name="patchManager">Dependency used for managing patches.</param>
     public ConfigureChest(
         AssetHandler assetHandler,
+        ICommandHelper commandHelper,
         ConfigManager configManager,
         ContainerFactory containerFactory,
         IEventManager eventManager,
         GenericModConfigMenuIntegration genericModConfigMenuIntegration,
-        Func<CategorizeOption> getCategorizeOption,
         IInputHelper inputHelper,
         ItemGrabMenuManager itemGrabMenuManager,
         LocalizedTextManager localizedTextManager,
@@ -70,8 +66,6 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         this.configManager = configManager;
         this.containerFactory = containerFactory;
         this.genericModConfigMenuIntegration = genericModConfigMenuIntegration;
-
-        this.getCategorizeOption = getCategorizeOption;
         this.inputHelper = inputHelper;
         this.itemGrabMenuManager = itemGrabMenuManager;
         this.localizedTextManager = localizedTextManager;
@@ -90,6 +84,10 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
                 region = ItemGrabMenu.region_organizationButtons,
             });
 
+        // Commands
+        commandHelper.Add("bc_player_config", "Configure the player backpack", this.ConfigurePlayer);
+
+        // Patches
         this.patchManager.Add(
             this.UniqueId,
             new SavedPatch(
@@ -164,12 +162,13 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         buttons.Add(configButton);
         var stepSize = Game1.tileSize + buttons.Count switch { >= 4 => 8, _ => 16 };
         var yOffset = buttons[0].bounds.Y;
-        if (yOffset - (stepSize * (buttons.Count - 1)) < __instance.ItemsToGrabMenu.yPositionOnScreen)
-        {
-            yOffset += ((stepSize * (buttons.Count - 1)) + __instance.ItemsToGrabMenu.yPositionOnScreen - yOffset) / 2;
-        }
 
-        var xPosition = buttons[0].bounds.X;
+        // if (yOffset - (stepSize * (buttons.Count - 1)) < __instance.yPositionOnScreen)
+        // {
+        //     yOffset += ((stepSize * (buttons.Count - 1)) + __instance.yPositionOnScreen - yOffset) / 2;
+        // }
+
+        var xPosition = Math.Max(buttons[0].bounds.X, __instance.okButton.bounds.X);
 
         for (var index = 0; index < buttons.Count; ++index)
         {
@@ -299,6 +298,16 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         }
     }
 
+    private void ConfigurePlayer(string commands, string[] args)
+    {
+        if (!this.containerFactory.TryGetOne(Game1.player, out var container))
+        {
+            return;
+        }
+
+        this.ShowMenu(container);
+    }
+
     private void ShowMenu(IStorageContainer container)
     {
         if (!this.genericModConfigMenuIntegration.IsLoaded)
@@ -350,10 +359,6 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             parentOptions: container.Options.GetParentOptions());
 
         gmcm.AddPage(this.manifest, "Categories", I18n.Section_Categorize_Name);
-
-        var categorizeOption = this.getCategorizeOption();
-        categorizeOption.Init(options.CategorizeChestTags);
-        this.genericModConfigMenuIntegration.AddComplexOption(categorizeOption);
 
         gmcm.OpenModMenu(this.manifest);
         this.lastContainer.Value = container;

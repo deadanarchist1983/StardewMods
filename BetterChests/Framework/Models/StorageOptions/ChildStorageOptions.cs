@@ -136,20 +136,6 @@ internal class ChildStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
-    public FeatureOption InventoryTabs
-    {
-        get => this.Get(storage => storage.InventoryTabs);
-        set => this.ActualOptions.InventoryTabs = value == this.Parent.InventoryTabs ? FeatureOption.Default : value;
-    }
-
-    /// <inheritdoc />
-    public HashSet<string> InventoryTabList
-    {
-        get => this.ActualOptions.InventoryTabList.Union(this.Parent.InventoryTabList).ToHashSet();
-        set => this.ActualOptions.InventoryTabList = value.Except(this.Parent.InventoryTabList).ToHashSet();
-    }
-
-    /// <inheritdoc />
     public FeatureOption OpenHeldChest
     {
         get => this.Get(storage => storage.OpenHeldChest);

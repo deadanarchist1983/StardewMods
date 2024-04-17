@@ -31,6 +31,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
     private readonly PerScreen<ClickableTextureComponent> leftArrow;
     private readonly PerScreen<int> offset = new();
     private readonly PerScreen<ClickableTextureComponent> rightArrow;
+    private readonly PerScreen<ISearchExpression?> searchExpression;
 
     /// <summary>Initializes a new instance of the <see cref="AccessChest" /> class.</summary>
     /// <param name="containerFactory">Dependency used for accessing containers.</param>
@@ -40,6 +41,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
+    /// <param name="searchExpression">Dependency for retrieving a parsed search expression.</param>
     public AccessChest(
         ContainerFactory containerFactory,
         IEventManager eventManager,
@@ -47,12 +49,14 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         ItemGrabMenuManager itemGrabMenuManager,
         ILog log,
         IManifest manifest,
-        IModConfig modConfig)
+        IModConfig modConfig,
+        PerScreen<ISearchExpression?> searchExpression)
         : base(eventManager, log, manifest, modConfig)
     {
         this.containerFactory = containerFactory;
         this.inputHelper = inputHelper;
         this.itemGrabMenuManager = itemGrabMenuManager;
+        this.searchExpression = searchExpression;
 
         this.leftArrow = new PerScreen<ClickableTextureComponent>(
             () => new ClickableTextureComponent(
@@ -81,6 +85,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         this.Events.Subscribe<MouseWheelScrolledEventArgs>(this.OnMouseWheelScrolled);
         this.Events.Subscribe<RenderedActiveMenuEventArgs>(this.OnRenderedActiveMenu);
         this.Events.Subscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
+        this.Events.Subscribe<SearchChangedEventArgs>(this.OnSearchChanged);
     }
 
     /// <inheritdoc />
@@ -92,10 +97,12 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         this.Events.Unsubscribe<MouseWheelScrolledEventArgs>(this.OnMouseWheelScrolled);
         this.Events.Unsubscribe<RenderedActiveMenuEventArgs>(this.OnRenderedActiveMenu);
         this.Events.Unsubscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
+        this.Events.Unsubscribe<SearchChangedEventArgs>(this.OnSearchChanged);
     }
 
-    private static bool Predicate(IStorageContainer container) =>
+    private bool Predicate(IStorageContainer container) =>
         container is not FarmerContainer
+        && (this.searchExpression.Value is null || container.Items.Any(this.searchExpression.Value.PartialMatch))
         && container.Options.AccessChest is not (RangeOption.Disabled or RangeOption.Default)
         && container.Options.AccessChest.WithinRange(-1, container.Location, container.TileLocation);
 
@@ -117,10 +124,13 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
             {
                 if (this.itemGrabMenuManager.Top.Container is not null)
                 {
+                    var currentIndex =
+                        this.currentContainers.Value.IndexOfValue(this.itemGrabMenuManager.Top.Container);
+
                     this.offset.Value = Math.Clamp(
-                        this.currentContainers.Value.IndexOfValue(this.itemGrabMenuManager.Top.Container),
+                        currentIndex,
                         0,
-                        this.currentContainers.Value.Count - 10);
+                        Math.Max(0, this.currentContainers.Value.Count - 10));
                 }
                 else
                 {
@@ -190,7 +200,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         {
             // Access First Chest
             this.inputHelper.SuppressActiveKeybinds(this.Config.Controls.AccessChests);
-            this.containerFactory.GetAll(AccessChest.Predicate).MinBy(c => c.ToString())?.ShowMenu();
+            this.containerFactory.GetAll(this.Predicate).MinBy(c => c.ToString())?.ShowMenu();
             return;
         }
 
@@ -376,6 +386,14 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         }
     }
 
+    private void OnSearchChanged(SearchChangedEventArgs e)
+    {
+        if (this.dropDown.Value is not null)
+        {
+            this.ReinitializeContainers();
+        }
+    }
+
     private void OnItemGrabMenuChanged(ItemGrabMenuChangedEventArgs e)
     {
         this.isActive.Value = false;
@@ -393,14 +411,8 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
             ? top.Container.DisplayName
             : top.Container.Options.StorageName;
 
-        var x = this.itemGrabMenuManager.CurrentMenu.xPositionOnScreen
-            - (top.Rows == 3 ? 0 : Game1.tileSize)
-            + (Game1.tileSize * 3);
-
-        var y = top.Menu.yPositionOnScreen
-            - (IClickableMenu.borderWidth / 2)
-            - (Game1.tileSize * 2)
-            - (top.Rows == 3 ? 32 : 16);
+        var x = (Game1.uiViewport.Width - (Game1.tileSize * 14)) / 2;
+        var y = Game1.tileSize;
 
         this.leftArrow.Value.bounds.X = x - (Game1.tileSize * 3);
         this.leftArrow.Value.bounds.Y = y + 16;
@@ -414,7 +426,18 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
             name,
             top.Container.ToString());
 
-        var containers = this.containerFactory.GetAll(AccessChest.Predicate);
+        this.ReinitializeContainers();
+    }
+
+    private void ReinitializeContainers()
+    {
+        var top = this.itemGrabMenuManager.Top;
+        if (this.dropDown.Value is null || top.Container is null || top.Menu is null)
+        {
+            return;
+        }
+
+        var containers = this.containerFactory.GetAll(this.Predicate);
         this.currentContainers.Value.Clear();
         foreach (var container in containers)
         {
@@ -425,7 +448,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         var textBounds = textValues.Select(value => Game1.smallFont.MeasureString(value).ToPoint()).ToList();
         var textHeight = textBounds.Max(textBound => textBound.Y);
         this.bounds.Value = new Rectangle(
-            x,
+            this.dropDown.Value.bounds.X,
             this.dropDown.Value.bounds.Bottom,
             textBounds.Max(b => b.X) + 16,
             textBounds.Take(10).Sum(b => b.Y) + 32);
@@ -438,7 +461,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
                         this.bounds.Value.X + 8,
                         this.bounds.Value.Y + 16 + (textHeight * i),
                         this.bounds.Value.Width,
-                        textBounds[i].Y),
+                        textHeight),
                     i.ToString(CultureInfo.InvariantCulture)))
             .ToList();
     }

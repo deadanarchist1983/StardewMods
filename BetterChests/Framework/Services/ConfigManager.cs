@@ -56,6 +56,9 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
     public int CarryChestLimit => this.Config.CarryChestLimit;
 
     /// <inheritdoc />
+    public float CarryChestSlowAmount => this.Config.CarryChestSlowAmount;
+
+    /// <inheritdoc />
     public int CarryChestSlowLimit => this.Config.CarryChestSlowLimit;
 
     /// <inheritdoc />
@@ -74,9 +77,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
     public int HslColorPickerLightnessSteps => this.Config.HslColorPickerLightnessSteps;
 
     /// <inheritdoc />
-    public FilterMethod InventoryTabMethod => this.Config.InventoryTabMethod;
-
-    /// <inheritdoc />
     public FeatureOption LockItem => this.Config.LockItem;
 
     /// <inheritdoc />
@@ -84,12 +84,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
 
     /// <inheritdoc />
     public FilterMethod SearchItemsMethod => this.Config.SearchItemsMethod;
-
-    /// <inheritdoc />
-    public char SearchTagSymbol => this.Config.SearchTagSymbol;
-
-    /// <inheritdoc />
-    public char SearchNegationSymbol => this.Config.SearchNegationSymbol;
 
     /// <inheritdoc />
     public HashSet<string> StashToChestDisableLocations => this.Config.StashToChestDisableLocations;
@@ -421,21 +415,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                 this.localizedTextManager.FormatOption(parentOptions?.HslColorPicker));
         }
 
-        // Inventory Tabs
-        if (isDefault || this.DefaultOptions.InventoryTabs != FeatureOption.Disabled)
-        {
-            gmcm.AddTextOption(
-                this.manifest,
-                () => options.InventoryTabs.ToStringFast(),
-                value => options.InventoryTabs = FeatureOptionExtensions.TryParse(value, out var option)
-                    ? option
-                    : FeatureOption.Default,
-                I18n.Config_InventoryTabs_Name,
-                I18n.Config_InventoryTabs_Tooltip,
-                FeatureOptionExtensions.GetNames(),
-                this.localizedTextManager.FormatOption(parentOptions?.InventoryTabs));
-        }
-
         // Open Held Chest
         if (isDefault || this.DefaultOptions.OpenHeldChest != FeatureOption.Disabled)
         {
@@ -664,21 +643,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
             I18n.Controls_StashItems_Name,
             I18n.Controls_StashItems_Tooltip);
 
-        // Inventory Tabs
-        gmcm.AddKeybindList(
-            this.manifest,
-            () => controls.PreviousTab,
-            value => controls.PreviousTab = value,
-            I18n.Controls_PreviousTab_Name,
-            I18n.Controls_PreviousTab_Tooltip);
-
-        gmcm.AddKeybindList(
-            this.manifest,
-            () => controls.NextTab,
-            value => controls.NextTab = value,
-            I18n.Controls_NextTab_Name,
-            I18n.Controls_NextTab_Tooltip);
-
         // Resize Chest
         gmcm.AddKeybindList(
             this.manifest,
@@ -732,6 +696,21 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
             value => controls.ToggleSearch = value,
             I18n.Controls_ToggleSearch_Name,
             I18n.Controls_ToggleSearch_Tooltip);
+
+        // Transfer Items
+        gmcm.AddKeybindList(
+            this.manifest,
+            () => controls.TransferItems,
+            value => controls.TransferItems = value,
+            I18n.Controls_TransferItems_Name,
+            I18n.Controls_TransferItems_Tooltip);
+
+        gmcm.AddKeybindList(
+            this.manifest,
+            () => controls.TransferItemsReverse,
+            value => controls.TransferItemsReverse = value,
+            I18n.Controls_TransferItemsReverse_Name,
+            I18n.Controls_TransferItemsReverse_Tooltip);
     }
 
     private void AddTweaks(DefaultConfig config)
@@ -754,6 +733,13 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
             36,
             1,
             this.localizedTextManager.CarryChestLimit);
+
+        gmcm.AddNumberOption(
+            this.manifest,
+            () => config.CarryChestSlowAmount,
+            value => config.CarryChestSlowAmount = value,
+            I18n.Config_CarryChestSlowAmount_Name,
+            I18n.Config_CarryChestSlowAmount_Tooltip);
 
         // Carry Chest Slow Limit
         gmcm.AddNumberOption(
@@ -798,17 +784,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
             29,
             1);
 
-        // Inventory Tab Method
-        gmcm.AddTextOption(
-            this.manifest,
-            () => config.InventoryTabMethod.ToStringFast(),
-            value => config.InventoryTabMethod =
-                FilterMethodExtensions.TryParse(value, out var method) ? method : FilterMethod.Default,
-            I18n.Config_CategorizeChestMethod_Name,
-            I18n.Config_CategorizeChestMethod_Tooltip,
-            FilterMethodExtensions.GetNames(),
-            this.localizedTextManager.FormatMethod());
-
         // Lock Item
         gmcm.AddTextOption(
             this.manifest,
@@ -834,26 +809,10 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
             () => config.SearchItemsMethod.ToStringFast(),
             value => config.SearchItemsMethod =
                 FilterMethodExtensions.TryParse(value, out var method) ? method : FilterMethod.Default,
-            I18n.Config_CategorizeChestMethod_Name,
-            I18n.Config_CategorizeChestMethod_Tooltip,
+            I18n.Config_SearchItemsMethod_Name,
+            I18n.Config_SearchItemsMethod_Tooltip,
             FilterMethodExtensions.GetNames(),
             this.localizedTextManager.FormatMethod());
-
-        // Search Tag Symbol
-        gmcm.AddTextOption(
-            this.manifest,
-            () => config.SearchTagSymbol.ToString(),
-            value => config.SearchTagSymbol = string.IsNullOrWhiteSpace(value) ? '#' : value.ToCharArray()[0],
-            I18n.Config_SearchTagSymbol_Name,
-            I18n.Config_SearchTagSymbol_Tooltip);
-
-        // Search Negation Symbol
-        gmcm.AddTextOption(
-            this.manifest,
-            () => config.SearchNegationSymbol.ToString(),
-            value => config.SearchNegationSymbol = string.IsNullOrWhiteSpace(value) ? '#' : value.ToCharArray()[0],
-            I18n.Config_SearchNegationSymbol_Name,
-            I18n.Config_SearchNegationSymbol_Tooltip);
     }
 
     private void OnConfigChanged(ConfigChangedEventArgs<DefaultConfig> e)
@@ -920,7 +879,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                 new DefaultStorageOptions
                 {
                     HslColorPicker = FeatureOption.Disabled,
-                    InventoryTabs = FeatureOption.Disabled,
                     ResizeChest = ChestMenuOption.Large,
                     ResizeChestCapacity = -1,
                     SearchItems = FeatureOption.Disabled,
@@ -943,7 +901,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     ConfigureChest = FeatureOption.Disabled,
                     CraftFromChest = RangeOption.Disabled,
                     HslColorPicker = FeatureOption.Disabled,
-                    InventoryTabs = FeatureOption.Disabled,
                     OpenHeldChest = FeatureOption.Disabled,
                     ResizeChest = ChestMenuOption.Disabled,
                     SearchItems = FeatureOption.Disabled,
@@ -991,7 +948,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     ConfigureChest = FeatureOption.Disabled,
                     CraftFromChest = RangeOption.Disabled,
                     HslColorPicker = FeatureOption.Disabled,
-                    InventoryTabs = FeatureOption.Disabled,
                     OpenHeldChest = FeatureOption.Disabled,
                     ResizeChest = ChestMenuOption.Disabled,
                     SearchItems = FeatureOption.Disabled,
@@ -1028,7 +984,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     ConfigureChest = FeatureOption.Disabled,
                     CraftFromChest = RangeOption.Disabled,
                     HslColorPicker = FeatureOption.Disabled,
-                    InventoryTabs = FeatureOption.Disabled,
                     OpenHeldChest = FeatureOption.Disabled,
                     ResizeChest = ChestMenuOption.Disabled,
                     SearchItems = FeatureOption.Disabled,
@@ -1054,7 +1009,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     ConfigureChest = FeatureOption.Disabled,
                     CraftFromChest = RangeOption.Disabled,
                     HslColorPicker = FeatureOption.Disabled,
-                    InventoryTabs = FeatureOption.Disabled,
                     OpenHeldChest = FeatureOption.Disabled,
                     ResizeChest = ChestMenuOption.Disabled,
                     SearchItems = FeatureOption.Disabled,
@@ -1079,7 +1033,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     ConfigureChest = FeatureOption.Disabled,
                     CraftFromChest = RangeOption.Disabled,
                     HslColorPicker = FeatureOption.Disabled,
-                    InventoryTabs = FeatureOption.Disabled,
                     OpenHeldChest = FeatureOption.Disabled,
                     ResizeChest = ChestMenuOption.Disabled,
                     SearchItems = FeatureOption.Disabled,
@@ -1096,7 +1049,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                 {
                     CookFromChest = RangeOption.Location,
                     HslColorPicker = FeatureOption.Disabled,
-                    InventoryTabs = FeatureOption.Disabled,
                     ResizeChest = ChestMenuOption.Large,
                     ResizeChestCapacity = -1,
                     SearchItems = FeatureOption.Disabled,
@@ -1111,7 +1063,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                 {
                     CookFromChest = RangeOption.Location,
                     HslColorPicker = FeatureOption.Disabled,
-                    InventoryTabs = FeatureOption.Disabled,
                     ResizeChest = ChestMenuOption.Large,
                     ResizeChestCapacity = -1,
                     SearchItems = FeatureOption.Disabled,

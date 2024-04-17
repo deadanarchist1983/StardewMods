@@ -140,11 +140,13 @@ internal abstract class BaseContainer : IStorageContainer
     /// <inheritdoc />
     public virtual void GrabItemFromChest(Item item, Farmer who)
     {
-        if (!who.couldInventoryAcceptThisItem(item) || !this.TryRemove(item))
+        if (!who.couldInventoryAcceptThisItem(item))
         {
             return;
         }
 
+        this.Items.Remove(item);
+        this.Items.RemoveEmptySlots();
         this.ShowMenu();
     }
 
