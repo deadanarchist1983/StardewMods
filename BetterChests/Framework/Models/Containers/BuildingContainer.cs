@@ -1,6 +1,7 @@
 namespace StardewMods.BetterChests.Framework.Models.Containers;
 
 using Microsoft.Xna.Framework;
+using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 using StardewValley.Buildings;
 using StardewValley.Inventories;
@@ -76,23 +77,55 @@ internal sealed class BuildingContainer : BaseContainer<Building>
                     Game1.player.currentLocation.localSound("shwip");
                 }
 
-                Game1.activeClickableMenu = new ItemGrabMenu(
-                    this.Items,
-                    false,
-                    true,
-                    Utility.highlightShippableObjects,
-                    this.GrabItemFromInventory,
-                    null,
-                    this.GrabItemFromChest,
-                    false,
-                    true,
-                    true,
-                    true,
-                    true,
-                    0,
-                    null,
-                    -1,
-                    shippingBin);
+                ItemGrabMenu itemGrabMenu;
+
+                if (this.Options.ResizeChest is ChestMenuOption.Default or ChestMenuOption.Disabled)
+                {
+                    itemGrabMenu = new ItemGrabMenu(
+                        null,
+                        true,
+                        false,
+                        Utility.highlightShippableObjects,
+                        this.GrabItemFromInventory,
+                        null,
+                        null,
+                        true,
+                        true,
+                        false,
+                        true,
+                        false,
+                        0,
+                        null,
+                        -1,
+                        shippingBin);
+
+                    itemGrabMenu.initializeUpperRightCloseButton();
+                    itemGrabMenu.setBackgroundTransparency(b: false);
+                    itemGrabMenu.setDestroyItemOnClick(b: true);
+                    itemGrabMenu.initializeShippingBin();
+                }
+                else
+                {
+                    itemGrabMenu = new ItemGrabMenu(
+                        this.Items,
+                        false,
+                        true,
+                        Utility.highlightShippableObjects,
+                        this.GrabItemFromInventory,
+                        null,
+                        this.GrabItemFromChest,
+                        false,
+                        true,
+                        true,
+                        true,
+                        true,
+                        0,
+                        null,
+                        -1,
+                        shippingBin);
+                }
+
+                Game1.activeClickableMenu = itemGrabMenu;
 
                 break;
 
@@ -197,7 +230,7 @@ internal sealed class BuildingContainer : BaseContainer<Building>
     /// <inheritdoc />
     public override void GrabItemFromChest(Item item, Farmer who)
     {
-        if (!who.couldInventoryAcceptThisItem(item) || !this.TryRemove(item))
+        if (item is null || !who.couldInventoryAcceptThisItem(item))
         {
             return;
         }
@@ -207,6 +240,7 @@ internal sealed class BuildingContainer : BaseContainer<Building>
             Game1.getFarm().lastItemShipped = this.Items.LastOrDefault();
         }
 
+        this.Items.RemoveEmptySlots();
         this.ShowMenu();
     }
 }

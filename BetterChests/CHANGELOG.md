@@ -32,6 +32,8 @@
 * Fixed config options for inventory tab method and search items method.
 * Fixed grabbing items from chests leaving empty slots until organized.
 * Fixed held containers having all of their features disabled.
+* Fixed shipping bin leaving empty slots.
+* Fixed shipping bin as a chest menu unable to be disabled.
 
 ## 2.15.2 (April 16, 2024)
 

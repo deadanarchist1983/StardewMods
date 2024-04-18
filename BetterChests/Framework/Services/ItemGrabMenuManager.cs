@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewMods.BetterChests.Framework.Interfaces;
+using StardewMods.BetterChests.Framework.Models.Containers;
 using StardewMods.BetterChests.Framework.Models.Events;
 using StardewMods.BetterChests.Framework.Services.Factory;
 using StardewMods.Common.Enums;
@@ -364,6 +365,17 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
         this.topMenu.Value.Reset(itemGrabMenu, itemGrabMenu.ItemsToGrabMenu);
         if (this.containerFactory.TryGetOne(out var topContainer))
         {
+            // Relaunch shipping bin menu
+            if (itemGrabMenu.shippingBin
+                && topContainer is BuildingContainer
+                {
+                    Options.ResizeChest: not (ChestMenuOption.Default or ChestMenuOption.Disabled),
+                })
+            {
+                topContainer.ShowMenu();
+                return;
+            }
+
             itemGrabMenu.behaviorFunction = topContainer.GrabItemFromInventory;
             itemGrabMenu.behaviorOnItemGrab = topContainer.GrabItemFromChest;
         }

@@ -98,6 +98,11 @@ internal abstract class BaseContainer : IStorageContainer
     /// <inheritdoc />
     public virtual void GrabItemFromInventory(Item item, Farmer who)
     {
+        if (item is null)
+        {
+            return;
+        }
+
         if (item.Stack == 0)
         {
             item.Stack = 1;
@@ -140,7 +145,7 @@ internal abstract class BaseContainer : IStorageContainer
     /// <inheritdoc />
     public virtual void GrabItemFromChest(Item item, Farmer who)
     {
-        if (!who.couldInventoryAcceptThisItem(item))
+        if (item is null || !who.couldInventoryAcceptThisItem(item))
         {
             return;
         }
