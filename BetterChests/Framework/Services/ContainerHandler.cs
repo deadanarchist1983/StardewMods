@@ -77,24 +77,30 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
     /// <returns>true if the item can be added; otherwise, false.</returns>
     public bool CanAddItem(IStorageContainer to, Item item, bool allowByDefault = false, bool force = false)
     {
-        // Prevent if destination container is already at capacity
-        if (to.Items.CountItemStacks() >= to.Capacity && !to.Items.ContainsId(item.QualifiedItemId))
+        var hasItem = to.Items.ContainsId(item.QualifiedItemId);
+
+        // Stop iterating if destination container is already at capacity
+        if (to.Items.CountItemStacks() >= to.Capacity && !hasItem)
         {
             return false;
         }
 
-        var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, allowByDefault);
+        var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item);
         if (allowByDefault)
         {
             itemTransferringEventArgs.AllowTransfer();
         }
 
-        if (!force)
+        this.eventPublisher.Publish(itemTransferringEventArgs);
+
+        // Automatically block if prevented
+        if (itemTransferringEventArgs.IsPrevented)
         {
-            this.eventPublisher.Publish(itemTransferringEventArgs);
+            return false;
         }
 
-        return itemTransferringEventArgs.IsAllowed;
+        // Return true if forced or allowed
+        return force || itemTransferringEventArgs.IsAllowed;
     }
 
     /// <summary>Transfers items from one container to another.</summary>
@@ -102,35 +108,49 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
     /// <param name="to">The container to transfer items to.</param>
     /// <param name="amounts">Output parameter that contains the transferred item amounts.</param>
     /// <param name="force">Indicates whether to attempt to force the transfer.</param>
+    /// <param name="existingOnly">Indicates whether to only transfer to existing stacks.</param>
     /// <returns>true if the transfer was successful; otherwise, false.</returns>
     public bool Transfer(
         IStorageContainer from,
         IStorageContainer to,
         [NotNullWhen(true)] out Dictionary<string, int>? amounts,
-        bool force = false)
+        bool force = false,
+        bool existingOnly = false)
     {
         var items = new Dictionary<string, int>();
         from.ForEachItem(
             item =>
             {
+                var hasItem = to.Items.ContainsId(item.QualifiedItemId);
+
                 // Stop iterating if destination container is already at capacity
-                if (to.Items.CountItemStacks() >= to.Capacity && !to.Items.ContainsId(item.QualifiedItemId))
+                if (to.Items.CountItemStacks() >= to.Capacity && !hasItem)
                 {
                     return false;
                 }
 
-                var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, false);
-                if (to.Items.ContainsId(item.QualifiedItemId))
+                var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item);
+                if (existingOnly && hasItem)
                 {
                     itemTransferringEventArgs.AllowTransfer();
                 }
 
-                if (!force)
+                this.eventPublisher.Publish(itemTransferringEventArgs);
+
+                // Automatically block if prevented
+                if (itemTransferringEventArgs.IsPrevented)
                 {
-                    this.eventPublisher.Publish(itemTransferringEventArgs);
+                    return true;
                 }
 
-                if (!itemTransferringEventArgs.IsAllowed)
+                // Block if existing only and item is not in destination container
+                if (existingOnly && !hasItem)
+                {
+                    return true;
+                }
+
+                // Block if not forced or allowed
+                if (!force && !itemTransferringEventArgs.IsAllowed)
                 {
                     return true;
                 }

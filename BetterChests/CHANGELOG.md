@@ -10,6 +10,7 @@
 * Added controls for transferring items up and down.
 * Added icon for saving search as the categorization.
 * Added icon for toggling existing stacks.
+* Added icon for toggling rejecting uncategorized items.
 * When searching, all categorized items will display in the menu.
 * Added storage options for allowing existing items to be stashed.
 * Added storage options for blocking items not belonging to the category.
@@ -24,6 +25,7 @@
 * Moved Access Chest arrows and dropdown to the top of the screen.
 * Moved Access Chest arrows and index to below the label.
 * Moved input events to be handled by the inventory menu manager.
+* Allow transfer logic to replicate transfer existing stacks by default.
 
 ### Fixed
 

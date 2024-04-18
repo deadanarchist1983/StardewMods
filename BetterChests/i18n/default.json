@@ -194,6 +194,7 @@
   "button.transfer-down.name": "Transfer Items into Inventory",
   "button.save-as-categorization.name": "Save As Categorization",
   "button.include-existing-stacks.name": "Include Existing Stacks",
+  "button.reject-uncategorized.name": "Reject Uncategorized Items",
   // Chest Info
   "chest-info.name": "Name",
   "chest-info.type": "Type",

@@ -12,8 +12,8 @@ public interface IItemTransferring
     /// <summary>Gets a value indicating whether the the transfer is allowed.</summary>
     public bool IsAllowed { get; }
 
-    /// <summary>Gets a value indicating whether the the transfer is allowed by default.</summary>
-    public bool IsAllowedByDefault { get; }
+    /// <summary>Gets a value indicating whether the the transfer is prevented.</summary>
+    public bool IsPrevented { get; }
 
     /// <summary>Allow the transfer.</summary>
     public void AllowTransfer();
