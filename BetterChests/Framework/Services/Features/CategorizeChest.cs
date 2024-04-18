@@ -125,21 +125,6 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
         this.Events.Unsubscribe<SearchChangedEventArgs>(this.OnSearchChanged);
     }
 
-    // private static Func<IEnumerable<Item>, IEnumerable<Item>> FilterByCategory(
-    //     IStorageContainer container,
-    //     IItemFilter itemMatcher)
-    // {
-    //     return InternalFilterMethod;
-    //
-    //     IEnumerable<Item> InternalFilterMethod(IEnumerable<Item> items) =>
-    //         container.Options.CategorizeChestMethod switch
-    //         {
-    //             FilterMethod.Sorted or FilterMethod.GrayedOut => items.OrderByDescending(itemMatcher.MatchesFilter),
-    //             FilterMethod.Hidden => items.Where(itemMatcher.MatchesFilter),
-    //             _ => items,
-    //         };
-    // }
-
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
         var container = this.itemGrabMenuManager.Top.Container;
@@ -247,7 +232,11 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
     {
         var top = this.itemGrabMenuManager.Top.Container;
         if (e.Container == this.itemGrabMenuManager.Bottom.Container
-            && top?.Options.CategorizeChest == FeatureOption.Enabled)
+            && top?.Options is
+            {
+                CategorizeChest: FeatureOption.Enabled,
+                CategorizeChestBlockItems: FeatureOption.Enabled,
+            })
         {
             if (this.CanAcceptItem(top, e.Item, out var accepted) && !accepted)
             {
@@ -291,7 +280,7 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
         {
             e.AllowTransfer();
         }
-        else
+        else if (e.Into.Options.CategorizeChestBlockItems == FeatureOption.Enabled)
         {
             e.PreventTransfer();
         }
