@@ -44,6 +44,42 @@ internal class ChildStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
+    public FeatureOption CategorizeChest
+    {
+        get => this.Get(storage => storage.CategorizeChest);
+        set =>
+            this.ActualOptions.CategorizeChest = value == this.Parent.CategorizeChest ? FeatureOption.Default : value;
+    }
+
+    /// <inheritdoc />
+    public FeatureOption CategorizeChestBlockItems
+    {
+        get => this.Get(storage => storage.CategorizeChestBlockItems);
+        set =>
+            this.ActualOptions.CategorizeChestBlockItems =
+                value == this.Parent.CategorizeChestBlockItems ? FeatureOption.Default : value;
+    }
+
+    /// <inheritdoc />
+    public string CategorizeChestSearchTerm
+    {
+        get =>
+            string.IsNullOrWhiteSpace(this.ActualOptions.CategorizeChestSearchTerm)
+                ? this.Parent.CategorizeChestSearchTerm
+                : this.ActualOptions.CategorizeChestSearchTerm;
+        set => this.ActualOptions.CategorizeChestSearchTerm = value;
+    }
+
+    /// <inheritdoc />
+    public FeatureOption CategorizeChestIncludeStacks
+    {
+        get => this.Get(storage => storage.CategorizeChestIncludeStacks);
+        set =>
+            this.ActualOptions.CategorizeChestIncludeStacks =
+                value == this.Parent.CategorizeChestIncludeStacks ? FeatureOption.Default : value;
+    }
+
+    /// <inheritdoc />
     public FeatureOption ChestFinder
     {
         get => this.Get(storage => storage.ChestFinder);
@@ -100,39 +136,6 @@ internal class ChildStorageOptions : IStorageOptions
     {
         get => this.Get(storage => storage.HslColorPicker);
         set => this.ActualOptions.HslColorPicker = value == this.Parent.HslColorPicker ? FeatureOption.Default : value;
-    }
-
-    /// <inheritdoc />
-    public FeatureOption CategorizeChest
-    {
-        get => this.Get(storage => storage.CategorizeChest);
-        set =>
-            this.ActualOptions.CategorizeChest = value == this.Parent.CategorizeChest ? FeatureOption.Default : value;
-    }
-
-    /// <inheritdoc />
-    public FeatureOption CategorizeChestAutomatically
-    {
-        get => this.Get(storage => storage.CategorizeChestAutomatically);
-        set =>
-            this.ActualOptions.CategorizeChestAutomatically =
-                value == this.Parent.CategorizeChestAutomatically ? FeatureOption.Default : value;
-    }
-
-    /// <inheritdoc />
-    public FilterMethod CategorizeChestMethod
-    {
-        get => this.ActualOptions.CategorizeChestMethod;
-        set =>
-            this.ActualOptions.CategorizeChestMethod =
-                value == this.Parent.CategorizeChestMethod ? FilterMethod.Default : value;
-    }
-
-    /// <inheritdoc />
-    public HashSet<string> CategorizeChestTags
-    {
-        get => this.ActualOptions.CategorizeChestTags.Union(this.Parent.CategorizeChestTags).ToHashSet();
-        set => this.ActualOptions.CategorizeChestTags = value.Except(this.Parent.CategorizeChestTags).ToHashSet();
     }
 
     /// <inheritdoc />

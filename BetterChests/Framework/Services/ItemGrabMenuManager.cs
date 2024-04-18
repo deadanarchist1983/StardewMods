@@ -68,8 +68,12 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
         this.eventManager = eventManager;
         this.inputHelper = inputHelper;
         this.modConfig = modConfig;
-        this.topMenu = new PerScreen<InventoryMenuManager>(() => new InventoryMenuManager(log, manifest));
-        this.bottomMenu = new PerScreen<InventoryMenuManager>(() => new InventoryMenuManager(log, manifest));
+
+        this.topMenu = new PerScreen<InventoryMenuManager>(
+            () => new InventoryMenuManager(eventManager, inputHelper, log, manifest, modConfig));
+
+        this.bottomMenu = new PerScreen<InventoryMenuManager>(
+            () => new InventoryMenuManager(eventManager, inputHelper, log, manifest, modConfig));
 
         // Events
         eventManager.Subscribe<RenderingActiveMenuEventArgs>(this.OnRenderingActiveMenu);
@@ -77,9 +81,6 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
         eventManager.Subscribe<UpdateTickingEventArgs>(this.OnUpdateTicking);
         eventManager.Subscribe<UpdateTickedEventArgs>(this.OnUpdateTicked);
         eventManager.Subscribe<ButtonPressedEventArgs>(this.OnButtonPressed);
-        eventManager.Subscribe<ButtonsChangedEventArgs>(this.OnButtonsChanged);
-        eventManager.Subscribe<CursorMovedEventArgs>(this.OnCursorMoved);
-        eventManager.Subscribe<MouseWheelScrolledEventArgs>(this.OnMouseWheelScrolled);
 
         // Patches
         patchManager.Add(
@@ -91,19 +92,13 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
                     nameof(ItemGrabMenuManager.IClickableMenu_SetChildMenu_postfix)),
                 PatchType.Postfix),
             new SavedPatch(
-                AccessTools.DeclaredMethod(
-                    typeof(InventoryMenu),
-                    nameof(InventoryMenu.draw),
-                    [typeof(SpriteBatch), typeof(int), typeof(int), typeof(int)]),
+                AccessTools.DeclaredMethod(typeof(InventoryMenu), nameof(InventoryMenu.draw), [typeof(SpriteBatch)]),
                 AccessTools.DeclaredMethod(
                     typeof(ItemGrabMenuManager),
                     nameof(ItemGrabMenuManager.InventoryMenu_draw_prefix)),
                 PatchType.Prefix),
             new SavedPatch(
-                AccessTools.DeclaredMethod(
-                    typeof(InventoryMenu),
-                    nameof(InventoryMenu.draw),
-                    [typeof(SpriteBatch), typeof(int), typeof(int), typeof(int)]),
+                AccessTools.DeclaredMethod(typeof(InventoryMenu), nameof(InventoryMenu.draw), [typeof(SpriteBatch)]),
                 AccessTools.DeclaredMethod(
                     typeof(ItemGrabMenuManager),
                     nameof(ItemGrabMenuManager.InventoryMenu_draw_postfix)),
@@ -156,7 +151,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
 
     /// <summary>Determines if the specified source object can receive focus.</summary>
     /// <param name="source">The object to check if it can receive focus.</param>
-    /// <returns>True if the source object can receive focus, otherwise false.</returns>
+    /// <returns>true if the source object can receive focus; otherwise, false.</returns>
     public bool CanFocus(object source) => this.focus.Value is null || this.focus.Value.Source == source;
 
     /// <summary>Tries to request focus for a specific object.</summary>
@@ -165,7 +160,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
     /// An optional output parameter representing the acquired service lock, or null if failed to
     /// acquire.
     /// </param>
-    /// <returns>True if focus was successfully acquired, otherwise false.</returns>
+    /// <returns>true if focus was successfully acquired; otherwise, false.</returns>
     public bool TryGetFocus(object source, [NotNullWhen(true)] out IServiceLock? serviceLock)
     {
         serviceLock = null;
@@ -188,7 +183,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
     private static void ChestsAnywhere_BaseChestOverlay_prefix(IClickableMenu menu, ref int topOffset)
     {
         if (menu is not ItemGrabMenu itemGrabMenu
-            || !ItemGrabMenuManager.instance.containerFactory.TryGetOneFromMenu(out var container))
+            || !ItemGrabMenuManager.instance.containerFactory.TryGetOne(out var container))
         {
             return;
         }
@@ -225,19 +220,22 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
         }
 
         // Apply operations
-        __instance.actualInventory = __state.ApplyOperation(__state.Container.Items).ToList();
+        var itemsDisplayingEventArgs = new ItemsDisplayingEventArgs(__state.Container);
+        ItemGrabMenuManager.instance.eventManager.Publish(itemsDisplayingEventArgs);
+        __instance.actualInventory = itemsDisplayingEventArgs.Items.ToList();
+
+        var defaultName = int.MaxValue.ToString(CultureInfo.InvariantCulture);
         for (var index = 0; index < __instance.inventory.Count; ++index)
         {
             if (index >= __instance.actualInventory.Count)
             {
-                __instance.inventory[index].name = int.MaxValue.ToString(CultureInfo.InvariantCulture);
-
+                __instance.inventory[index].name = defaultName;
                 continue;
             }
 
-            __instance.inventory[index].name = __state
-                .Container.Items.IndexOf(__instance.actualInventory[index])
-                .ToString(CultureInfo.InvariantCulture);
+            var actualIndex = __state.Container.Items.IndexOf(__instance.actualInventory[index]);
+            __instance.inventory[index].name =
+                actualIndex > -1 ? actualIndex.ToString(CultureInfo.InvariantCulture) : defaultName;
         }
     }
 
@@ -318,7 +316,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
         {
             case Item item when ItemGrabMenuManager.instance.containerFactory.TryGetOne(item, out var container):
             case Building building
-                when ItemGrabMenuManager.instance.containerFactory.TryGetOneFromBuilding(building, out container):
+                when ItemGrabMenuManager.instance.containerFactory.TryGetOne(building, out container):
                 return container.Options.ResizeChest switch
                 {
                     ChestMenuOption.Small => 9,
@@ -377,7 +375,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
 
         // Update top menu
         this.topMenu.Value.Reset(itemGrabMenu, itemGrabMenu.ItemsToGrabMenu);
-        if (this.containerFactory.TryGetOneFromMenu(out var topContainer))
+        if (this.containerFactory.TryGetOne(out var topContainer))
         {
             itemGrabMenu.behaviorFunction = topContainer.GrabItemFromInventory;
             itemGrabMenu.behaviorOnItemGrab = topContainer.GrabItemFromChest;
@@ -411,12 +409,6 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
         }
 
         var (mouseX, mouseY) = Game1.getMousePosition(true);
-        if (this.topMenu.Value.LeftClick(mouseX, mouseY) || this.bottomMenu.Value.LeftClick(mouseX, mouseY))
-        {
-            this.inputHelper.Suppress(e.Button);
-            return;
-        }
-
         if (this.Top.Container is null
             || this.Bottom.Container is null
             || !this.modConfig.Controls.TransferItems.IsDown()
@@ -448,59 +440,6 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
                     from,
                     to);
             }
-        }
-    }
-
-    private void OnButtonsChanged(ButtonsChangedEventArgs e)
-    {
-        if (this.CurrentMenu is null)
-        {
-            return;
-        }
-
-        if (this.modConfig.Controls.ScrollUp.JustPressed())
-        {
-            this.Top.Scrolled--;
-            this.inputHelper.SuppressActiveKeybinds(this.modConfig.Controls.ScrollUp);
-        }
-
-        if (this.modConfig.Controls.ScrollDown.JustPressed())
-        {
-            this.Top.Scrolled++;
-            this.inputHelper.SuppressActiveKeybinds(this.modConfig.Controls.ScrollDown);
-        }
-    }
-
-    private void OnCursorMoved(CursorMovedEventArgs e)
-    {
-        if (this.CurrentMenu is null)
-        {
-            return;
-        }
-
-        var (mouseX, mouseY) = Game1.getMousePosition(true);
-        this.topMenu.Value.Hover(mouseX, mouseY);
-        this.bottomMenu.Value.Hover(mouseX, mouseY);
-    }
-
-    private void OnMouseWheelScrolled(MouseWheelScrolledEventArgs e)
-    {
-        if (this.CurrentMenu is null)
-        {
-            return;
-        }
-
-        var (mouseX, mouseY) = Game1.getMousePosition(true);
-        if (this.Top.Menu?.isWithinBounds(mouseX, mouseY) == true)
-        {
-            var scroll = this.modConfig.Controls.ScrollPage.IsDown() ? this.Top.Rows : 1;
-            this.Top.Scrolled += e.Delta > 0 ? -scroll : scroll;
-        }
-
-        if (this.Bottom.Menu?.isWithinBounds(mouseX, mouseY) == true)
-        {
-            var scroll = this.modConfig.Controls.ScrollPage.IsDown() ? this.Bottom.Rows : 1;
-            this.Bottom.Scrolled += e.Delta > 0 ? -scroll : scroll;
         }
     }
 

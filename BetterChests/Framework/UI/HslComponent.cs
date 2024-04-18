@@ -267,7 +267,7 @@ internal sealed class HslComponent
     /// <summary>Performs a left-click action based on the given mouse coordinates.</summary>
     /// <param name="mouseX">The x-coordinate of the mouse.</param>
     /// <param name="mouseY">The y-coordinate of the mouse.</param>
-    /// <returns>Returns true if the left click action was successfully performed; otherwise, returns false.</returns>
+    /// <returns>true if the left-click action was successfully performed; otherwise, false.</returns>
     public bool LeftClick(int mouseX, int mouseY)
     {
         if (this.holding is not null)
@@ -313,7 +313,7 @@ internal sealed class HslComponent
     /// <summary>Performs a right-click action based on the given mouse coordinates.</summary>
     /// <param name="mouseX">The x-coordinate of the mouse.</param>
     /// <param name="mouseY">The y-coordinate of the mouse.</param>
-    /// <returns>Returns true if the left click action was successfully performed; otherwise, returns false.</returns>
+    /// <returns>true if the right-click action was successfully performed; otherwise, false.</returns>
     public bool RightClick(int mouseX, int mouseY)
     {
         if (this.holding is not null)

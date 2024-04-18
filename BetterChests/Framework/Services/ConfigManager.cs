@@ -53,6 +53,9 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
     public Dictionary<string, Dictionary<string, DefaultStorageOptions>> StorageOptions => this.Config.StorageOptions;
 
     /// <inheritdoc />
+    public bool AccessChestsShowArrows => this.Config.AccessChestsShowArrows;
+
+    /// <inheritdoc />
     public int CarryChestLimit => this.Config.CarryChestLimit;
 
     /// <inheritdoc />
@@ -202,8 +205,8 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                 value => options.AccessChest = RangeOptionExtensions.TryParse(value, out var range)
                     ? range
                     : RangeOption.Default,
-                I18n.Config_AccessChest_Name,
-                I18n.Config_AccessChest_Tooltip,
+                I18n.Config_AccessChests_Name,
+                I18n.Config_AccessChests_Tooltip,
                 RangeOptionExtensions.GetNames(),
                 this.localizedTextManager.FormatRange(parentOptions?.AccessChest));
         }
@@ -251,28 +254,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                 I18n.Config_CategorizeChest_Tooltip,
                 FeatureOptionExtensions.GetNames(),
                 this.localizedTextManager.FormatOption(parentOptions?.CategorizeChest));
-
-            gmcm.AddTextOption(
-                this.manifest,
-                () => options.CategorizeChestAutomatically.ToStringFast(),
-                value => options.CategorizeChestAutomatically = FeatureOptionExtensions.TryParse(value, out var option)
-                    ? option
-                    : FeatureOption.Default,
-                I18n.Config_CategorizeChestAutomatically_Name,
-                I18n.Config_CategorizeChestAutomatically_Tooltip,
-                FeatureOptionExtensions.GetNames(),
-                this.localizedTextManager.FormatOption(parentOptions?.CategorizeChestAutomatically));
-
-            gmcm.AddTextOption(
-                this.manifest,
-                () => options.CategorizeChestMethod.ToStringFast(),
-                value => options.CategorizeChestMethod = FilterMethodExtensions.TryParse(value, out var filterMethod)
-                    ? filterMethod
-                    : FilterMethod.Default,
-                I18n.Config_CategorizeChestMethod_Name,
-                I18n.Config_CategorizeChestMethod_Tooltip,
-                FilterMethodExtensions.GetNames(),
-                this.localizedTextManager.FormatMethod(parentOptions?.CategorizeChestMethod));
         }
 
         // Chest Finder
@@ -722,6 +703,14 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
 
         var gmcm = this.genericModConfigMenuIntegration.Api;
 
+        // Access Chest Show Arrows
+        gmcm.AddBoolOption(
+            this.manifest,
+            () => config.AccessChestsShowArrows,
+            value => config.AccessChestsShowArrows = value,
+            I18n.Config_AccessChestsShowArrows_Name,
+            I18n.Config_AccessChestsShowArrows_Tooltip);
+
         // Carry Chest Limit
         gmcm.AddNumberOption(
             this.manifest,
@@ -894,7 +883,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     AutoOrganize = FeatureOption.Disabled,
                     CarryChest = FeatureOption.Disabled,
                     CategorizeChest = FeatureOption.Disabled,
-                    CategorizeChestAutomatically = FeatureOption.Disabled,
                     ChestFinder = FeatureOption.Disabled,
                     ChestInfo = FeatureOption.Disabled,
                     CollectItems = FeatureOption.Disabled,
@@ -941,7 +929,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     AutoOrganize = FeatureOption.Disabled,
                     CarryChest = FeatureOption.Disabled,
                     CategorizeChest = FeatureOption.Disabled,
-                    CategorizeChestAutomatically = FeatureOption.Disabled,
                     ChestFinder = FeatureOption.Disabled,
                     ChestInfo = FeatureOption.Disabled,
                     CollectItems = FeatureOption.Disabled,
@@ -977,7 +964,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     AutoOrganize = FeatureOption.Disabled,
                     CarryChest = FeatureOption.Disabled,
                     CategorizeChest = FeatureOption.Disabled,
-                    CategorizeChestAutomatically = FeatureOption.Disabled,
                     ChestFinder = FeatureOption.Disabled,
                     ChestInfo = FeatureOption.Disabled,
                     CollectItems = FeatureOption.Disabled,
@@ -1002,7 +988,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     AutoOrganize = FeatureOption.Disabled,
                     CarryChest = FeatureOption.Disabled,
                     CategorizeChest = FeatureOption.Disabled,
-                    CategorizeChestAutomatically = FeatureOption.Disabled,
                     ChestFinder = FeatureOption.Disabled,
                     ChestInfo = FeatureOption.Disabled,
                     CollectItems = FeatureOption.Disabled,
@@ -1026,7 +1011,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     AutoOrganize = FeatureOption.Disabled,
                     CarryChest = FeatureOption.Disabled,
                     CategorizeChest = FeatureOption.Disabled,
-                    CategorizeChestAutomatically = FeatureOption.Disabled,
                     ChestFinder = FeatureOption.Disabled,
                     ChestInfo = FeatureOption.Disabled,
                     CollectItems = FeatureOption.Disabled,

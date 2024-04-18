@@ -13,6 +13,9 @@ internal interface IModConfig
     /// <summary>Gets the default options for different storage types.</summary>
     public Dictionary<string, Dictionary<string, DefaultStorageOptions>> StorageOptions { get; }
 
+    /// <summary>Gets a value indicating whether to show arrows when accessing chests.</summary>
+    public bool AccessChestsShowArrows { get; }
+
     /// <summary>Gets a value indicating how many chests can be carried at once.</summary>
     public int CarryChestLimit { get; }
 

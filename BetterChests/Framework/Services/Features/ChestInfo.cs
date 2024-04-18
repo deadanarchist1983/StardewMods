@@ -149,8 +149,7 @@ internal sealed class ChestInfo : BaseFeature<ChestInfo>
     private void RefreshInfo()
     {
         this.cachedInfo.Value.Clear();
-        if (!this.containerFactory.TryGetOneFromMenu(out var container)
-            || container.Options.ChestInfo != FeatureOption.Enabled)
+        if (!this.containerFactory.TryGetOne(out var container) || container.Options.ChestInfo != FeatureOption.Enabled)
         {
             return;
         }

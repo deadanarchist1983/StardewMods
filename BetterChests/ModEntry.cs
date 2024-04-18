@@ -45,6 +45,7 @@ public sealed class ModEntry : Mod
         this.container.RegisterSingleton<AssetHandler>();
         this.container.RegisterSingleton<BetterCraftingIntegration>();
         this.container.RegisterSingleton<BetterCraftingInventoryProvider>();
+        this.container.RegisterSingleton<CacheManager>();
         this.container.RegisterSingleton<IModConfig, ConfigManager>();
         this.container.RegisterSingleton<ConfigManager, ConfigManager>();
         this.container.RegisterSingleton<ContainerFactory>();

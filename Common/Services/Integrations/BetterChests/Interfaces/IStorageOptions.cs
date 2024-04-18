@@ -17,14 +17,14 @@ public interface IStorageOptions
     /// <summary>Gets or sets a value indicating if can have categories added to it, and which items can be added.</summary>
     public FeatureOption CategorizeChest { get; set; }
 
-    /// <summary>Gets or sets a value indicating whether items added to the chest will be added to the chest's categories.</summary>
-    public FeatureOption CategorizeChestAutomatically { get; set; }
+    /// <summary>Gets or sets a value indicating whether uncategorized items will be blocked.</summary>
+    public FeatureOption CategorizeChestBlockItems { get; set; }
 
-    /// <summary>Gets or sets a value indicating how categorized items will be displayed.</summary>
-    public FilterMethod CategorizeChestMethod { get; set; }
+    /// <summary>Gets or sets the search term for categorizing items in the chest.</summary>
+    public string CategorizeChestSearchTerm { get; set; }
 
-    /// <summary>Gets or sets a value indicating what categories of items are allowed in the chest.</summary>
-    public HashSet<string> CategorizeChestTags { get; set; }
+    /// <summary>Gets or sets a value indicating whether categorization includes existing stacks by default.</summary>
+    public FeatureOption CategorizeChestIncludeStacks { get; set; }
 
     /// <summary>Gets or sets a value indicating whether chests  in the current location can be searched for.</summary>
     public FeatureOption ChestFinder { get; set; }
@@ -49,8 +49,6 @@ public interface IStorageOptions
 
     /// <summary>Gets or sets a value indicating if the color picker will be replaced by an hsl color picker.</summary>
     public FeatureOption HslColorPicker { get; set; }
-
-    /// <summary>Gets or sets a value indicating if tabs can be added to the chest menu.</summary>
 
     /// <summary>Gets or sets a value indicating if the chest can be opened while it's being carried in the players inventory.</summary>
     public FeatureOption OpenHeldChest { get; set; }

@@ -159,7 +159,7 @@ internal abstract class BaseContainer : IStorageContainer
             !string.IsNullOrWhiteSpace(this.Options.StorageName) ? this.Options.StorageName.Trim() : this.DisplayName);
 
         sb.Append(" at ");
-        sb.Append(this.Location.DisplayName);
+        sb.Append(this.Location?.DisplayName ?? "Unknown");
         sb.Append(CultureInfo.InvariantCulture, $"({this.TileLocation.X:n0}, {this.TileLocation.Y:n0})");
         return sb.ToString();
     }

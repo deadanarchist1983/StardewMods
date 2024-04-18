@@ -6,18 +6,30 @@
 
 * Overhauled searching and categorizing items.
 * Added config option to adjust the overburdened speed debuff.
+* Added config option to enable or disable the access chest arrows.
 * Added controls for transferring items up and down.
+* Added icon for saving search as the categorization.
+* Added icon for toggling existing stacks.
+* When searching, all categorized items will display in the menu.
+* Added storage options for allowing existing items to be stashed.
+* Added storage options for blocking items not belonging to the category.
+* Added cache table for saving search expressions.
+* Added events for items being displayed and items being highlighted.
+* Farmer and Farmhands can now inherit options from the FarmHouse and Cabin respectively.
 
 ### Changed
 
 * Inventory Tabs have been removed.
 * Customize icons for the HSL color picker.
-* 
+* Moved Access Chest arrows and dropdown to the top of the screen.
+* Moved Access Chest arrows and index to below the label.
+* Moved input events to be handled by the inventory menu manager.
 
 ### Fixed
 
 * Fixed config options for inventory tab method and search items method.
 * Fixed grabbing items from chests leaving empty slots until organized.
+* Fixed held containers having all of their features disabled.
 
 ## 2.15.2 (April 16, 2024)
 

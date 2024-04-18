@@ -21,13 +21,13 @@ internal class DefaultStorageOptions : IStorageOptions
     public FeatureOption CategorizeChest { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
-    public FeatureOption CategorizeChestAutomatically { get; set; } = FeatureOption.Default;
+    public FeatureOption CategorizeChestBlockItems { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
-    public FilterMethod CategorizeChestMethod { get; set; } = FilterMethod.Default;
+    public string CategorizeChestSearchTerm { get; set; } = string.Empty;
 
     /// <inheritdoc />
-    public HashSet<string> CategorizeChestTags { get; set; } = [];
+    public FeatureOption CategorizeChestIncludeStacks { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
     public FeatureOption ChestFinder { get; set; } = FeatureOption.Default;
@@ -103,17 +103,18 @@ internal class DefaultStorageOptions : IStorageOptions
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.AutoOrganize)}: {this.AutoOrganize}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CarryChest)}: {this.CarryChest}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CategorizeChest)}: {this.CategorizeChest}");
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.CategorizeChestAutomatically)}: {this.CategorizeChestAutomatically}");
 
         sb.AppendLine(
             CultureInfo.InvariantCulture,
-            $"{nameof(this.CategorizeChestMethod)}: {this.CategorizeChestMethod}");
+            $"{nameof(this.CategorizeChestBlockItems)}: {this.CategorizeChestBlockItems}");
 
         sb.AppendLine(
             CultureInfo.InvariantCulture,
-            $"{nameof(this.CategorizeChestTags)}: {string.Join(", ", this.CategorizeChestTags)}");
+            $"{nameof(this.CategorizeChestSearchTerm)}: {this.CategorizeChestSearchTerm}");
+
+        sb.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"{nameof(this.CategorizeChestIncludeStacks)}: {this.CategorizeChestIncludeStacks}");
 
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ChestFinder)}: {this.ChestFinder}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ChestInfo)}: {this.ChestInfo}");

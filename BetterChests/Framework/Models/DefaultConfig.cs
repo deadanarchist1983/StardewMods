@@ -10,21 +10,13 @@ using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 internal sealed class DefaultConfig : IModConfig
 {
     /// <inheritdoc />
-    public char SearchTagSymbol { get; set; } = '#';
-
-    /// <inheritdoc />
-    public char SearchNegationSymbol { get; set; } = '!';
-
-    /// <inheritdoc />
     public DefaultStorageOptions DefaultOptions { get; set; } = new()
     {
         AccessChest = RangeOption.Location,
         AutoOrganize = FeatureOption.Enabled,
         CarryChest = FeatureOption.Enabled,
         CategorizeChest = FeatureOption.Enabled,
-        CategorizeChestAutomatically = FeatureOption.Enabled,
-        CategorizeChestMethod = FilterMethod.GrayedOut,
-        CategorizeChestTags = [],
+        CategorizeChestIncludeStacks = FeatureOption.Enabled,
         ChestFinder = FeatureOption.Enabled,
         ConfigureChest = FeatureOption.Enabled,
         CookFromChest = RangeOption.Location,
@@ -42,6 +34,9 @@ internal sealed class DefaultConfig : IModConfig
 
     /// <inheritdoc />
     public Dictionary<string, Dictionary<string, DefaultStorageOptions>> StorageOptions { get; set; } = [];
+
+    /// <inheritdoc />
+    public bool AccessChestsShowArrows { get; set; } = true;
 
     /// <inheritdoc />
     public int CarryChestLimit { get; set; } = 3;
@@ -84,6 +79,10 @@ internal sealed class DefaultConfig : IModConfig
     {
         StringBuilder sb = new();
 
+        sb.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"{nameof(this.AccessChestsShowArrows)}: {this.AccessChestsShowArrows}");
+
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CarryChestLimit)}: {this.CarryChestLimit}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CarryChestSlowLimit)}: {this.CarryChestSlowLimit}");
         sb.AppendLine(
@@ -105,10 +104,6 @@ internal sealed class DefaultConfig : IModConfig
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.LockItem)}: {this.LockItem}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.LockItemHold)}: {this.LockItemHold}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.SearchItemsMethod)}: {this.SearchItemsMethod}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.SearchTagSymbol)}: {this.SearchTagSymbol}");
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.SearchNegationSymbol)}: {this.SearchNegationSymbol}");
 
         sb.AppendLine(
             CultureInfo.InvariantCulture,

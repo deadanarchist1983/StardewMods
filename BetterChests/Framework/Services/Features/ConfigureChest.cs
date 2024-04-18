@@ -224,7 +224,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
 
         if (!Context.IsPlayerFree
             || !this.Config.Controls.ConfigureChest.JustPressed()
-            || !this.containerFactory.TryGetOneFromPlayer(Game1.player, out var container)
+            || !this.containerFactory.TryGetOne(Game1.player, Game1.player.CurrentToolIndex, out var container)
             || container.Options.ConfigureChest != FeatureOption.Enabled)
         {
             return;
@@ -320,6 +320,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         var gmcm = this.genericModConfigMenuIntegration.Api;
         var defaultOptions = new DefaultStorageOptions();
         var options = new TemporaryStorageOptions(container.Options.GetActualOptions(), defaultOptions);
+        var parentOptions = container.Options.GetParentOptions();
         this.genericModConfigMenuIntegration.Register(options.Reset, Save);
 
         gmcm.AddSectionTitle(this.manifest, () => container.DisplayName, container.ToString);
@@ -345,20 +346,31 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
                 this.localizedTextManager.FormatStashPriority);
         }
 
+        // Categorize Chest
+        if (container.Options.CategorizeChest is not (FeatureOption.Disabled or FeatureOption.Default))
+        {
+            gmcm.AddTextOption(
+                this.manifest,
+                () => options.CategorizeChestSearchTerm,
+                value => options.CategorizeChestSearchTerm = value,
+                I18n.Config_CategorizeChestSearchTerm_Name,
+                I18n.Config_CategorizeChestSearchTerm_Tooltip);
+
+            gmcm.AddTextOption(
+                this.manifest,
+                () => options.CategorizeChestIncludeStacks.ToStringFast(),
+                value => options.CategorizeChestIncludeStacks = FeatureOptionExtensions.TryParse(value, out var option)
+                    ? option
+                    : FeatureOption.Default,
+                I18n.Config_CategorizeChestIncludeStacks_Name,
+                I18n.Config_CategorizeChestIncludeStacks_Tooltip,
+                FeatureOptionExtensions.GetNames(),
+                this.localizedTextManager.FormatOption(parentOptions?.CategorizeChestIncludeStacks));
+        }
+
         gmcm.AddPageLink(this.manifest, "Main", I18n.Section_Main_Name, I18n.Section_Main_Description);
-        gmcm.AddPageLink(
-            this.manifest,
-            "Categories",
-            I18n.Section_Categorize_Name,
-            I18n.Section_Categorize_Description);
 
-        this.configManager.AddMainOption(
-            "Main",
-            I18n.Section_Main_Name,
-            options,
-            parentOptions: container.Options.GetParentOptions());
-
-        gmcm.AddPage(this.manifest, "Categories", I18n.Section_Categorize_Name);
+        this.configManager.AddMainOption("Main", I18n.Section_Main_Name, options, parentOptions: parentOptions);
 
         gmcm.OpenModMenu(this.manifest);
         this.lastContainer.Value = container;

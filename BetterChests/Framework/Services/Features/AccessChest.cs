@@ -85,6 +85,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         this.Events.Subscribe<MouseWheelScrolledEventArgs>(this.OnMouseWheelScrolled);
         this.Events.Subscribe<RenderedActiveMenuEventArgs>(this.OnRenderedActiveMenu);
         this.Events.Subscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
+        this.Events.Subscribe<ItemHighlightingEventArgs>(this.OnItemHighlighting);
         this.Events.Subscribe<SearchChangedEventArgs>(this.OnSearchChanged);
     }
 
@@ -97,6 +98,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         this.Events.Unsubscribe<MouseWheelScrolledEventArgs>(this.OnMouseWheelScrolled);
         this.Events.Unsubscribe<RenderedActiveMenuEventArgs>(this.OnRenderedActiveMenu);
         this.Events.Unsubscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
+        this.Events.Unsubscribe<ItemHighlightingEventArgs>(this.OnItemHighlighting);
         this.Events.Unsubscribe<SearchChangedEventArgs>(this.OnSearchChanged);
     }
 
@@ -275,7 +277,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         var (mouseX, mouseY) = Game1.getMousePosition(true);
 
         // Draw current container index
-        if (this.itemGrabMenuManager.Top.Container is not null)
+        if (this.itemGrabMenuManager.Top.Container is not null && this.Config.AccessChestsShowArrows)
         {
             var currentIndex = this.currentContainers.Value.IndexOfValue(this.itemGrabMenuManager.Top.Container);
             if (currentIndex != -1)
@@ -285,8 +287,8 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
                 SpriteText.drawString(
                     e.SpriteBatch,
                     textIndex,
-                    this.dropDown.Value.bounds.X - (width / 2) - 96,
-                    this.dropDown.Value.bounds.Y + 12,
+                    (this.leftArrow.Value.bounds.Left + this.rightArrow.Value.bounds.Left + Game1.tileSize - width) / 2,
+                    this.leftArrow.Value.bounds.Y,
                     999999,
                     -1,
                     999999,
@@ -296,18 +298,18 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
                     3,
                     string.Empty,
                     SpriteText.color_White);
+
+                this.leftArrow.Value.scale = this.leftArrow.Value.containsPoint(mouseX, mouseY)
+                    ? Math.Min(Game1.pixelZoom * 1.1f, this.leftArrow.Value.scale + 0.05f)
+                    : Math.Max(Game1.pixelZoom, this.leftArrow.Value.scale - 0.05f);
+
+                this.rightArrow.Value.scale = this.rightArrow.Value.containsPoint(mouseX, mouseY)
+                    ? Math.Min(Game1.pixelZoom * 1.1f, this.rightArrow.Value.scale + 0.05f)
+                    : Math.Max(Game1.pixelZoom, this.rightArrow.Value.scale - 0.05f);
+
+                this.leftArrow.Value.draw(e.SpriteBatch);
+                this.rightArrow.Value.draw(e.SpriteBatch);
             }
-
-            this.leftArrow.Value.scale = this.leftArrow.Value.containsPoint(mouseX, mouseY)
-                ? Math.Min(Game1.pixelZoom * 1.1f, this.leftArrow.Value.scale + 0.05f)
-                : Math.Max(Game1.pixelZoom, this.leftArrow.Value.scale - 0.05f);
-
-            this.rightArrow.Value.scale = this.rightArrow.Value.containsPoint(mouseX, mouseY)
-                ? Math.Min(Game1.pixelZoom * 1.1f, this.rightArrow.Value.scale + 0.05f)
-                : Math.Max(Game1.pixelZoom, this.rightArrow.Value.scale - 0.05f);
-
-            this.leftArrow.Value.draw(e.SpriteBatch);
-            this.rightArrow.Value.draw(e.SpriteBatch);
         }
 
         // Draw current container name
@@ -404,21 +406,18 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
             return;
         }
 
-        this.itemGrabMenuManager.Top.AddHighlightMethod(_ => !this.isActive.Value);
-        this.itemGrabMenuManager.Bottom.AddHighlightMethod(_ => !this.isActive.Value);
-
         var name = string.IsNullOrWhiteSpace(top.Container.Options.StorageName)
             ? top.Container.DisplayName
             : top.Container.Options.StorageName;
 
-        var x = (Game1.uiViewport.Width - (Game1.tileSize * 14)) / 2;
-        var y = Game1.tileSize;
+        var x = Math.Max(IClickableMenu.borderWidth / 2, (Game1.uiViewport.Width / 2) - (Game1.tileSize * 10));
+        var y = IClickableMenu.borderWidth / 2;
 
-        this.leftArrow.Value.bounds.X = x - (Game1.tileSize * 3);
-        this.leftArrow.Value.bounds.Y = y + 16;
+        this.leftArrow.Value.bounds.X = x;
+        this.leftArrow.Value.bounds.Y = y + Game1.tileSize + 20;
 
-        this.rightArrow.Value.bounds.X = x - Game1.tileSize;
-        this.rightArrow.Value.bounds.Y = y + 16;
+        this.rightArrow.Value.bounds.X = x + (Game1.tileSize * 2);
+        this.rightArrow.Value.bounds.Y = y + Game1.tileSize + 20;
 
         var (width, height) = Game1.smallFont.MeasureString(name);
         this.dropDown.Value = new ClickableComponent(
@@ -427,6 +426,14 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
             top.Container.ToString());
 
         this.ReinitializeContainers();
+    }
+
+    private void OnItemHighlighting(ItemHighlightingEventArgs e)
+    {
+        if (this.isActive.Value)
+        {
+            e.UnHighlight();
+        }
     }
 
     private void ReinitializeContainers()

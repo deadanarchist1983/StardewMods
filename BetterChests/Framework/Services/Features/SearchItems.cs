@@ -80,6 +80,8 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         this.Events.Subscribe<ButtonPressedEventArgs>(this.OnButtonPressed);
         this.Events.Subscribe<ButtonsChangedEventArgs>(this.OnButtonsChanged);
         this.Events.Subscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
+        this.Events.Subscribe<ItemHighlightingEventArgs>(this.OnItemHighlighting);
+        this.Events.Subscribe<ItemsDisplayingEventArgs>(this.OnItemsDisplaying);
         this.Events.Subscribe<SearchChangedEventArgs>(this.OnSearchChanged);
     }
 
@@ -92,21 +94,10 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         this.Events.Unsubscribe<ButtonPressedEventArgs>(this.OnButtonPressed);
         this.Events.Unsubscribe<ButtonsChangedEventArgs>(this.OnButtonsChanged);
         this.Events.Unsubscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
+        this.Events.Unsubscribe<ItemHighlightingEventArgs>(this.OnItemHighlighting);
+        this.Events.Unsubscribe<ItemsDisplayingEventArgs>(this.OnItemsDisplaying);
         this.Events.Unsubscribe<SearchChangedEventArgs>(this.OnSearchChanged);
     }
-
-    private IEnumerable<Item> FilterBySearch(IEnumerable<Item> items) =>
-        this.searchExpression.Value is null
-            ? items
-            : this.Config.SearchItemsMethod switch
-            {
-                FilterMethod.Sorted or FilterMethod.GrayedOut => items.OrderByDescending(this.MatchesFilter),
-                FilterMethod.Hidden => items.Where(this.MatchesFilter),
-                _ => items,
-            };
-
-    private bool MatchesFilter(Item item) =>
-        this.searchExpression.Value is null || this.searchExpression.Value.PartialMatch(item);
 
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
@@ -199,8 +190,34 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
             - (top.Rows == 3 ? 20 : 4);
 
         this.isActive.Value = true;
-        this.itemGrabMenuManager.Top.AddHighlightMethod(this.MatchesFilter);
-        this.itemGrabMenuManager.Top.AddOperation(this.FilterBySearch);
+    }
+
+    private void OnItemHighlighting(ItemHighlightingEventArgs e)
+    {
+        if (this.searchExpression.Value?.PartialMatch(e.Item) == false)
+        {
+            e.UnHighlight();
+        }
+    }
+
+    private void OnItemsDisplaying(ItemsDisplayingEventArgs e)
+    {
+        if (this.searchExpression.Value is null
+            || this.Config.SearchItemsMethod is not (FilterMethod.Sorted
+                or FilterMethod.GrayedOut
+                or FilterMethod.Hidden))
+        {
+            return;
+        }
+
+        e.Edit(
+            items => this.Config.SearchItemsMethod switch
+            {
+                FilterMethod.Sorted or FilterMethod.GrayedOut => items.OrderByDescending(
+                    this.searchExpression.Value.PartialMatch),
+                FilterMethod.Hidden => items.Where(this.searchExpression.Value.PartialMatch),
+                _ => items,
+            });
     }
 
     private void OnSearchChanged(SearchChangedEventArgs e) => this.searchBar.Value.Reset();

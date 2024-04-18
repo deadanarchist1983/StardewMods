@@ -305,7 +305,7 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
         }
 
         foreach (var container in this
-            .containerFactory.GetAllFromLocation(
+            .containerFactory.GetAll(
                 Game1.player.currentLocation,
                 container => container.Options.ChestFinder == FeatureOption.Enabled)
             .Where(container => container is ChestContainer or ObjectContainer))

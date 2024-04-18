@@ -7,7 +7,6 @@ using StardewMods.Common.Enums;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Models;
 using StardewMods.Common.Services;
-using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewValley.Objects;
@@ -75,7 +74,7 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
     /// <param name="item">The item to add.</param>
     /// <param name="allowByDefault">Indicates whether it should be allowed by default.</param>
     /// <param name="force">Indicates whether it should be a forced attempt.</param>
-    /// <returns>True if the item can be added, otherwise False.</returns>
+    /// <returns>true if the item can be added; otherwise, false.</returns>
     public bool CanAddItem(IStorageContainer to, Item item, bool allowByDefault = false, bool force = false)
     {
         // Prevent if destination container is already at capacity
@@ -84,13 +83,11 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
             return false;
         }
 
-        var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, allowByDefault, force);
-        if (allowByDefault || to.Items.ContainsId(item.QualifiedItemId))
+        var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, allowByDefault);
+        if (allowByDefault)
         {
             itemTransferringEventArgs.AllowTransfer();
         }
-
-        ContainerHandler.AddTagIfNeeded(to, item, force);
 
         if (!force)
         {
@@ -105,7 +102,7 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
     /// <param name="to">The container to transfer items to.</param>
     /// <param name="amounts">Output parameter that contains the transferred item amounts.</param>
     /// <param name="force">Indicates whether to attempt to force the transfer.</param>
-    /// <returns>True if the transfer was successful and at least one item was transferred, otherwise False.</returns>
+    /// <returns>true if the transfer was successful; otherwise, false.</returns>
     public bool Transfer(
         IStorageContainer from,
         IStorageContainer to,
@@ -122,13 +119,11 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
                     return false;
                 }
 
-                var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, false, force);
+                var itemTransferringEventArgs = new ItemTransferringEventArgs(to, item, false);
                 if (to.Items.ContainsId(item.QualifiedItemId))
                 {
                     itemTransferringEventArgs.AllowTransfer();
                 }
-
-                ContainerHandler.AddTagIfNeeded(to, item, force);
 
                 if (!force)
                 {
@@ -186,31 +181,5 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
 
         __result = item;
         return false;
-    }
-
-    private static void AddTagIfNeeded(IStorageContainer container, Item item, bool force)
-    {
-        if (!force
-            || !(container.Options.CategorizeChestAutomatically == FeatureOption.Enabled
-                && container.Items.ContainsId(item.QualifiedItemId)))
-        {
-            return;
-        }
-
-        var tags = new HashSet<string>(container.Options.CategorizeChestTags);
-        var tag = item
-            .GetContextTags()
-            .Where(tag => tag.StartsWith("id_", StringComparison.OrdinalIgnoreCase))
-            .MinBy(tag => tag.Contains('('));
-
-        if (tag is not null)
-        {
-            tags.Add(tag);
-        }
-
-        if (!tags.SetEquals(container.Options.CategorizeChestTags))
-        {
-            container.Options.CategorizeChestTags = [..tags];
-        }
     }
 }

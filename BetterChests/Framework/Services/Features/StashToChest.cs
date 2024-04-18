@@ -96,7 +96,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
         if (e.Button is not SButton.MouseLeft
-            || !this.containerFactory.TryGetOneFromMenu(out var container)
+            || !this.containerFactory.TryGetOne(out var container)
             || container.Options.StashToChest is RangeOption.Disabled or RangeOption.Default)
         {
             return;
@@ -128,7 +128,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
             return;
         }
 
-        if (!this.containerFactory.TryGetOneFromMenu(out var container)
+        if (!this.containerFactory.TryGetOne(out var container)
             || container.Options.StashToChest is RangeOption.Disabled or RangeOption.Default)
         {
             return;

@@ -98,7 +98,7 @@ internal sealed class SearchHandler : BaseService<SearchHandler>
     /// <summary>Attempts to parse the given search expression.</summary>
     /// <param name="expression">The search expression to be parsed.</param>
     /// <param name="searchExpression">The parsed search expression.</param>
-    /// <returns>True if the search expression could be parsed, otherwise false.</returns>
+    /// <returns>true if the search expression could be parsed; otherwise, false.</returns>
     public bool TryParseExpression(string expression, [NotNullWhen(true)] out ISearchExpression? searchExpression)
     {
         if (string.IsNullOrWhiteSpace(expression))

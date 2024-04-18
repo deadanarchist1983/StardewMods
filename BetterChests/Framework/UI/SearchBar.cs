@@ -105,7 +105,7 @@ internal sealed class SearchBar
     /// <summary>Performs a left click at the specified coordinates on the screen.</summary>
     /// <param name="mouseX">The X-coordinate of the mouse click.</param>
     /// <param name="mouseY">The Y-coordinate of the mouse click.</param>
-    /// <returns>Returns true if the search bar was clicked; otherwise, false.</returns>
+    /// <returns>true if the search bar was clicked; otherwise, false.</returns>
     public bool LeftClick(int mouseX, int mouseY)
     {
         this.Selected = this.area.Contains(mouseX, mouseY);
@@ -115,12 +115,13 @@ internal sealed class SearchBar
     /// <summary>Performs a right click at the specified coordinates on the screen.</summary>
     /// <param name="mouseX">The X-coordinate of the mouse click.</param>
     /// <param name="mouseY">The Y-coordinate of the mouse click.</param>
-    /// <returns>Returns true if the search bar was clicked; otherwise, false.</returns>
+    /// <returns>true if the search bar was clicked; otherwise, false.</returns>
     public bool RightClick(int mouseX, int mouseY)
     {
         if (!this.area.Contains(mouseX, mouseY))
         {
-            return this.Selected;
+            this.Selected = false;
+            return false;
         }
 
         this.Selected = true;
