@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewValley.Menus;
 
 /// <summary>Represents a search overlay control that allows the user to input text.</summary>
-internal sealed class SearchBar
+internal sealed class SearchBar : ClickableComponent
 {
     private const int CountdownTimer = 20;
 
@@ -13,37 +13,37 @@ internal sealed class SearchBar
     private readonly ClickableTextureComponent icon;
     private readonly Action<string> setMethod;
     private readonly TextBox textBox;
-    private Rectangle area;
     private string previousText;
     private int timeout;
 
     /// <summary>Initializes a new instance of the <see cref="SearchBar" /> class.</summary>
+    /// <param name="x">The x-coordinate of the search bar.</param>
+    /// <param name="y">The y-coordinate of the search bar.</param>
+    /// <param name="width">The width of the search bar.</param>
     /// <param name="getMethod">The function that gets the current search text.</param>
     /// <param name="setMethod">The action that sets the search text.</param>
-    public SearchBar(Func<string> getMethod, Action<string> setMethod)
+    public SearchBar(int x, int y, int width, Func<string> getMethod, Action<string> setMethod)
+        : base(new Rectangle(x, y, width, 48), "SearchBar")
     {
         this.previousText = getMethod();
         this.getMethod = getMethod;
         this.setMethod = setMethod;
         var texture = Game1.content.Load<Texture2D>("LooseSprites\\textBox");
-        this.area = new Rectangle(0, 0, 100, texture.Height);
         this.textBox = new TextBox(texture, null, Game1.smallFont, Game1.textColor)
         {
-            X = this.area.X,
-            Y = this.area.Y,
-            Width = this.area.Width,
+            X = this.bounds.X,
+            Y = this.bounds.Y,
+            Width = this.bounds.Width,
             Selected = true,
+            Text = this.previousText,
         };
 
         this.icon = new ClickableTextureComponent(
-            new Rectangle(this.area.X + this.textBox.Width - 38, this.area.Y + 6, 32, 32),
+            new Rectangle(this.bounds.X + this.textBox.Width - 38, this.bounds.Y + 6, 32, 32),
             Game1.mouseCursors,
             new Rectangle(80, 0, 13, 13),
             2.5f);
     }
-
-    /// <summary>Gets the area in which the search bar is displayed.</summary>
-    public Rectangle Area => this.area;
 
     /// <summary>Gets or sets a value indicating whether the search bar is currently selected.</summary>
     public bool Selected
@@ -55,22 +55,22 @@ internal sealed class SearchBar
     /// <summary>Gets or sets the width of the search bar.</summary>
     public int Width
     {
-        get => this.area.Width;
+        get => this.bounds.Width;
         set
         {
-            this.area.Width = value;
+            this.bounds.Width = value;
             this.textBox.Width = value;
-            this.icon.bounds.X = this.area.X + this.textBox.Width - 38;
+            this.icon.bounds.X = this.bounds.X + this.textBox.Width - 38;
         }
     }
 
     /// <summary>Gets or sets the x-coordinate of the search bar.</summary>
     public int X
     {
-        get => this.area.X;
+        get => this.bounds.X;
         set
         {
-            this.area.X = value;
+            this.bounds.X = value;
             this.textBox.X = value;
             this.icon.bounds.X = value + this.textBox.Width - 38;
         }
@@ -79,10 +79,10 @@ internal sealed class SearchBar
     /// <summary>Gets or sets the y-coordinate of the search bar.</summary>
     public int Y
     {
-        get => this.area.Y;
+        get => this.bounds.Y;
         set
         {
-            this.area.Y = value;
+            this.bounds.Y = value;
             this.textBox.Y = value;
             this.icon.bounds.Y = value + 6;
         }
@@ -108,7 +108,7 @@ internal sealed class SearchBar
     /// <returns>true if the search bar was clicked; otherwise, false.</returns>
     public bool LeftClick(int mouseX, int mouseY)
     {
-        this.Selected = this.area.Contains(mouseX, mouseY);
+        this.Selected = this.bounds.Contains(mouseX, mouseY);
         return this.Selected;
     }
 
@@ -118,7 +118,7 @@ internal sealed class SearchBar
     /// <returns>true if the search bar was clicked; otherwise, false.</returns>
     public bool RightClick(int mouseX, int mouseY)
     {
-        if (!this.area.Contains(mouseX, mouseY))
+        if (!this.bounds.Contains(mouseX, mouseY))
         {
             this.Selected = false;
             return false;

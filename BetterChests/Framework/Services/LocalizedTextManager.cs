@@ -5,6 +5,7 @@ using System.Text;
 using StardewMods.Common.Services;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewMods.Common.Services.Integrations.FauxCore;
+using StardewValley.Menus;
 
 /// <summary>Helper methods to convert between different text formats.</summary>
 internal sealed class LocalizedTextManager : BaseService
@@ -18,6 +19,19 @@ internal sealed class LocalizedTextManager : BaseService
     public LocalizedTextManager(ILog log, IManifest manifest, ITranslationHelper translations)
         : base(log, manifest) =>
         this.translations = translations;
+
+    /// <summary>Formats border using localized text when available.</summary>
+    /// <param name="value">The value for border to format.</param>
+    /// <returns>Localized text for the border.</returns>
+    public string Border(int value) =>
+        value switch
+        {
+            (int)InventoryMenu.BorderSide.Left => I18n.Border_Left(),
+            (int)InventoryMenu.BorderSide.Right => I18n.Border_Right(),
+            (int)InventoryMenu.BorderSide.Top => I18n.Border_Top(),
+            (int)InventoryMenu.BorderSide.Bottom => I18n.Border_Bottom(),
+            _ => I18n.Border_Left(),
+        };
 
     public string CarryChestLimit(int value) =>
         value switch

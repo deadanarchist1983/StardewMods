@@ -3,6 +3,7 @@ namespace StardewMods.BetterChests.Framework.Interfaces;
 using StardewMods.BetterChests.Framework.Models;
 using StardewMods.BetterChests.Framework.Models.StorageOptions;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
+using StardewValley.Menus;
 
 /// <summary>Mod config data for Better Chests.</summary>
 internal interface IModConfig
@@ -42,6 +43,9 @@ internal interface IModConfig
 
     /// <summary>Gets a value for the number of steps in the hue color picker.</summary>
     public int HslColorPickerLightnessSteps { get; }
+
+    /// <summary>Gets the placement for the Hsl Color Picker.</summary>
+    public InventoryMenu.BorderSide HslColorPickerPlacement { get; }
 
     /// <summary>Gets a value indicating whether the slot lock feature is enabled.</summary>
     public FeatureOption LockItem { get; }

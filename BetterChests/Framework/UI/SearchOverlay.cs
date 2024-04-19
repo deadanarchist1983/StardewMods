@@ -10,8 +10,17 @@ internal sealed class SearchOverlay : IClickableMenu
     private readonly SearchBar searchBar;
 
     /// <summary>Initializes a new instance of the <see cref="SearchOverlay" /> class.</summary>
-    /// <param name="searchBar">The SearchBar instance to associate with the SearchOverlay.</param>
-    public SearchOverlay(SearchBar searchBar) => this.searchBar = searchBar;
+    /// <param name="getMethod">The function that gets the current search text.</param>
+    /// <param name="setMethod">The action that sets the search text.</param>
+    public SearchOverlay(Func<string> getMethod, Action<string> setMethod)
+    {
+        var searchBarWidth = Math.Min(12 * Game1.tileSize, Game1.uiViewport.Width);
+        var origin = Utility.getTopLeftPositionForCenteringOnScreen(searchBarWidth, 48);
+
+        this.searchBar = new SearchBar((int)origin.X, Game1.tileSize, searchBarWidth, getMethod, setMethod);
+
+        this.searchBar.Selected = true;
+    }
 
     /// <inheritdoc />
     public override void draw(SpriteBatch b)
@@ -19,6 +28,9 @@ internal sealed class SearchOverlay : IClickableMenu
         this.searchBar.Draw(b);
         this.drawMouse(b);
     }
+
+    /// <inheritdoc />
+    public override void performHoverAction(int x, int y) => this.searchBar.Update(x, y);
 
     /// <inheritdoc />
     public override void receiveKeyPress(Keys key)
@@ -38,7 +50,6 @@ internal sealed class SearchOverlay : IClickableMenu
         this.searchBar.LeftClick(x, y);
         if (this.searchBar.Selected)
         {
-            Game1.activeClickableMenu = this;
             return;
         }
 
@@ -52,25 +63,10 @@ internal sealed class SearchOverlay : IClickableMenu
         this.searchBar.RightClick(x, y);
         if (this.searchBar.Selected)
         {
-            Game1.activeClickableMenu = this;
             return;
         }
 
         this.searchBar.Selected = false;
         this.exitThisMenuNoSound();
-    }
-
-    /// <summary>Shows the search overlay at the top of the screen.</summary>
-    public void Show()
-    {
-        Game1.activeClickableMenu = this;
-        this.searchBar.Width = Math.Min(12 * Game1.tileSize, Game1.uiViewport.Width);
-        var origin = Utility.getTopLeftPositionForCenteringOnScreen(
-            this.searchBar.Area.Width,
-            this.searchBar.Area.Height);
-
-        this.searchBar.X = (int)origin.X;
-        this.searchBar.Y = Game1.tileSize;
-        this.searchBar.Selected = true;
     }
 }

@@ -24,7 +24,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
     private readonly AssetHandler assetHandler;
     private readonly PerScreen<HslComponent?> colorPicker = new();
     private readonly IInputHelper inputHelper;
-    private readonly ItemGrabMenuManager itemGrabMenuManager;
+    private readonly MenuManager menuManager;
     private readonly IPatchManager patchManager;
     private readonly IReflectionHelper reflectionHelper;
 
@@ -32,7 +32,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
     /// <param name="assetHandler">Dependency used for handling assets.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
-    /// <param name="itemGrabMenuManager">Dependency used for managing the item grab menu.</param>
+    /// <param name="menuManager">Dependency used for managing the item grab menu.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
@@ -42,7 +42,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
         AssetHandler assetHandler,
         IEventManager eventManager,
         IInputHelper inputHelper,
-        ItemGrabMenuManager itemGrabMenuManager,
+        MenuManager menuManager,
         ILog log,
         IManifest manifest,
         IModConfig modConfig,
@@ -53,7 +53,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
         HslColorPicker.instance = this;
         this.assetHandler = assetHandler;
         this.inputHelper = inputHelper;
-        this.itemGrabMenuManager = itemGrabMenuManager;
+        this.menuManager = menuManager;
         this.patchManager = patchManager;
         this.reflectionHelper = reflectionHelper;
 
@@ -184,7 +184,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
         }
 
         var (mouseX, mouseY) = Game1.getMousePosition(true);
-        if (this.itemGrabMenuManager.CurrentMenu?.colorPickerToggleButton.containsPoint(mouseX, mouseY) == true)
+        if (this.menuManager.CurrentMenu?.colorPickerToggleButton.containsPoint(mouseX, mouseY) == true)
         {
             this.inputHelper.Suppress(e.Button);
             Game1.playSound("drumkit6");
@@ -210,11 +210,11 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
 
     private void OnItemGrabMenuChanged(ItemGrabMenuChangedEventArgs e)
     {
-        if (this.itemGrabMenuManager.CurrentMenu?.chestColorPicker is not
+        if (this.menuManager.CurrentMenu?.chestColorPicker is not
             {
                 itemToDrawColored: Chest chest,
             } chestColorPicker
-            || this.itemGrabMenuManager.Top.Container is not ChestContainer container
+            || this.menuManager.Top.Container is not ChestContainer container
             || container.Options.HslColorPicker != FeatureOption.Enabled)
         {
             this.colorPicker.Value = null;
@@ -226,20 +226,18 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
             chest.modData[key] = value;
         }
 
-        this.itemGrabMenuManager.CurrentMenu.colorPickerToggleButton.texture = this.assetHandler.Icons.Value;
-        this.itemGrabMenuManager.CurrentMenu.colorPickerToggleButton.sourceRect = new Rectangle(126, 0, 16, 16);
+        this.menuManager.CurrentMenu.colorPickerToggleButton.texture = this.assetHandler.Icons.Value;
+        this.menuManager.CurrentMenu.colorPickerToggleButton.sourceRect = new Rectangle(126, 0, 16, 16);
 
         this.colorPicker.Value = new HslComponent(
             this.assetHandler,
             chestColorPicker,
             this.inputHelper,
-            this.itemGrabMenuManager,
+            this.menuManager.CurrentMenu,
             this.reflectionHelper,
             this.Config,
             () => container.Chest.playerChoiceColor.Value,
-            c => container.Chest.playerChoiceColor.Value = c,
-            this.itemGrabMenuManager.CurrentMenu.colorPickerToggleButton.bounds.Right + Game1.tileSize,
-            this.itemGrabMenuManager.CurrentMenu.yPositionOnScreen - 56 + (IClickableMenu.borderWidth / 2));
+            c => container.Chest.playerChoiceColor.Value = c);
     }
 
     private void OnRenderedActiveMenu(RenderedActiveMenuEventArgs e)

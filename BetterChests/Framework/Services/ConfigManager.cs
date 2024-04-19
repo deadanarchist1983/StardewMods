@@ -11,6 +11,7 @@ using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewMods.Common.Services.Integrations.GenericModConfigMenu;
+using StardewValley.Menus;
 using StardewValley.TokenizableStrings;
 
 /// <inheritdoc cref="StardewMods.BetterChests.Framework.Interfaces.IModConfig" />
@@ -78,6 +79,9 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
 
     /// <inheritdoc />
     public int HslColorPickerLightnessSteps => this.Config.HslColorPickerLightnessSteps;
+
+    /// <inheritdoc />
+    public InventoryMenu.BorderSide HslColorPickerPlacement => this.Config.HslColorPickerPlacement;
 
     /// <inheritdoc />
     public FeatureOption LockItem => this.Config.LockItem;
@@ -589,24 +593,10 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         // Chest Finder
         gmcm.AddKeybindList(
             this.manifest,
-            () => controls.FindChest,
-            value => controls.FindChest = value,
-            I18n.Controls_FindChest_Name,
-            I18n.Controls_FindChest_Tooltip);
-
-        gmcm.AddKeybindList(
-            this.manifest,
             () => controls.OpenFoundChest,
             value => controls.OpenFoundChest = value,
             I18n.Controls_OpenFoundChest_Name,
             I18n.Controls_OpenFoundChest_Tooltip);
-
-        gmcm.AddKeybindList(
-            this.manifest,
-            () => controls.CloseChestFinder,
-            value => controls.CloseChestFinder = value,
-            I18n.Controls_CloseChestFinder_Name,
-            I18n.Controls_CloseChestFinder_Tooltip);
 
         // Craft from Chest
         gmcm.AddKeybindList(
@@ -772,6 +762,23 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
             1,
             29,
             1);
+
+        // Hsl Color Picker Placement
+        const int left = (int)InventoryMenu.BorderSide.Left;
+        const int right = (int)InventoryMenu.BorderSide.Right;
+        var low = Math.Min(left, right);
+        var high = Math.Max(left, right);
+
+        gmcm.AddNumberOption(
+            this.manifest,
+            () => (int)config.HslColorPickerPlacement,
+            value => config.HslColorPickerPlacement = (InventoryMenu.BorderSide)value,
+            I18n.Config_HslColorPickerPlacement_Name,
+            I18n.Config_HslColorPickerPlacement_Tooltip,
+            low,
+            high,
+            high - low,
+            this.localizedTextManager.Border);
 
         // Lock Item
         gmcm.AddTextOption(

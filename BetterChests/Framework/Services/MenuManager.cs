@@ -22,9 +22,9 @@ using StardewValley.Menus;
 using StardewValley.Objects;
 
 /// <summary>Manages the item grab menu in the game.</summary>
-internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
+internal sealed class MenuManager : BaseService<MenuManager>
 {
-    private static ItemGrabMenuManager instance = null!;
+    private static MenuManager instance = null!;
 
     private readonly PerScreen<InventoryMenuManager> bottomMenu;
     private readonly ContainerFactory containerFactory;
@@ -33,28 +33,26 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
     private readonly PerScreen<ServiceLock?> focus = new();
     private readonly PerScreen<InventoryMenuManager> topMenu;
 
-    /// <summary>Initializes a new instance of the <see cref="ItemGrabMenuManager" /> class.</summary>
+    /// <summary>Initializes a new instance of the <see cref="MenuManager" /> class.</summary>
     /// <param name="containerFactory">Dependency used for accessing containers.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
-    /// <param name="modRegistry">Dependency used for fetching metadata about loaded mods.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="patchManager">Dependency used for managing patches.</param>
-    public ItemGrabMenuManager(
+    public MenuManager(
         ContainerFactory containerFactory,
         IEventManager eventManager,
         ILog log,
         IManifest manifest,
         IModConfig modConfig,
-        IModRegistry modRegistry,
         IInputHelper inputHelper,
         IPatchManager patchManager)
         : base(log, manifest)
     {
         // Init
-        ItemGrabMenuManager.instance = this;
+        MenuManager.instance = this;
         this.containerFactory = containerFactory;
         this.eventManager = eventManager;
 
@@ -69,6 +67,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
         eventManager.Subscribe<RenderedActiveMenuEventArgs>(this.OnRenderedActiveMenu);
         eventManager.Subscribe<UpdateTickingEventArgs>(this.OnUpdateTicking);
         eventManager.Subscribe<UpdateTickedEventArgs>(this.OnUpdateTicked);
+        eventManager.Subscribe<WindowResizedEventArgs>(this.OnWindowResized);
 
         // Patches
         patchManager.Add(
@@ -76,51 +75,25 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
             new SavedPatch(
                 AccessTools.DeclaredMethod(typeof(IClickableMenu), nameof(IClickableMenu.SetChildMenu)),
                 AccessTools.DeclaredMethod(
-                    typeof(ItemGrabMenuManager),
-                    nameof(ItemGrabMenuManager.IClickableMenu_SetChildMenu_postfix)),
+                    typeof(MenuManager),
+                    nameof(MenuManager.IClickableMenu_SetChildMenu_postfix)),
                 PatchType.Postfix),
             new SavedPatch(
                 AccessTools.DeclaredMethod(typeof(InventoryMenu), nameof(InventoryMenu.draw), [typeof(SpriteBatch)]),
-                AccessTools.DeclaredMethod(
-                    typeof(ItemGrabMenuManager),
-                    nameof(ItemGrabMenuManager.InventoryMenu_draw_prefix)),
+                AccessTools.DeclaredMethod(typeof(MenuManager), nameof(MenuManager.InventoryMenu_draw_prefix)),
                 PatchType.Prefix),
             new SavedPatch(
                 AccessTools.DeclaredMethod(typeof(InventoryMenu), nameof(InventoryMenu.draw), [typeof(SpriteBatch)]),
-                AccessTools.DeclaredMethod(
-                    typeof(ItemGrabMenuManager),
-                    nameof(ItemGrabMenuManager.InventoryMenu_draw_postfix)),
+                AccessTools.DeclaredMethod(typeof(MenuManager), nameof(MenuManager.InventoryMenu_draw_postfix)),
                 PatchType.Postfix),
             new SavedPatch(
                 AccessTools
                     .GetDeclaredConstructors(typeof(ItemGrabMenu))
                     .Single(ctor => ctor.GetParameters().Length > 5),
                 AccessTools.DeclaredMethod(
-                    typeof(ItemGrabMenuManager),
-                    nameof(ItemGrabMenuManager.ItemGrabMenu_constructor_transpiler)),
+                    typeof(MenuManager),
+                    nameof(MenuManager.ItemGrabMenu_constructor_transpiler)),
                 PatchType.Transpiler));
-
-        if (!modRegistry.IsLoaded("PathosChild.ChestsAnywhere"))
-        {
-            patchManager.Patch(this.UniqueId);
-            return;
-        }
-
-        var ctorBaseChestOverlay = AccessTools.FirstConstructor(
-            Type.GetType("Pathoschild.Stardew.ChestsAnywhere.Menus.Overlays.BaseChestOverlay, ChestsAnywhere"),
-            c => c.GetParameters().Any(p => p.Name == "menu"));
-
-        if (ctorBaseChestOverlay is not null)
-        {
-            patchManager.Add(
-                this.UniqueId,
-                new SavedPatch(
-                    ctorBaseChestOverlay,
-                    AccessTools.DeclaredMethod(
-                        typeof(ItemGrabMenuManager),
-                        nameof(ItemGrabMenuManager.ChestsAnywhere_BaseChestOverlay_prefix)),
-                    PatchType.Prefix));
-        }
 
         patchManager.Patch(this.UniqueId);
     }
@@ -168,38 +141,19 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
         return true;
     }
 
-    private static void ChestsAnywhere_BaseChestOverlay_prefix(IClickableMenu menu, ref int topOffset)
-    {
-        if (menu is not ItemGrabMenu itemGrabMenu
-            || !ItemGrabMenuManager.instance.containerFactory.TryGetOne(out var container))
-        {
-            return;
-        }
-
-        if (itemGrabMenu.ItemsToGrabMenu.capacity == 70)
-        {
-            topOffset = Game1.pixelZoom * -13;
-        }
-
-        if (container.Options.SearchItems is not FeatureOption.Disabled)
-        {
-            topOffset -= Game1.pixelZoom * 24;
-        }
-    }
-
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]
     [SuppressMessage("StyleCop", "SA1313", Justification = "Harmony")]
-    private static void IClickableMenu_SetChildMenu_postfix() => ItemGrabMenuManager.instance.UpdateMenu();
+    private static void IClickableMenu_SetChildMenu_postfix() => MenuManager.instance.UpdateMenu();
 
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]
     [SuppressMessage("ReSharper", "RedundantAssignment", Justification = "Harmony")]
     [SuppressMessage("StyleCop", "SA1313", Justification = "Harmony")]
     private static void InventoryMenu_draw_prefix(InventoryMenu __instance, ref InventoryMenuManager? __state)
     {
-        __state = __instance.Equals(ItemGrabMenuManager.instance.topMenu.Value.Menu)
-            ? ItemGrabMenuManager.instance.topMenu.Value
-            : __instance.Equals(ItemGrabMenuManager.instance.bottomMenu.Value.Menu)
-                ? ItemGrabMenuManager.instance.bottomMenu.Value
+        __state = __instance.Equals(MenuManager.instance.topMenu.Value.Menu)
+            ? MenuManager.instance.topMenu.Value
+            : __instance.Equals(MenuManager.instance.bottomMenu.Value.Menu)
+                ? MenuManager.instance.bottomMenu.Value
                 : null;
 
         if (__state?.Container is null)
@@ -209,7 +163,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
 
         // Apply operations
         var itemsDisplayingEventArgs = new ItemsDisplayingEventArgs(__state.Container);
-        ItemGrabMenuManager.instance.eventManager.Publish(itemsDisplayingEventArgs);
+        MenuManager.instance.eventManager.Publish(itemsDisplayingEventArgs);
         __instance.actualInventory = itemsDisplayingEventArgs.Items.ToList();
 
         var defaultName = int.MaxValue.ToString(CultureInfo.InvariantCulture);
@@ -232,10 +186,10 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
     [SuppressMessage("StyleCop", "SA1313", Justification = "Harmony")]
     private static void InventoryMenu_draw_postfix(InventoryMenu __instance, ref InventoryMenuManager? __state)
     {
-        __state = __instance.Equals(ItemGrabMenuManager.instance.topMenu.Value.Menu)
-            ? ItemGrabMenuManager.instance.topMenu.Value
-            : __instance.Equals(ItemGrabMenuManager.instance.bottomMenu.Value.Menu)
-                ? ItemGrabMenuManager.instance.bottomMenu.Value
+        __state = __instance.Equals(MenuManager.instance.topMenu.Value.Menu)
+            ? MenuManager.instance.topMenu.Value
+            : __instance.Equals(MenuManager.instance.bottomMenu.Value.Menu)
+                ? MenuManager.instance.bottomMenu.Value
                 : null;
 
         if (__state?.Container is null)
@@ -256,9 +210,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
                 new CodeInstruction(OpCodes.Ldarg_S, (short)16),
                 new CodeInstruction(
                     OpCodes.Call,
-                    AccessTools.DeclaredMethod(
-                        typeof(ItemGrabMenuManager),
-                        nameof(ItemGrabMenuManager.GetChestContext))))
+                    AccessTools.DeclaredMethod(typeof(MenuManager), nameof(MenuManager.GetChestContext))))
             .MatchStartForward(
                 new CodeMatch(
                     instruction => instruction.Calls(
@@ -268,9 +220,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
                 new CodeInstruction(OpCodes.Ldarg_S, (short)16),
                 new CodeInstruction(
                     OpCodes.Call,
-                    AccessTools.DeclaredMethod(
-                        typeof(ItemGrabMenuManager),
-                        nameof(ItemGrabMenuManager.GetMenuCapacity))))
+                    AccessTools.DeclaredMethod(typeof(MenuManager), nameof(MenuManager.GetMenuCapacity))))
             .MatchStartForward(
                 new CodeMatch(
                     instruction => instruction.Calls(
@@ -280,9 +230,7 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
                 new CodeInstruction(OpCodes.Ldarg_S, (short)16),
                 new CodeInstruction(
                     OpCodes.Call,
-                    AccessTools.DeclaredMethod(
-                        typeof(ItemGrabMenuManager),
-                        nameof(ItemGrabMenuManager.GetMenuCapacity))))
+                    AccessTools.DeclaredMethod(typeof(MenuManager), nameof(MenuManager.GetMenuCapacity))))
             .InstructionEnumeration();
 
     private static object? GetChestContext(Item? sourceItem, object? context) =>
@@ -302,9 +250,8 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
     {
         switch (context)
         {
-            case Item item when ItemGrabMenuManager.instance.containerFactory.TryGetOne(item, out var container):
-            case Building building
-                when ItemGrabMenuManager.instance.containerFactory.TryGetOne(building, out container):
+            case Item item when MenuManager.instance.containerFactory.TryGetOne(item, out var container):
+            case Building building when MenuManager.instance.containerFactory.TryGetOne(building, out container):
                 return container.Options.ResizeChest switch
                 {
                     ChestMenuOption.Small => 9,
@@ -324,23 +271,26 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
 
     private void UpdateHighlightMethods()
     {
-        if (this.CurrentMenu is null)
+        switch (this.CurrentMenu)
         {
-            return;
-        }
+            case ItemGrabMenu itemGrabMenu:
+                if (itemGrabMenu.ItemsToGrabMenu.highlightMethod != this.topMenu.Value.HighlightMethod)
+                {
+                    this.topMenu.Value.OriginalHighlightMethod = this.CurrentMenu.ItemsToGrabMenu.highlightMethod;
+                    itemGrabMenu.ItemsToGrabMenu.highlightMethod = this.topMenu.Value.HighlightMethod;
+                }
 
-        if (this.CurrentMenu.ItemsToGrabMenu.highlightMethod != this.topMenu.Value.HighlightMethod)
-        {
-            this.topMenu.Value.OriginalHighlightMethod = this.CurrentMenu.ItemsToGrabMenu.highlightMethod;
-            this.CurrentMenu.ItemsToGrabMenu.highlightMethod = this.topMenu.Value.HighlightMethod;
-        }
+                if (itemGrabMenu.inventory.highlightMethod != this.bottomMenu.Value.HighlightMethod)
+                {
+                    this.bottomMenu.Value.OriginalHighlightMethod = this.CurrentMenu.inventory.highlightMethod;
+                    itemGrabMenu.inventory.highlightMethod = this.bottomMenu.Value.HighlightMethod;
+                }
 
-        if (this.CurrentMenu.inventory.highlightMethod != this.bottomMenu.Value.HighlightMethod)
-        {
-            this.bottomMenu.Value.OriginalHighlightMethod = this.CurrentMenu.inventory.highlightMethod;
-            this.CurrentMenu.inventory.highlightMethod = this.bottomMenu.Value.HighlightMethod;
+                break;
         }
     }
+
+    private void OnWindowResized(WindowResizedEventArgs e) => this.Top.Container?.ShowMenu();
 
     private void UpdateMenu()
     {
@@ -485,15 +435,15 @@ internal sealed class ItemGrabMenuManager : BaseService<ItemGrabMenuManager>
         this.CurrentMenu.drawMouse(e.SpriteBatch);
     }
 
-    private sealed class ServiceLock(object source, ItemGrabMenuManager itemGrabMenuManager) : IServiceLock
+    private sealed class ServiceLock(object source, MenuManager menuManager) : IServiceLock
     {
         public object Source => source;
 
         public void Release()
         {
-            if (itemGrabMenuManager.focus.Value == this)
+            if (menuManager.focus.Value == this)
             {
-                itemGrabMenuManager.focus.Value = null;
+                menuManager.focus.Value = null;
             }
         }
     }

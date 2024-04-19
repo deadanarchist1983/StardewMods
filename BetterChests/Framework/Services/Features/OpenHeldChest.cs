@@ -18,7 +18,7 @@ internal sealed class OpenHeldChest : BaseFeature<OpenHeldChest>
 {
     private readonly ContainerFactory containerFactory;
     private readonly IInputHelper inputHelper;
-    private readonly ItemGrabMenuManager itemGrabMenuManager;
+    private readonly MenuManager menuManager;
     private readonly IPatchManager patchManager;
     private readonly ProxyChestFactory proxyChestFactory;
 
@@ -27,7 +27,7 @@ internal sealed class OpenHeldChest : BaseFeature<OpenHeldChest>
     /// <param name="containerFactory">Dependency used for accessing containers.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
-    /// <param name="itemGrabMenuManager">Dependency used for managing the item grab menu.</param>
+    /// <param name="menuManager">Dependency used for managing the item grab menu.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="patchManager">Dependency used for managing patches.</param>
@@ -36,7 +36,7 @@ internal sealed class OpenHeldChest : BaseFeature<OpenHeldChest>
         ContainerFactory containerFactory,
         IEventManager eventManager,
         IInputHelper inputHelper,
-        ItemGrabMenuManager itemGrabMenuManager,
+        MenuManager menuManager,
         ILog log,
         IManifest manifest,
         IModConfig modConfig,
@@ -46,7 +46,7 @@ internal sealed class OpenHeldChest : BaseFeature<OpenHeldChest>
     {
         this.containerFactory = containerFactory;
         this.inputHelper = inputHelper;
-        this.itemGrabMenuManager = itemGrabMenuManager;
+        this.menuManager = menuManager;
         this.patchManager = patchManager;
         this.proxyChestFactory = proxyChestFactory;
 
@@ -122,7 +122,7 @@ internal sealed class OpenHeldChest : BaseFeature<OpenHeldChest>
 
     private void OnItemHighlighting(ItemHighlightingEventArgs e)
     {
-        if (e.Container is FarmerContainer && this.itemGrabMenuManager.CurrentMenu?.sourceItem == e.Item)
+        if (e.Container is FarmerContainer && this.menuManager.CurrentMenu?.sourceItem == e.Item)
         {
             e.UnHighlight();
         }

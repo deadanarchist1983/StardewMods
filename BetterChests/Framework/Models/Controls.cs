@@ -16,16 +16,8 @@ internal sealed class Controls
     /// <summary>Gets or sets a value to access the next chest.</summary>
     public KeybindList AccessNextChest { get; set; } = new(SButton.RightTrigger);
 
-    /// <summary>Gets or sets controls to close the chest finder.</summary>
-    public KeybindList CloseChestFinder { get; set; } = new(SButton.Escape);
-
     /// <summary>Gets or sets controls to configure currently held object.</summary>
     public KeybindList ConfigureChest { get; set; } = new(SButton.End);
-
-    /// <summary>Gets or sets controls to find a chest.</summary>
-    public KeybindList FindChest { get; set; } = new(
-        new Keybind(SButton.LeftControl, SButton.F),
-        new Keybind(SButton.RightControl, SButton.F));
 
     /// <summary>Gets or sets controls to lock an item slot.</summary>
     public KeybindList LockSlot { get; set; } = new(SButton.LeftAlt);
@@ -82,9 +74,7 @@ internal sealed class Controls
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.AccessChests)}: {this.AccessChests}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.AccessNextChest)}: {this.AccessNextChest}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.AccessPreviousChest)}: {this.AccessPreviousChest}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CloseChestFinder)}: {this.CloseChestFinder}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ConfigureChest)}: {this.ConfigureChest}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.FindChest)}: {this.FindChest}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.LockSlot)}: {this.LockSlot}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.OpenCrafting)}: {this.OpenCrafting}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.OpenFoundChest)}: {this.OpenFoundChest}");

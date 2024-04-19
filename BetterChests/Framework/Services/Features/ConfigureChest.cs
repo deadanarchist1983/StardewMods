@@ -28,10 +28,10 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     private readonly GenericModConfigMenuIntegration genericModConfigMenuIntegration;
     private readonly IInputHelper inputHelper;
     private readonly PerScreen<bool> isActive = new();
-    private readonly ItemGrabMenuManager itemGrabMenuManager;
     private readonly PerScreen<IStorageContainer?> lastContainer = new();
     private readonly LocalizedTextManager localizedTextManager;
     private readonly IManifest manifest;
+    private readonly MenuManager menuManager;
     private readonly IPatchManager patchManager;
 
     /// <summary>Initializes a new instance of the <see cref="ConfigureChest" /> class.</summary>
@@ -42,7 +42,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="genericModConfigMenuIntegration">Dependency for Generic Mod Config Menu integration.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
-    /// <param name="itemGrabMenuManager">Dependency used for managing the item grab menu.</param>
+    /// <param name="menuManager">Dependency used for managing the item grab menu.</param>
     /// <param name="localizedTextManager">Dependency used for formatting and translating text.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
@@ -55,7 +55,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         IEventManager eventManager,
         GenericModConfigMenuIntegration genericModConfigMenuIntegration,
         IInputHelper inputHelper,
-        ItemGrabMenuManager itemGrabMenuManager,
+        MenuManager menuManager,
         LocalizedTextManager localizedTextManager,
         ILog log,
         IManifest manifest,
@@ -67,7 +67,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         this.containerFactory = containerFactory;
         this.genericModConfigMenuIntegration = genericModConfigMenuIntegration;
         this.inputHelper = inputHelper;
-        this.itemGrabMenuManager = itemGrabMenuManager;
+        this.menuManager = menuManager;
         this.localizedTextManager = localizedTextManager;
         this.manifest = manifest;
         this.patchManager = patchManager;
@@ -198,9 +198,9 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     {
         if (!this.isActive.Value
             || e.Button is not (SButton.MouseLeft or SButton.ControllerA)
-            || this.itemGrabMenuManager.CurrentMenu is null
-            || this.itemGrabMenuManager.Top.Container is null
-            || !this.itemGrabMenuManager.CanFocus(this))
+            || this.menuManager.CurrentMenu is null
+            || this.menuManager.Top.Container is null
+            || !this.menuManager.CanFocus(this))
         {
             return;
         }
@@ -212,12 +212,12 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         }
 
         this.inputHelper.Suppress(e.Button);
-        this.ShowMenu(this.itemGrabMenuManager.Top.Container);
+        this.ShowMenu(this.menuManager.Top.Container);
     }
 
     private void OnButtonsChanged(ButtonsChangedEventArgs e)
     {
-        if (!this.isActive.Value || !this.itemGrabMenuManager.CanFocus(this))
+        if (!this.isActive.Value || !this.menuManager.CanFocus(this))
         {
             return;
         }
@@ -237,15 +237,15 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     [Priority(1000)]
     private void OnItemGrabMenuChanged(ItemGrabMenuChangedEventArgs e)
     {
-        if (this.itemGrabMenuManager.CurrentMenu is null
-            || this.itemGrabMenuManager.Top.Container?.Options.ConfigureChest != FeatureOption.Enabled)
+        if (this.menuManager.CurrentMenu is null
+            || this.menuManager.Top.Container?.Options.ConfigureChest != FeatureOption.Enabled)
         {
             this.isActive.Value = false;
             return;
         }
 
         this.isActive.Value = true;
-        this.itemGrabMenuManager.CurrentMenu.RepositionSideButtons();
+        this.menuManager.CurrentMenu.RepositionSideButtons();
     }
 
     private void OnMenuChanged(MenuChangedEventArgs e)
@@ -271,7 +271,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
 
     private void OnRenderedActiveMenu(RenderedActiveMenuEventArgs e)
     {
-        if (!this.isActive.Value || this.itemGrabMenuManager.CurrentMenu is null)
+        if (!this.isActive.Value || this.menuManager.CurrentMenu is null)
         {
             return;
         }
@@ -294,7 +294,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         this.configButton.Value.draw(e.SpriteBatch);
         if (this.configButton.Value.containsPoint(mouseX, mouseY))
         {
-            this.itemGrabMenuManager.CurrentMenu.hoverText = this.configButton.Value.hoverText;
+            this.menuManager.CurrentMenu.hoverText = this.configButton.Value.hoverText;
         }
     }
 

@@ -26,9 +26,9 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
     private readonly PerScreen<ClickableComponent?> dropDown = new();
     private readonly IInputHelper inputHelper;
     private readonly PerScreen<bool> isActive = new();
-    private readonly ItemGrabMenuManager itemGrabMenuManager;
     private readonly PerScreen<List<ClickableComponent>> items = new(() => []);
     private readonly PerScreen<ClickableTextureComponent> leftArrow;
+    private readonly MenuManager menuManager;
     private readonly PerScreen<int> offset = new();
     private readonly PerScreen<ClickableTextureComponent> rightArrow;
     private readonly PerScreen<ISearchExpression?> searchExpression;
@@ -37,7 +37,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
     /// <param name="containerFactory">Dependency used for accessing containers.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
-    /// <param name="itemGrabMenuManager">Dependency used for managing the item grab menu.</param>
+    /// <param name="menuManager">Dependency used for managing the item grab menu.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
@@ -46,7 +46,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         ContainerFactory containerFactory,
         IEventManager eventManager,
         IInputHelper inputHelper,
-        ItemGrabMenuManager itemGrabMenuManager,
+        MenuManager menuManager,
         ILog log,
         IManifest manifest,
         IModConfig modConfig,
@@ -55,7 +55,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
     {
         this.containerFactory = containerFactory;
         this.inputHelper = inputHelper;
-        this.itemGrabMenuManager = itemGrabMenuManager;
+        this.menuManager = menuManager;
         this.searchExpression = searchExpression;
 
         this.leftArrow = new PerScreen<ClickableTextureComponent>(
@@ -112,7 +112,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
     {
         if (this.dropDown.Value is null
             || e.Button is not (SButton.MouseLeft or SButton.ControllerA)
-            || !this.itemGrabMenuManager.TryGetFocus(this, out var focus))
+            || !this.menuManager.TryGetFocus(this, out var focus))
         {
             return;
         }
@@ -124,10 +124,9 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
             this.isActive.Value = !this.isActive.Value;
             if (this.isActive.Value)
             {
-                if (this.itemGrabMenuManager.Top.Container is not null)
+                if (this.menuManager.Top.Container is not null)
                 {
-                    var currentIndex =
-                        this.currentContainers.Value.IndexOfValue(this.itemGrabMenuManager.Top.Container);
+                    var currentIndex = this.currentContainers.Value.IndexOfValue(this.menuManager.Top.Container);
 
                     this.offset.Value = Math.Clamp(
                         currentIndex,
@@ -148,12 +147,12 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         }
 
         focus.Release();
-        if (this.itemGrabMenuManager.Top.Container is null) { }
+        if (this.menuManager.Top.Container is null) { }
         else if (this.leftArrow.Value.containsPoint(mouseX, mouseY))
         {
             this.inputHelper.Suppress(e.Button);
             this.isActive.Value = !this.isActive.Value;
-            var previousIndex = this.currentContainers.Value.IndexOfValue(this.itemGrabMenuManager.Top.Container) - 1;
+            var previousIndex = this.currentContainers.Value.IndexOfValue(this.menuManager.Top.Container) - 1;
             if (previousIndex < 0)
             {
                 previousIndex = this.currentContainers.Value.Count - 1;
@@ -167,7 +166,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         {
             this.inputHelper.Suppress(e.Button);
             this.isActive.Value = !this.isActive.Value;
-            var nextIndex = this.currentContainers.Value.IndexOfValue(this.itemGrabMenuManager.Top.Container) + 1;
+            var nextIndex = this.currentContainers.Value.IndexOfValue(this.menuManager.Top.Container) + 1;
             if (nextIndex >= this.currentContainers.Value.Count)
             {
                 nextIndex = 0;
@@ -206,16 +205,14 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
             return;
         }
 
-        if (this.dropDown.Value is null
-            || this.itemGrabMenuManager.Top.Container is null
-            || !this.itemGrabMenuManager.CanFocus(this))
+        if (this.dropDown.Value is null || this.menuManager.Top.Container is null || !this.menuManager.CanFocus(this))
         {
             return;
         }
 
         if (this.Config.Controls.AccessPreviousChest.JustPressed())
         {
-            var previousIndex = this.currentContainers.Value.IndexOfValue(this.itemGrabMenuManager.Top.Container) - 1;
+            var previousIndex = this.currentContainers.Value.IndexOfValue(this.menuManager.Top.Container) - 1;
             if (previousIndex < 0)
             {
                 previousIndex = this.currentContainers.Value.Count - 1;
@@ -228,7 +225,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
 
         if (this.Config.Controls.AccessNextChest.JustPressed())
         {
-            var nextIndex = this.currentContainers.Value.IndexOfValue(this.itemGrabMenuManager.Top.Container) + 1;
+            var nextIndex = this.currentContainers.Value.IndexOfValue(this.menuManager.Top.Container) + 1;
             if (nextIndex >= this.currentContainers.Value.Count)
             {
                 nextIndex = 0;
@@ -277,9 +274,9 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         var (mouseX, mouseY) = Game1.getMousePosition(true);
 
         // Draw current container index
-        if (this.itemGrabMenuManager.Top.Container is not null && this.Config.AccessChestsShowArrows)
+        if (this.menuManager.Top.Container is not null && this.Config.AccessChestsShowArrows)
         {
-            var currentIndex = this.currentContainers.Value.IndexOfValue(this.itemGrabMenuManager.Top.Container);
+            var currentIndex = this.currentContainers.Value.IndexOfValue(this.menuManager.Top.Container);
             if (currentIndex != -1)
             {
                 var textIndex = currentIndex.ToString(CultureInfo.InvariantCulture);
@@ -399,8 +396,8 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
     private void OnItemGrabMenuChanged(ItemGrabMenuChangedEventArgs e)
     {
         this.isActive.Value = false;
-        var top = this.itemGrabMenuManager.Top;
-        if (this.itemGrabMenuManager.CurrentMenu is null || top.Container is null || top.Menu is null)
+        var top = this.menuManager.Top;
+        if (this.menuManager.CurrentMenu is null || top.Container is null || top.Menu is null)
         {
             this.dropDown.Value = null;
             return;
@@ -438,7 +435,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
 
     private void ReinitializeContainers()
     {
-        var top = this.itemGrabMenuManager.Top;
+        var top = this.menuManager.Top;
         if (this.dropDown.Value is null || top.Container is null || top.Menu is null)
         {
             return;

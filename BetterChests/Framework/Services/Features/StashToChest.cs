@@ -19,7 +19,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
     private readonly ContainerFactory containerFactory;
     private readonly ContainerHandler containerHandler;
     private readonly IInputHelper inputHelper;
-    private readonly ItemGrabMenuManager itemGrabMenuManager;
+    private readonly MenuManager menuManager;
     private readonly ToolbarIconsIntegration toolbarIconsIntegration;
 
     /// <summary>Initializes a new instance of the <see cref="StashToChest" /> class.</summary>
@@ -28,7 +28,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
     /// <param name="containerHandler">Dependency used for handling operations between containers.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
-    /// <param name="itemGrabMenuManager">Dependency used for managing the item grab menu.</param>
+    /// <param name="menuManager">Dependency used for managing the item grab menu.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
@@ -39,7 +39,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
         ContainerHandler containerHandler,
         IEventManager eventManager,
         IInputHelper inputHelper,
-        ItemGrabMenuManager itemGrabMenuManager,
+        MenuManager menuManager,
         ILog log,
         IManifest manifest,
         IModConfig modConfig,
@@ -50,7 +50,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
         this.containerFactory = containerFactory;
         this.containerHandler = containerHandler;
         this.inputHelper = inputHelper;
-        this.itemGrabMenuManager = itemGrabMenuManager;
+        this.menuManager = menuManager;
         this.toolbarIconsIntegration = toolbarIconsIntegration;
     }
 
@@ -101,9 +101,9 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
         if (e.Button is not SButton.MouseLeft
-            || this.itemGrabMenuManager.CurrentMenu?.fillStacksButton is null
-            || this.itemGrabMenuManager.Bottom.Container is null
-            || this.itemGrabMenuManager.Top.Container is null
+            || this.menuManager.CurrentMenu?.fillStacksButton is null
+            || this.menuManager.Bottom.Container is null
+            || this.menuManager.Top.Container is null
             || !this.containerFactory.TryGetOne(out var container)
             || container.Options.StashToChest is RangeOption.Disabled or RangeOption.Default)
         {
@@ -111,7 +111,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
         }
 
         var (mouseX, mouseY) = Game1.getMousePosition(true);
-        if (!this.itemGrabMenuManager.CurrentMenu.fillStacksButton.containsPoint(mouseX, mouseY))
+        if (!this.menuManager.CurrentMenu.fillStacksButton.containsPoint(mouseX, mouseY))
         {
             return;
         }
@@ -121,12 +121,11 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
         // Stash to existing stacks only
         if (!this.Config.Controls.TransferItems.IsDown()
-            || this.itemGrabMenuManager.Top.Container.Options.StashToChest is RangeOption.Disabled
-                or RangeOption.Default)
+            || this.menuManager.Top.Container.Options.StashToChest is RangeOption.Disabled or RangeOption.Default)
         {
             this.containerHandler.Transfer(
-                this.itemGrabMenuManager.Bottom.Container,
-                this.itemGrabMenuManager.Top.Container,
+                this.menuManager.Bottom.Container,
+                this.menuManager.Top.Container,
                 out _,
                 existingOnly: true);
 
@@ -135,8 +134,8 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
         // Stash using categorization rules
         var (from, to) = this.Config.Controls.TransferItemsReverse.IsDown()
-            ? (this.itemGrabMenuManager.Top.Container, this.itemGrabMenuManager.Bottom.Container)
-            : (this.itemGrabMenuManager.Bottom.Container, this.itemGrabMenuManager.Top.Container);
+            ? (this.menuManager.Top.Container, this.menuManager.Bottom.Container)
+            : (this.menuManager.Bottom.Container, this.menuManager.Top.Container);
 
         if (!this.containerHandler.Transfer(from, to, out var amounts))
         {
@@ -187,7 +186,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
     private void OnRenderingActiveMenu(RenderingActiveMenuEventArgs obj)
     {
-        if (this.itemGrabMenuManager.CurrentMenu?.fillStacksButton is null
+        if (this.menuManager.CurrentMenu?.fillStacksButton is null
             || !this.containerFactory.TryGetOne(out var container)
             || container.Options.StashToChest is RangeOption.Disabled or RangeOption.Default)
         {
@@ -196,27 +195,25 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
         var (mouseX, mouseY) = Game1.getMousePosition(true);
         if (!this.Config.Controls.TransferItems.IsDown()
-            || !this.itemGrabMenuManager.CurrentMenu.fillStacksButton.containsPoint(mouseX, mouseY))
+            || !this.menuManager.CurrentMenu.fillStacksButton.containsPoint(mouseX, mouseY))
         {
-            this.itemGrabMenuManager.CurrentMenu.fillStacksButton.texture = Game1.mouseCursors;
-            this.itemGrabMenuManager.CurrentMenu.fillStacksButton.sourceRect = new Rectangle(103, 469, 16, 16);
-            this.itemGrabMenuManager.CurrentMenu.fillStacksButton.hoverText =
+            this.menuManager.CurrentMenu.fillStacksButton.texture = Game1.mouseCursors;
+            this.menuManager.CurrentMenu.fillStacksButton.sourceRect = new Rectangle(103, 469, 16, 16);
+            this.menuManager.CurrentMenu.fillStacksButton.hoverText =
                 Game1.content.LoadString("Strings\\UI:ItemGrab_FillStacks");
 
             return;
         }
 
-        this.itemGrabMenuManager.CurrentMenu.fillStacksButton.texture = this.assetHandler.Icons.Value;
+        this.menuManager.CurrentMenu.fillStacksButton.texture = this.assetHandler.Icons.Value;
 
-        this.itemGrabMenuManager.CurrentMenu.fillStacksButton.sourceRect =
-            this.Config.Controls.TransferItemsReverse.IsDown()
-                ? new Rectangle(96, 0, 16, 16)
-                : new Rectangle(80, 0, 16, 16);
+        this.menuManager.CurrentMenu.fillStacksButton.sourceRect = this.Config.Controls.TransferItemsReverse.IsDown()
+            ? new Rectangle(96, 0, 16, 16)
+            : new Rectangle(80, 0, 16, 16);
 
-        this.itemGrabMenuManager.CurrentMenu.fillStacksButton.hoverText =
-            this.Config.Controls.TransferItemsReverse.IsDown()
-                ? I18n.Button_TransferDown_Name()
-                : I18n.Button_TransferUp_Name();
+        this.menuManager.CurrentMenu.fillStacksButton.hoverText = this.Config.Controls.TransferItemsReverse.IsDown()
+            ? I18n.Button_TransferDown_Name()
+            : I18n.Button_TransferUp_Name();
     }
 
     private void OnIconPressed(IIconPressedEventArgs e)

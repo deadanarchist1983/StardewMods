@@ -5,6 +5,7 @@ using System.Text;
 using StardewMods.BetterChests.Framework.Interfaces;
 using StardewMods.BetterChests.Framework.Models.StorageOptions;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
+using StardewValley.Menus;
 
 /// <summary>Mod config data for Better Chests.</summary>
 internal sealed class DefaultConfig : IModConfig
@@ -63,6 +64,9 @@ internal sealed class DefaultConfig : IModConfig
     public int HslColorPickerLightnessSteps { get; set; } = 16;
 
     /// <inheritdoc />
+    public InventoryMenu.BorderSide HslColorPickerPlacement { get; set; } = InventoryMenu.BorderSide.Right;
+
+    /// <inheritdoc />
     public FeatureOption LockItem { get; set; }
 
     /// <inheritdoc />
@@ -100,6 +104,10 @@ internal sealed class DefaultConfig : IModConfig
         sb.AppendLine(
             CultureInfo.InvariantCulture,
             $"{nameof(this.HslColorPickerLightnessSteps)}: {this.HslColorPickerLightnessSteps}");
+
+        sb.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"{nameof(this.HslColorPickerPlacement)}: {this.HslColorPickerPlacement}");
 
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.LockItem)}: {this.LockItem}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.LockItemHold)}: {this.LockItemHold}");

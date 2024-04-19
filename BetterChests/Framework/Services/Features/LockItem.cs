@@ -16,26 +16,26 @@ using StardewValley.Menus;
 internal sealed class LockItem : BaseFeature<LockItem>
 {
     private readonly IInputHelper inputHelper;
-    private readonly ItemGrabMenuManager itemGrabMenuManager;
+    private readonly MenuManager menuManager;
 
     /// <summary>Initializes a new instance of the <see cref="LockItem" /> class.</summary>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
-    /// <param name="itemGrabMenuManager">Dependency used for managing the item grab menu.</param>
+    /// <param name="menuManager">Dependency used for managing the item grab menu.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
     public LockItem(
         IEventManager eventManager,
         IInputHelper inputHelper,
-        ItemGrabMenuManager itemGrabMenuManager,
+        MenuManager menuManager,
         ILog log,
         IManifest manifest,
         IModConfig modConfig)
         : base(eventManager, log, manifest, modConfig)
     {
         this.inputHelper = inputHelper;
-        this.itemGrabMenuManager = itemGrabMenuManager;
+        this.menuManager = menuManager;
     }
 
     /// <inheritdoc />
@@ -90,14 +90,14 @@ internal sealed class LockItem : BaseFeature<LockItem>
 
     private void OnRenderedActiveMenu(RenderedActiveMenuEventArgs e)
     {
-        if (this.itemGrabMenuManager.Top.Menu is not null)
+        if (this.menuManager.Top.Menu is not null)
         {
-            this.DrawOverlay(e.SpriteBatch, this.itemGrabMenuManager.Top.Menu);
+            this.DrawOverlay(e.SpriteBatch, this.menuManager.Top.Menu);
         }
 
-        if (this.itemGrabMenuManager.Bottom.Menu is not null)
+        if (this.menuManager.Bottom.Menu is not null)
         {
-            this.DrawOverlay(e.SpriteBatch, this.itemGrabMenuManager.Bottom.Menu);
+            this.DrawOverlay(e.SpriteBatch, this.menuManager.Bottom.Menu);
         }
     }
 

@@ -17,6 +17,7 @@
 * Added cache table for saving search expressions.
 * Added events for items being displayed and items being highlighted.
 * Farmer and Farmhands can now inherit options from the FarmHouse and Cabin respectively.
+* Added config option to choose whether the color picker is on the left or right side.
 
 ### Changed
 

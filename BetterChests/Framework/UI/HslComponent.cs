@@ -9,6 +9,7 @@ using StardewMods.Common.Models;
 using StardewValley.Menus;
 using StardewValley.Objects;
 
+/// <summary>Represents a component that allows the player to select a color using HSL sliders.</summary>
 internal sealed class HslComponent
 {
     private static readonly PerScreen<HslColor> SavedColor = new(() => HslComponent.Transparent);
@@ -25,8 +26,9 @@ internal sealed class HslComponent
     private readonly Func<Color> getColor;
     private readonly Slider hue;
     private readonly IInputHelper inputHelper;
-    private readonly ItemGrabMenuManager itemGrabMenuManager;
     private readonly Slider lightness;
+    private readonly ItemGrabMenu menu;
+    private readonly IModConfig modConfig;
     private readonly Slider saturation;
     private readonly Action<Color> setColor;
     private readonly int xPosition;
@@ -39,36 +41,41 @@ internal sealed class HslComponent
     /// <summary>Initializes a new instance of the <see cref="HslComponent" /> class.</summary>
     /// <param name="assetHandler">Dependency used for handling assets.</param>
     /// <param name="colorPicker">The vanilla color picker component.</param>
+    /// <param name="menu">The menu that the color picker is attached to.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
-    /// <param name="itemGrabMenuManager">Dependency used for managing the item grab menu.</param>
     /// <param name="reflectionHelper">Dependency used for reflecting into external code.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
     /// <param name="getColor">Get method for the current color.</param>
     /// <param name="setColor">Set method for the current color.</param>
-    /// <param name="xPosition">The x-coordinate of the component.</param>
-    /// <param name="yPosition">The y-coordinate of the component.</param>
     public HslComponent(
         AssetHandler assetHandler,
         DiscreteColorPicker colorPicker,
         IInputHelper inputHelper,
-        ItemGrabMenuManager itemGrabMenuManager,
+        ItemGrabMenu menu,
         IReflectionHelper reflectionHelper,
         IModConfig modConfig,
         Func<Color> getColor,
-        Action<Color> setColor,
-        int xPosition,
-        int yPosition)
+        Action<Color> setColor)
     {
         this.colorPicker = colorPicker;
         this.inputHelper = inputHelper;
-        this.itemGrabMenuManager = itemGrabMenuManager;
+        this.menu = menu;
+        this.modConfig = modConfig;
         this.getColor = getColor;
         this.setColor = setColor;
-        this.xPosition = xPosition;
-        this.yPosition = yPosition;
         this.chest = (Chest)colorPicker.itemToDrawColored!;
         this.currentLidFrame = reflectionHelper.GetField<int>(this.chest, "currentLidFrame");
         this.currentLidFrame.SetValue(this.chest.startingLidFrame.Value);
+
+        this.xPosition = this.modConfig.HslColorPickerPlacement switch
+        {
+            InventoryMenu.BorderSide.Left => this.menu.xPositionOnScreen
+                - (2 * Game1.tileSize)
+                - (IClickableMenu.borderWidth / 2),
+            _ => this.menu.colorPickerToggleButton.bounds.Right + Game1.tileSize,
+        };
+
+        this.yPosition = this.menu.yPositionOnScreen - 56 + (IClickableMenu.borderWidth / 2);
 
         var playerChoiceColor = getColor();
         this.CurrentColor = HslComponent.Transparent;
@@ -83,33 +90,34 @@ internal sealed class HslComponent
 
         this.chestComponent = new ClickableComponent(
             new Rectangle(
-                xPosition,
-                yPosition - Game1.tileSize - (IClickableMenu.borderWidth / 2),
+                this.xPosition,
+                this.yPosition - Game1.tileSize - (IClickableMenu.borderWidth / 2),
                 Game1.tileSize,
                 Game1.tileSize),
             this.chest)
         {
-            myID = (int)Math.Pow(yPosition - Game1.tileSize - (IClickableMenu.borderWidth / 2f), 2) + xPosition,
+            myID = (int)Math.Pow(this.yPosition - Game1.tileSize - (IClickableMenu.borderWidth / 2f), 2)
+                + this.xPosition,
         };
 
-        this.copyArea = new Rectangle(xPosition + 30, yPosition - 4, 36, 36);
+        this.copyArea = new Rectangle(this.xPosition + 30, this.yPosition - 4, 36, 36);
         this.copyComponent = new ClickableTextureComponent(
-            new Rectangle(xPosition + 34, yPosition + 2, 8, 8),
+            new Rectangle(this.xPosition + 34, this.yPosition + 2, 8, 8),
             assetHandler.Icons.Value,
             new Rectangle(116, 4, 8, 8),
             3)
         {
-            myID = (int)Math.Pow(yPosition + 2, 2) + xPosition + 34,
+            myID = (int)Math.Pow(this.yPosition + 2, 2) + this.xPosition + 34,
         };
 
-        this.defaultColorArea = new Rectangle(xPosition - 6, yPosition - 4, 36, 36);
+        this.defaultColorArea = new Rectangle(this.xPosition - 6, this.yPosition - 4, 36, 36);
         this.defaultColorComponent = new ClickableTextureComponent(
-            new Rectangle(xPosition - 2, yPosition, 7, 7),
+            new Rectangle(this.xPosition - 2, this.yPosition, 7, 7),
             Game1.mouseCursors,
             new Rectangle(295, 503, 7, 7),
             Game1.pixelZoom)
         {
-            myID = (int)Math.Pow(yPosition, 2) + xPosition,
+            myID = (int)Math.Pow(this.yPosition, 2) + this.xPosition,
         };
 
         this.hue = new Slider(
@@ -123,7 +131,7 @@ internal sealed class HslComponent
 
                 this.UpdateColor();
             },
-            new Rectangle(xPosition, yPosition + 36, 23, 522),
+            new Rectangle(this.xPosition, this.yPosition + 36, 23, 522),
             modConfig.HslColorPickerHueSteps);
 
         this.saturation = new Slider(
@@ -145,7 +153,7 @@ internal sealed class HslComponent
 
                 this.UpdateColor();
             },
-            new Rectangle(xPosition + 32, yPosition + 300, 23, 256),
+            new Rectangle(this.xPosition + 32, this.yPosition + 300, 23, 256),
             modConfig.HslColorPickerSaturationSteps);
 
         this.lightness = new Slider(
@@ -160,21 +168,28 @@ internal sealed class HslComponent
                 this.CurrentColor = this.CurrentColor with { L = value };
                 this.UpdateColor();
             },
-            new Rectangle(xPosition + 32, yPosition + 36, 23, 256),
+            new Rectangle(this.xPosition + 32, this.yPosition + 36, 23, 256),
             modConfig.HslColorPickerLightnessSteps);
 
-        if (itemGrabMenuManager.CurrentMenu is null)
+        var ids = new HashSet<int>();
+        foreach (var cc in this.menu.discreteColorPickerCC)
         {
-            return;
+            ids.Add(cc.myID);
+            this.menu.allClickableComponents.Remove(cc);
         }
 
+        foreach (var cc in this.menu.allClickableComponents.Where(cc => ids.Contains(cc.upNeighborID)))
+        {
+            cc.upNeighborID = -1;
+        }
+
+        this.menu.allClickableComponents.Add(this.chestComponent);
+        this.menu.allClickableComponents.Add(this.copyComponent);
+        this.menu.allClickableComponents.Add(this.defaultColorComponent);
+        this.menu.allClickableComponents.AddRange(this.hue.Bars);
+        this.menu.allClickableComponents.AddRange(this.lightness.Bars);
+        this.menu.allClickableComponents.AddRange(this.saturation.Bars);
         this.SetupBorderNeighbors();
-        itemGrabMenuManager.CurrentMenu.allClickableComponents.Add(this.chestComponent);
-        itemGrabMenuManager.CurrentMenu.allClickableComponents.Add(this.copyComponent);
-        itemGrabMenuManager.CurrentMenu.allClickableComponents.Add(this.defaultColorComponent);
-        itemGrabMenuManager.CurrentMenu.allClickableComponents.AddRange(this.hue.Bars);
-        itemGrabMenuManager.CurrentMenu.allClickableComponents.AddRange(this.lightness.Bars);
-        itemGrabMenuManager.CurrentMenu.allClickableComponents.AddRange(this.saturation.Bars);
     }
 
     /// <summary>Gets the current hsl color.</summary>
@@ -183,33 +198,45 @@ internal sealed class HslComponent
     /// <summary>Sets up the border neighbors for the color picker.</summary>
     public void SetupBorderNeighbors()
     {
-        if (this.itemGrabMenuManager.CurrentMenu is not
-            { } menu)
-        {
-            return;
-        }
+        Action<ClickableComponent, int> setBorderNeighbor;
+        Action<ClickableComponent, int> setLocalNeighbor;
+        var borderNeighbors = new List<ClickableComponent>();
+        var localNeighbors = new List<ClickableComponent>();
 
-        var buttons =
-            menu
-                .allClickableComponents.Where(
-                    c => c.bounds.Left == menu.colorPickerToggleButton.bounds.Left || c == menu.trashCan)
-                .ToList();
+        if (this.modConfig.HslColorPickerPlacement == InventoryMenu.BorderSide.Left)
+        {
+            setBorderNeighbor = (c, i) => c.leftNeighborID = i;
+            setLocalNeighbor = (c, i) => c.rightNeighborID = i;
+            borderNeighbors.AddRange(this.menu.ItemsToGrabMenu.GetBorder(InventoryMenu.BorderSide.Left));
+            localNeighbors.Add(this.chestComponent);
+            localNeighbors.Add(this.copyComponent);
+            localNeighbors.AddRange(this.saturation.Bars);
+            localNeighbors.AddRange(this.lightness.Bars);
+        }
+        else
+        {
+            setBorderNeighbor = (c, i) => c.rightNeighborID = i;
+            setLocalNeighbor = (c, i) => c.leftNeighborID = i;
+            borderNeighbors.AddRange(
+                this.menu.allClickableComponents.Where(
+                    c => c.bounds.Left == this.menu.colorPickerToggleButton.bounds.Left || c == this.menu.trashCan));
+
+            localNeighbors.Add(this.chestComponent);
+            localNeighbors.Add(this.defaultColorComponent);
+            localNeighbors.AddRange(this.hue.Bars);
+        }
 
         if (!Game1.player.showChestColorPicker)
         {
-            foreach (var button in buttons)
+            foreach (var button in borderNeighbors)
             {
-                button.rightNeighborID = -1;
+                setBorderNeighbor(button, -1);
             }
 
             return;
         }
 
-        // Set left-right neighbors
-        this.defaultColorComponent.rightNeighborID = this.copyComponent.myID;
-        this.copyComponent.leftNeighborID = this.defaultColorComponent.myID;
-
-        // Set up-down neighbors
+        // Set local up-down neighbors
         this.chestComponent.downNeighborID = this.defaultColorComponent.myID;
         this.defaultColorComponent.upNeighborID = this.chestComponent.myID;
         this.copyComponent.upNeighborID = this.chestComponent.myID;
@@ -223,44 +250,44 @@ internal sealed class HslComponent
         this.lightness.Bars[^1].downNeighborID = this.saturation.Bars[0].myID;
         this.saturation.Bars[0].upNeighborID = this.lightness.Bars[^1].myID;
 
-        var neighborComponents = new List<ClickableComponent>
-        {
-            this.chestComponent,
-            this.defaultColorComponent,
-        };
+        // Set local left-right neighbors
+        this.defaultColorComponent.rightNeighborID = this.copyComponent.myID;
+        this.copyComponent.leftNeighborID = this.defaultColorComponent.myID;
 
-        neighborComponents.AddRange(this.hue.Bars);
-
-        // Assign buttons to neighbors
-        foreach (var button in buttons)
-        {
-            var neighborComponent = neighborComponents.MinBy(c => Math.Abs(c.bounds.Center.Y - button.bounds.Center.Y));
-            button.rightNeighborID = neighborComponent?.myID ?? -1;
-        }
-
-        // Assign neighbors to buttons
-        foreach (var neighborComponent in neighborComponents)
-        {
-            var button = buttons.MinBy(c => Math.Abs(c.bounds.Center.Y - neighborComponent.bounds.Center.Y));
-            neighborComponent.leftNeighborID = button?.myID ?? -1;
-        }
-
-        neighborComponents.Clear();
-        neighborComponents.AddRange(this.saturation.Bars);
-        neighborComponents.AddRange(this.lightness.Bars);
+        var saturationAndLightnessBars = this.saturation.Bars.Concat(this.lightness.Bars).ToList();
 
         // Assign hue components to saturation and lightness
         foreach (var hueBar in this.hue.Bars)
         {
-            var neighborComponent = neighborComponents.MinBy(c => Math.Abs(c.bounds.Center.Y - hueBar.bounds.Center.Y));
-            hueBar.rightNeighborID = neighborComponent?.myID ?? -1;
+            var saturationAndLightnessBar =
+                saturationAndLightnessBars.MinBy(c => Math.Abs(c.bounds.Center.Y - hueBar.bounds.Center.Y));
+
+            hueBar.rightNeighborID = saturationAndLightnessBar?.myID ?? -1;
         }
 
         // Assign saturation components to hue
-        foreach (var neighborComponent in neighborComponents)
+        foreach (var saturationAndLightnessBar in saturationAndLightnessBars)
         {
-            var hueBar = this.hue.Bars.MinBy(c => Math.Abs(c.bounds.Center.Y - neighborComponent.bounds.Center.Y));
-            neighborComponent.leftNeighborID = hueBar?.myID ?? -1;
+            var hueBar = this.hue.Bars.MinBy(
+                c => Math.Abs(c.bounds.Center.Y - saturationAndLightnessBar.bounds.Center.Y));
+
+            saturationAndLightnessBar.leftNeighborID = hueBar?.myID ?? -1;
+        }
+
+        // Assign a local neighbor to each border neighbor
+        foreach (var borderNeighbor in borderNeighbors)
+        {
+            var localNeighbor = localNeighbors.MinBy(c => Math.Abs(c.bounds.Center.Y - borderNeighbor.bounds.Center.Y));
+            setBorderNeighbor(borderNeighbor, localNeighbor?.myID ?? -1);
+        }
+
+        // Assign a border neighbor to each local neighbor
+        foreach (var localNeighbor in localNeighbors)
+        {
+            var borderNeighbor =
+                borderNeighbors.MinBy(c => Math.Abs(c.bounds.Center.Y - localNeighbor.bounds.Center.Y));
+
+            setLocalNeighbor(localNeighbor, borderNeighbor?.myID ?? -1);
         }
     }
 
