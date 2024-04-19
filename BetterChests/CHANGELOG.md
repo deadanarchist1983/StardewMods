@@ -1,6 +1,6 @@
 ﻿# Better Chests Change Log
 
-## 2.16.0 (Unreleased)
+## 2.16.0 (April 18, 2024)
 
 ### Added
 
@@ -16,8 +16,10 @@
 * Added storage options for blocking items not belonging to the category.
 * Added cache table for saving search expressions.
 * Added events for items being displayed and items being highlighted.
-* Farmer and Farmhands can now inherit options from the FarmHouse and Cabin respectively.
-* Added config option to choose whether the color picker is on the left or right side.
+* Farmer and Farmhands can now inherit options from the FarmHouse and Cabin
+  respectively.
+* Added config option to choose whether the color picker is on the left or right
+  side.
 
 ### Changed
 
@@ -60,14 +62,16 @@
 
 ### Added
 
-* Adjust the position of Chests Anywhere UI to not overlap with Better Chests UI.
+* Adjust the position of Chests Anywhere UI to not overlap with Better Chests
+  UI.
 * Added feature to remotely access chests.
 * Added feature to include chests when cooking.
 
 ### Changed
 
 * Indicate the parent value in config options.
-* Craft from Workbench settings is now configurable under Workbench as the storage type.
+* Craft from Workbench settings is now configurable under Workbench as the
+  storage type.
 * Relocated the HSL Color Picker to the right side of the menu.
 * Improved controller support for the menu components.
 * Chest types in the config options menu are sorted by name.
@@ -76,7 +80,8 @@
 ### Fixed
 
 * GMCM was not loading if the config.json file was incompatible.
-* AutoOrganize skipped any chest that was full even if additional items could be stacked.
+* AutoOrganize skipped any chest that was full even if additional items could be
+  stacked.
 * Added null-safe access for inventory tabs.
 
 ## 2.14.0 (April 12, 2024)

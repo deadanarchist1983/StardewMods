@@ -162,17 +162,6 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
                 if (this.saveButton.Value.containsPoint(mouseX, mouseY))
                 {
                     this.inputHelper.Suppress(e.Button);
-                    container.Options.CategorizeChestBlockItems =
-                        container.Options.CategorizeChestBlockItems == FeatureOption.Enabled
-                            ? FeatureOption.Disabled
-                            : FeatureOption.Enabled;
-
-                    return;
-                }
-
-                if (this.saveButton.Value.containsPoint(mouseX, mouseY))
-                {
-                    this.inputHelper.Suppress(e.Button);
                     container.Options.CategorizeChestSearchTerm = this.searchText.Value;
                     return;
                 }
