@@ -11,6 +11,7 @@ using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewMods.Common.Services.Integrations.ToolbarIcons;
 using StardewValley.Locations;
+using StardewValley.Menus;
 
 /// <summary>Stash items into placed chests and chests in the farmer's inventory.</summary>
 internal sealed class StashToChest : BaseFeature<StashToChest>
@@ -101,7 +102,8 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
         if (e.Button is not SButton.MouseLeft
-            || this.menuManager.CurrentMenu?.fillStacksButton is null
+            || Game1.activeClickableMenu is not ItemGrabMenu itemGrabMenu
+            || itemGrabMenu.fillStacksButton is null
             || this.menuManager.Bottom.Container is null
             || this.menuManager.Top.Container is null
             || !this.containerFactory.TryGetOne(out var container)
@@ -111,7 +113,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
         }
 
         var (mouseX, mouseY) = Game1.getMousePosition(true);
-        if (!this.menuManager.CurrentMenu.fillStacksButton.containsPoint(mouseX, mouseY))
+        if (!itemGrabMenu.fillStacksButton.containsPoint(mouseX, mouseY))
         {
             return;
         }
@@ -137,7 +139,8 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
             ? (this.menuManager.Top.Container, this.menuManager.Bottom.Container)
             : (this.menuManager.Bottom.Container, this.menuManager.Top.Container);
 
-        if (!this.containerHandler.Transfer(from, to, out var amounts))
+        var force = to is FarmerContainer;
+        if (!this.containerHandler.Transfer(from, to, out var amounts, force))
         {
             return;
         }
@@ -186,7 +189,8 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
     private void OnRenderingActiveMenu(RenderingActiveMenuEventArgs obj)
     {
-        if (this.menuManager.CurrentMenu?.fillStacksButton is null
+        if (Game1.activeClickableMenu is not ItemGrabMenu itemGrabMenu
+            || itemGrabMenu.fillStacksButton is null
             || !this.containerFactory.TryGetOne(out var container)
             || container.Options.StashToChest is RangeOption.Disabled or RangeOption.Default)
         {
@@ -195,23 +199,21 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
         var (mouseX, mouseY) = Game1.getMousePosition(true);
         if (!this.Config.Controls.TransferItems.IsDown()
-            || !this.menuManager.CurrentMenu.fillStacksButton.containsPoint(mouseX, mouseY))
+            || !itemGrabMenu.fillStacksButton.containsPoint(mouseX, mouseY))
         {
-            this.menuManager.CurrentMenu.fillStacksButton.texture = Game1.mouseCursors;
-            this.menuManager.CurrentMenu.fillStacksButton.sourceRect = new Rectangle(103, 469, 16, 16);
-            this.menuManager.CurrentMenu.fillStacksButton.hoverText =
-                Game1.content.LoadString("Strings\\UI:ItemGrab_FillStacks");
-
+            itemGrabMenu.fillStacksButton.texture = Game1.mouseCursors;
+            itemGrabMenu.fillStacksButton.sourceRect = new Rectangle(103, 469, 16, 16);
+            itemGrabMenu.fillStacksButton.hoverText = Game1.content.LoadString("Strings\\UI:ItemGrab_FillStacks");
             return;
         }
 
-        this.menuManager.CurrentMenu.fillStacksButton.texture = this.assetHandler.Icons.Value;
+        itemGrabMenu.fillStacksButton.texture = this.assetHandler.Icons.Value;
 
-        this.menuManager.CurrentMenu.fillStacksButton.sourceRect = this.Config.Controls.TransferItemsReverse.IsDown()
+        itemGrabMenu.fillStacksButton.sourceRect = this.Config.Controls.TransferItemsReverse.IsDown()
             ? new Rectangle(96, 0, 16, 16)
             : new Rectangle(80, 0, 16, 16);
 
-        this.menuManager.CurrentMenu.fillStacksButton.hoverText = this.Config.Controls.TransferItemsReverse.IsDown()
+        itemGrabMenu.fillStacksButton.hoverText = this.Config.Controls.TransferItemsReverse.IsDown()
             ? I18n.Button_TransferDown_Name()
             : I18n.Button_TransferUp_Name();
     }

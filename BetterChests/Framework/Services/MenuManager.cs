@@ -79,11 +79,17 @@ internal sealed class MenuManager : BaseService<MenuManager>
                     nameof(MenuManager.IClickableMenu_SetChildMenu_postfix)),
                 PatchType.Postfix),
             new SavedPatch(
-                AccessTools.DeclaredMethod(typeof(InventoryMenu), nameof(InventoryMenu.draw), [typeof(SpriteBatch)]),
+                AccessTools.DeclaredMethod(
+                    typeof(InventoryMenu),
+                    nameof(InventoryMenu.draw),
+                    [typeof(SpriteBatch), typeof(int), typeof(int), typeof(int)]),
                 AccessTools.DeclaredMethod(typeof(MenuManager), nameof(MenuManager.InventoryMenu_draw_prefix)),
                 PatchType.Prefix),
             new SavedPatch(
-                AccessTools.DeclaredMethod(typeof(InventoryMenu), nameof(InventoryMenu.draw), [typeof(SpriteBatch)]),
+                AccessTools.DeclaredMethod(
+                    typeof(InventoryMenu),
+                    nameof(InventoryMenu.draw),
+                    [typeof(SpriteBatch), typeof(int), typeof(int), typeof(int)]),
                 AccessTools.DeclaredMethod(typeof(MenuManager), nameof(MenuManager.InventoryMenu_draw_postfix)),
                 PatchType.Postfix),
             new SavedPatch(
@@ -97,12 +103,6 @@ internal sealed class MenuManager : BaseService<MenuManager>
 
         patchManager.Patch(this.UniqueId);
     }
-
-    /// <summary>Gets the current item grab menu.</summary>
-    public ItemGrabMenu? CurrentMenu =>
-        Game1.activeClickableMenu?.Equals(this.currentMenu.Value) == true
-            ? this.currentMenu.Value as ItemGrabMenu
-            : null;
 
     /// <summary>Gets the inventory menu manager for the top inventory menu.</summary>
     public IInventoryMenuManager Top => this.topMenu.Value;
@@ -271,19 +271,28 @@ internal sealed class MenuManager : BaseService<MenuManager>
 
     private void UpdateHighlightMethods()
     {
-        switch (this.CurrentMenu)
+        switch (Game1.activeClickableMenu)
         {
             case ItemGrabMenu itemGrabMenu:
                 if (itemGrabMenu.ItemsToGrabMenu.highlightMethod != this.topMenu.Value.HighlightMethod)
                 {
-                    this.topMenu.Value.OriginalHighlightMethod = this.CurrentMenu.ItemsToGrabMenu.highlightMethod;
+                    this.topMenu.Value.OriginalHighlightMethod = itemGrabMenu.ItemsToGrabMenu.highlightMethod;
                     itemGrabMenu.ItemsToGrabMenu.highlightMethod = this.topMenu.Value.HighlightMethod;
                 }
 
                 if (itemGrabMenu.inventory.highlightMethod != this.bottomMenu.Value.HighlightMethod)
                 {
-                    this.bottomMenu.Value.OriginalHighlightMethod = this.CurrentMenu.inventory.highlightMethod;
+                    this.bottomMenu.Value.OriginalHighlightMethod = itemGrabMenu.inventory.highlightMethod;
                     itemGrabMenu.inventory.highlightMethod = this.bottomMenu.Value.HighlightMethod;
+                }
+
+                break;
+
+            case GameMenu gameMenu when gameMenu.pages[gameMenu.currentTab] is InventoryPage inventoryPage:
+                if (inventoryPage.inventory.highlightMethod != this.bottomMenu.Value.HighlightMethod)
+                {
+                    this.bottomMenu.Value.OriginalHighlightMethod = inventoryPage.inventory.highlightMethod;
+                    inventoryPage.inventory.highlightMethod = this.bottomMenu.Value.HighlightMethod;
                 }
 
                 break;
@@ -303,17 +312,37 @@ internal sealed class MenuManager : BaseService<MenuManager>
 
         this.currentMenu.Value = menu;
         this.focus.Value = null;
-        if (menu is not ItemGrabMenu itemGrabMenu)
+        IClickableMenu? parentMenu = null;
+        InventoryMenu? top = null;
+        InventoryMenu? bottom = null;
+        var itemGrabMenu = menu as ItemGrabMenu;
+
+        if (itemGrabMenu is not null)
         {
-            this.topMenu.Value.Reset(null, null);
-            this.bottomMenu.Value.Reset(null, null);
-            this.eventManager.Publish(new ItemGrabMenuChangedEventArgs());
+            parentMenu = itemGrabMenu;
+            top = itemGrabMenu.ItemsToGrabMenu;
+            bottom = itemGrabMenu.inventory;
+
+            // Disable background fade
+            itemGrabMenu.setBackgroundTransparency(false);
+        }
+        else if (menu is GameMenu gameMenu && gameMenu.pages[gameMenu.currentTab] is InventoryPage inventoryPage)
+        {
+            parentMenu = inventoryPage;
+            bottom = inventoryPage.inventory;
+        }
+
+        this.topMenu.Value.Reset(parentMenu, top);
+        this.bottomMenu.Value.Reset(parentMenu, bottom);
+
+        if (parentMenu is null)
+        {
+            this.eventManager.Publish(new InventoryMenuChangedEventArgs());
             return;
         }
 
         // Update top menu
-        this.topMenu.Value.Reset(itemGrabMenu, itemGrabMenu.ItemsToGrabMenu);
-        if (this.containerFactory.TryGetOne(out var topContainer))
+        if (this.containerFactory.TryGetOne(out var topContainer) && itemGrabMenu is not null)
         {
             // Relaunch shipping bin menu
             if (itemGrabMenu.shippingBin
@@ -333,8 +362,7 @@ internal sealed class MenuManager : BaseService<MenuManager>
         this.topMenu.Value.Container = topContainer;
 
         // Update bottom menu
-        this.bottomMenu.Value.Reset(itemGrabMenu, itemGrabMenu.inventory);
-        if (!itemGrabMenu.inventory.actualInventory.Equals(Game1.player.Items)
+        if (bottom?.actualInventory.Equals(Game1.player.Items) != true
             || !this.containerFactory.TryGetOne(Game1.player, out var bottomContainer))
         {
             bottomContainer = null;
@@ -344,25 +372,30 @@ internal sealed class MenuManager : BaseService<MenuManager>
 
         // Reset filters
         this.UpdateHighlightMethods();
-        this.eventManager.Publish(new ItemGrabMenuChangedEventArgs());
-
-        // Disable background fade
-        itemGrabMenu.setBackgroundTransparency(false);
+        this.eventManager.Publish(new InventoryMenuChangedEventArgs());
     }
 
     [Priority(int.MaxValue)]
     private void OnRenderingActiveMenu(RenderingActiveMenuEventArgs e)
     {
-        if (this.CurrentMenu is null || Game1.options.showClearBackgrounds)
+        if (Game1.activeClickableMenu is not ItemGrabMenu || Game1.options.showClearBackgrounds)
         {
             return;
         }
 
-        // Redraw background
-        e.SpriteBatch.Draw(
-            Game1.fadeToBlackRect,
-            new Rectangle(0, 0, Game1.uiViewport.Width, Game1.uiViewport.Height),
-            Color.Black * 0.5f);
+        switch (Game1.activeClickableMenu)
+        {
+            case ItemGrabMenu itemGrabMenu:
+                // Redraw background
+                e.SpriteBatch.Draw(
+                    Game1.fadeToBlackRect,
+                    new Rectangle(0, 0, Game1.uiViewport.Width, Game1.uiViewport.Height),
+                    Color.Black * 0.5f);
+
+                break;
+            case GameMenu gameMenu when gameMenu.pages[gameMenu.currentTab] is InventoryPage inventoryPage: break;
+            default: return;
+        }
 
         Game1.mouseCursorTransparency = 0f;
     }
@@ -370,69 +403,111 @@ internal sealed class MenuManager : BaseService<MenuManager>
     [Priority(int.MinValue)]
     private void OnRenderedActiveMenu(RenderedActiveMenuEventArgs e)
     {
-        if (this.CurrentMenu is null)
+        switch (Game1.activeClickableMenu)
         {
-            return;
-        }
+            case ItemGrabMenu itemGrabMenu:
+                // Draw overlay
+                this.topMenu.Value.Draw(e.SpriteBatch);
+                this.bottomMenu.Value.Draw(e.SpriteBatch);
 
-        // Draw overlay
-        this.topMenu.Value.Draw(e.SpriteBatch);
-        this.bottomMenu.Value.Draw(e.SpriteBatch);
-
-        // Redraw foreground
-        if (this.focus.Value is null)
-        {
-            if (this.CurrentMenu.hoverText != null
-                && (this.CurrentMenu.hoveredItem == null || this.CurrentMenu.ItemsToGrabMenu == null))
-            {
-                if (this.CurrentMenu.hoverAmount > 0)
+                // Redraw foreground
+                if (this.focus.Value is null)
                 {
-                    IClickableMenu.drawToolTip(
+                    if (itemGrabMenu.hoverText != null
+                        && (itemGrabMenu.hoveredItem == null || itemGrabMenu.ItemsToGrabMenu == null))
+                    {
+                        if (itemGrabMenu.hoverAmount > 0)
+                        {
+                            IClickableMenu.drawToolTip(
+                                e.SpriteBatch,
+                                itemGrabMenu.hoverText,
+                                string.Empty,
+                                null,
+                                true,
+                                -1,
+                                0,
+                                null,
+                                -1,
+                                null,
+                                itemGrabMenu.hoverAmount);
+                        }
+                        else
+                        {
+                            IClickableMenu.drawHoverText(e.SpriteBatch, itemGrabMenu.hoverText, Game1.smallFont);
+                        }
+                    }
+
+                    if (itemGrabMenu.hoveredItem != null)
+                    {
+                        IClickableMenu.drawToolTip(
+                            e.SpriteBatch,
+                            itemGrabMenu.hoveredItem.getDescription(),
+                            itemGrabMenu.hoveredItem.DisplayName,
+                            itemGrabMenu.hoveredItem,
+                            itemGrabMenu.heldItem != null);
+                    }
+                    else if (itemGrabMenu.hoveredItem != null && itemGrabMenu.ItemsToGrabMenu != null)
+                    {
+                        IClickableMenu.drawToolTip(
+                            e.SpriteBatch,
+                            itemGrabMenu.ItemsToGrabMenu.descriptionText,
+                            itemGrabMenu.ItemsToGrabMenu.descriptionTitle,
+                            itemGrabMenu.hoveredItem,
+                            itemGrabMenu.heldItem != null);
+                    }
+
+                    itemGrabMenu.heldItem?.drawInMenu(
                         e.SpriteBatch,
-                        this.CurrentMenu.hoverText,
-                        string.Empty,
-                        null,
-                        true,
-                        -1,
-                        0,
-                        null,
-                        -1,
-                        null,
-                        this.CurrentMenu.hoverAmount);
+                        new Vector2(Game1.getOldMouseX() + 8, Game1.getOldMouseY() + 8),
+                        1f);
                 }
-                else
+
+                break;
+
+            case GameMenu gameMenu when gameMenu.pages[gameMenu.currentTab] is InventoryPage inventoryPage:
+                // Draw overlay
+                this.topMenu.Value.Draw(e.SpriteBatch);
+                this.bottomMenu.Value.Draw(e.SpriteBatch);
+
+                // Redraw foreground
+                if (this.focus.Value is null)
                 {
-                    IClickableMenu.drawHoverText(e.SpriteBatch, this.CurrentMenu.hoverText, Game1.smallFont);
+                    if (!string.IsNullOrEmpty(inventoryPage.hoverText))
+                    {
+                        if (inventoryPage.hoverAmount > 0)
+                        {
+                            IClickableMenu.drawToolTip(
+                                e.SpriteBatch,
+                                inventoryPage.hoverText,
+                                inventoryPage.hoverTitle,
+                                null,
+                                true,
+                                -1,
+                                0,
+                                null,
+                                -1,
+                                null,
+                                inventoryPage.hoverAmount);
+                        }
+                        else
+                        {
+                            IClickableMenu.drawToolTip(
+                                e.SpriteBatch,
+                                inventoryPage.hoverText,
+                                inventoryPage.hoverTitle,
+                                inventoryPage.hoveredItem,
+                                Game1.player.CursorSlotItem is not null);
+                        }
+                    }
                 }
-            }
 
-            if (this.CurrentMenu.hoveredItem != null)
-            {
-                IClickableMenu.drawToolTip(
-                    e.SpriteBatch,
-                    this.CurrentMenu.hoveredItem.getDescription(),
-                    this.CurrentMenu.hoveredItem.DisplayName,
-                    this.CurrentMenu.hoveredItem,
-                    this.CurrentMenu.heldItem != null);
-            }
-            else if (this.CurrentMenu.hoveredItem != null && this.CurrentMenu.ItemsToGrabMenu != null)
-            {
-                IClickableMenu.drawToolTip(
-                    e.SpriteBatch,
-                    this.CurrentMenu.ItemsToGrabMenu.descriptionText,
-                    this.CurrentMenu.ItemsToGrabMenu.descriptionTitle,
-                    this.CurrentMenu.hoveredItem,
-                    this.CurrentMenu.heldItem != null);
-            }
+                break;
 
-            this.CurrentMenu.heldItem?.drawInMenu(
-                e.SpriteBatch,
-                new Vector2(Game1.getOldMouseX() + 8, Game1.getOldMouseY() + 8),
-                1f);
+            default: return;
         }
 
         Game1.mouseCursorTransparency = 1f;
-        this.CurrentMenu.drawMouse(e.SpriteBatch);
+        Game1.activeClickableMenu.drawMouse(e.SpriteBatch);
     }
 
     private sealed class ServiceLock(object source, MenuManager menuManager) : IServiceLock

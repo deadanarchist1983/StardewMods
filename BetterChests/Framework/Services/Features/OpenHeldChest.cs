@@ -11,6 +11,7 @@ using StardewMods.Common.Interfaces;
 using StardewMods.Common.Models;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewMods.Common.Services.Integrations.FauxCore;
+using StardewValley.Menus;
 using StardewValley.Objects;
 
 /// <summary>Allows a chest to be opened while in the farmer's inventory.</summary>
@@ -18,37 +19,29 @@ internal sealed class OpenHeldChest : BaseFeature<OpenHeldChest>
 {
     private readonly ContainerFactory containerFactory;
     private readonly IInputHelper inputHelper;
-    private readonly MenuManager menuManager;
     private readonly IPatchManager patchManager;
-    private readonly ProxyChestFactory proxyChestFactory;
 
     /// <summary>Initializes a new instance of the <see cref="OpenHeldChest" /> class.</summary>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
     /// <param name="containerFactory">Dependency used for accessing containers.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
-    /// <param name="menuManager">Dependency used for managing the item grab menu.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="patchManager">Dependency used for managing patches.</param>
-    /// <param name="proxyChestFactory">Dependency used for creating virtualized chests.</param>
     public OpenHeldChest(
         ContainerFactory containerFactory,
         IEventManager eventManager,
         IInputHelper inputHelper,
-        MenuManager menuManager,
         ILog log,
         IManifest manifest,
         IModConfig modConfig,
-        IPatchManager patchManager,
-        ProxyChestFactory proxyChestFactory)
+        IPatchManager patchManager)
         : base(eventManager, log, manifest, modConfig)
     {
         this.containerFactory = containerFactory;
         this.inputHelper = inputHelper;
-        this.menuManager = menuManager;
         this.patchManager = patchManager;
-        this.proxyChestFactory = proxyChestFactory;
 
         this.patchManager.Add(
             this.UniqueId,
@@ -122,7 +115,7 @@ internal sealed class OpenHeldChest : BaseFeature<OpenHeldChest>
 
     private void OnItemHighlighting(ItemHighlightingEventArgs e)
     {
-        if (e.Container is FarmerContainer && this.menuManager.CurrentMenu?.sourceItem == e.Item)
+        if (e.Container is FarmerContainer && (Game1.activeClickableMenu as ItemGrabMenu)?.sourceItem == e.Item)
         {
             e.UnHighlight();
         }

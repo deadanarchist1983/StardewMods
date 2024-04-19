@@ -17,9 +17,11 @@ internal sealed class SearchOverlay : IClickableMenu
         var searchBarWidth = Math.Min(12 * Game1.tileSize, Game1.uiViewport.Width);
         var origin = Utility.getTopLeftPositionForCenteringOnScreen(searchBarWidth, 48);
 
-        this.searchBar = new SearchBar((int)origin.X, Game1.tileSize, searchBarWidth, getMethod, setMethod);
-
-        this.searchBar.Selected = true;
+        this.searchBar =
+            new SearchBar((int)origin.X, Game1.tileSize, searchBarWidth, getMethod, setMethod)
+            {
+                Selected = true,
+            };
     }
 
     /// <inheritdoc />

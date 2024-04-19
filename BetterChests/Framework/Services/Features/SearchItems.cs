@@ -103,7 +103,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         this.Events.Subscribe<RenderingActiveMenuEventArgs>(this.OnRenderingActiveMenu);
         this.Events.Subscribe<ButtonPressedEventArgs>(this.OnButtonPressed);
         this.Events.Subscribe<ButtonsChangedEventArgs>(this.OnButtonsChanged);
-        this.Events.Subscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
+        this.Events.Subscribe<InventoryMenuChangedEventArgs>(this.OnInventoryMenuChanged);
         this.Events.Subscribe<ItemHighlightingEventArgs>(this.OnItemHighlighting);
         this.Events.Subscribe<ItemsDisplayingEventArgs>(this.OnItemsDisplaying);
     }
@@ -116,7 +116,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         this.Events.Unsubscribe<RenderingActiveMenuEventArgs>(this.OnRenderingActiveMenu);
         this.Events.Unsubscribe<ButtonPressedEventArgs>(this.OnButtonPressed);
         this.Events.Unsubscribe<ButtonsChangedEventArgs>(this.OnButtonsChanged);
-        this.Events.Unsubscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
+        this.Events.Unsubscribe<InventoryMenuChangedEventArgs>(this.OnInventoryMenuChanged);
         this.Events.Unsubscribe<ItemHighlightingEventArgs>(this.OnItemHighlighting);
         this.Events.Unsubscribe<ItemsDisplayingEventArgs>(this.OnItemsDisplaying);
     }
@@ -127,7 +127,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         if (container is null
             || !this.isActive.Value
             || this.searchBar.Value is null
-            || this.menuManager.CurrentMenu is null
+            || Game1.activeClickableMenu is not ItemGrabMenu
             || !this.menuManager.CanFocus(this))
         {
             return;
@@ -189,12 +189,28 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
                 }
 
                 break;
-            case SButton.Escape when this.menuManager.CurrentMenu.readyToClose():
+
+            case SButton.Escape when Game1.activeClickableMenu.readyToClose():
                 this.inputHelper.Suppress(e.Button);
                 Game1.playSound("bigDeSelect");
-                this.menuManager.CurrentMenu.exitThisMenu();
+                Game1.activeClickableMenu.exitThisMenu();
                 break;
+
             case SButton.Escape: return;
+
+            default:
+                if (this.searchBar.Value.Selected
+                    && e.Button is not (SButton.LeftShift
+                        or SButton.RightShift
+                        or SButton.LeftAlt
+                        or SButton.RightAlt
+                        or SButton.LeftControl
+                        or SButton.RightControl))
+                {
+                    this.inputHelper.Suppress(e.Button);
+                }
+
+                return;
         }
     }
 
@@ -210,7 +226,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         this.isActive.Value = !this.isActive.Value;
     }
 
-    private void OnItemGrabMenuChanged(ItemGrabMenuChangedEventArgs e)
+    private void OnInventoryMenuChanged(InventoryMenuChangedEventArgs e)
     {
         var container = this.menuManager.Top.Container;
         var top = this.menuManager.Top;
@@ -238,7 +254,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         var y = top.Menu.yPositionOnScreen
             - (IClickableMenu.borderWidth / 2)
             - Game1.tileSize
-            - (top.Rows == 3 ? 20 : 4);
+            - (top.Rows == 3 ? 25 : 4);
 
         this.searchBar.Value = new SearchBar(
             x,
@@ -320,7 +336,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         var container = this.menuManager.Top.Container;
         if (this.searchBar.Value is null
             || !this.isActive.Value
-            || this.menuManager.CurrentMenu is null
+            || Game1.activeClickableMenu is not ItemGrabMenu itemGrabMenu
             || container is null)
         {
             return;
@@ -347,25 +363,25 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
         if (this.saveButton.Value.containsPoint(mouseX, mouseY))
         {
-            this.menuManager.CurrentMenu.hoverText = this.saveButton.Value.hoverText;
+            itemGrabMenu.hoverText = this.saveButton.Value.hoverText;
             return;
         }
 
         if (this.existingStacksButton.Value.containsPoint(mouseX, mouseY))
         {
-            this.menuManager.CurrentMenu.hoverText = this.existingStacksButton.Value.hoverText;
+            itemGrabMenu.hoverText = this.existingStacksButton.Value.hoverText;
             return;
         }
 
         if (this.rejectButton.Value.containsPoint(mouseX, mouseY))
         {
-            this.menuManager.CurrentMenu.hoverText = this.rejectButton.Value.hoverText;
+            itemGrabMenu.hoverText = this.rejectButton.Value.hoverText;
         }
     }
 
     private void OnRenderingActiveMenu(RenderingActiveMenuEventArgs e)
     {
-        if (this.searchBar.Value is null || !this.isActive.Value || this.menuManager.CurrentMenu is null)
+        if (this.searchBar.Value is null || !this.isActive.Value || Game1.activeClickableMenu is not ItemGrabMenu)
         {
             return;
         }

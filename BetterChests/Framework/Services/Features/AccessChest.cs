@@ -84,7 +84,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         this.Events.Subscribe<ButtonPressedEventArgs>(this.OnButtonPressed);
         this.Events.Subscribe<MouseWheelScrolledEventArgs>(this.OnMouseWheelScrolled);
         this.Events.Subscribe<RenderedActiveMenuEventArgs>(this.OnRenderedActiveMenu);
-        this.Events.Subscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
+        this.Events.Subscribe<InventoryMenuChangedEventArgs>(this.OnInventoryMenuChanged);
         this.Events.Subscribe<ItemHighlightingEventArgs>(this.OnItemHighlighting);
         this.Events.Subscribe<SearchChangedEventArgs>(this.OnSearchChanged);
     }
@@ -97,7 +97,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         this.Events.Unsubscribe<ButtonPressedEventArgs>(this.OnButtonPressed);
         this.Events.Unsubscribe<MouseWheelScrolledEventArgs>(this.OnMouseWheelScrolled);
         this.Events.Unsubscribe<RenderedActiveMenuEventArgs>(this.OnRenderedActiveMenu);
-        this.Events.Unsubscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
+        this.Events.Unsubscribe<InventoryMenuChangedEventArgs>(this.OnInventoryMenuChanged);
         this.Events.Unsubscribe<ItemHighlightingEventArgs>(this.OnItemHighlighting);
         this.Events.Unsubscribe<SearchChangedEventArgs>(this.OnSearchChanged);
     }
@@ -285,7 +285,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
                     e.SpriteBatch,
                     textIndex,
                     (this.leftArrow.Value.bounds.Left + this.rightArrow.Value.bounds.Left + Game1.tileSize - width) / 2,
-                    this.leftArrow.Value.bounds.Y,
+                    this.leftArrow.Value.bounds.Y - 4,
                     999999,
                     -1,
                     999999,
@@ -393,11 +393,11 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         }
     }
 
-    private void OnItemGrabMenuChanged(ItemGrabMenuChangedEventArgs e)
+    private void OnInventoryMenuChanged(InventoryMenuChangedEventArgs e)
     {
         this.isActive.Value = false;
         var top = this.menuManager.Top;
-        if (this.menuManager.CurrentMenu is null || top.Container is null || top.Menu is null)
+        if (Game1.activeClickableMenu is not ItemGrabMenu || top.Container is null || top.Menu is null)
         {
             this.dropDown.Value = null;
             return;
@@ -412,13 +412,19 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
 
         this.leftArrow.Value.bounds.X = x;
         this.leftArrow.Value.bounds.Y = y + Game1.tileSize + 20;
+        this.leftArrow.Value.bounds.Y = y + 10;
 
         this.rightArrow.Value.bounds.X = x + (Game1.tileSize * 2);
         this.rightArrow.Value.bounds.Y = y + Game1.tileSize + 20;
+        this.rightArrow.Value.bounds.Y = y + 10;
 
         var (width, height) = Game1.smallFont.MeasureString(name);
         this.dropDown.Value = new ClickableComponent(
-            new Rectangle(x, y, (int)width + IClickableMenu.borderWidth, (int)height + IClickableMenu.borderWidth),
+            new Rectangle(
+                x + (Game1.tileSize * 3),
+                y,
+                (int)width + IClickableMenu.borderWidth,
+                (int)height + IClickableMenu.borderWidth),
             name,
             top.Container.ToString());
 
@@ -446,6 +452,12 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         foreach (var container in containers)
         {
             this.currentContainers.Value.TryAdd(container.ToString()!, container);
+        }
+
+        if (this.currentContainers.Value.Count == 0)
+        {
+            this.isActive.Value = false;
+            return;
         }
 
         var textValues = this.currentContainers.Value.Keys;

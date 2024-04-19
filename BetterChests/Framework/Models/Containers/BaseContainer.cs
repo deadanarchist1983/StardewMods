@@ -18,7 +18,7 @@ internal abstract class BaseContainer<TSource> : BaseContainer, IStorageContaine
     /// <summary>Initializes a new instance of the <see cref="BaseContainer{TSource}" /> class.</summary>
     /// <param name="baseOptions">The type of storage object.</param>
     protected BaseContainer(IStorageOptions baseOptions)
-        : base(baseOptions) { }
+        : base(baseOptions, typeof(TSource) == typeof(Farmer)) { }
 
     /// <inheritdoc />
     public abstract bool IsAlive { get; }
@@ -35,9 +35,16 @@ internal abstract class BaseContainer : IStorageContainer
 
     /// <summary>Initializes a new instance of the <see cref="BaseContainer" /> class.</summary>
     /// <param name="baseOptions">The type of storage object.</param>
-    protected BaseContainer(IStorageOptions baseOptions)
+    /// <param name="isFarmer">Indicates if the container is for a Farmer.</param>
+    protected BaseContainer(IStorageOptions baseOptions, bool isFarmer = false)
     {
         this.baseOptions = baseOptions;
+        if (isFarmer)
+        {
+            this.storageOptions = new Lazy<IStorageOptions>(() => baseOptions);
+            return;
+        }
+
         this.storageOptions = new Lazy<IStorageOptions>(
             () => new ChildStorageOptions(() => baseOptions, new ModDataStorageOptions(this.ModData)));
     }

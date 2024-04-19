@@ -1,5 +1,29 @@
 ﻿# Better Chests Change Log
 
+## 2.16.2 (Unreleased)
+
+### Added
+
+* Added lock indicator to backpack inventory menu.
+* Added experimental support for resizing the backpack as a storage.
+
+### Changed
+
+* Adjusted the Access Chest overlay so that the dropdown does not go over the arrows.
+* When doing a reverse transfer, allow any items to go into the backpack.
+* Improved the the precision of logging storage activity and their location.
+
+### Fixed
+
+* Search bar is not selected by default when opening chests.
+* Prevent suppressing modifier keys while the search bar is selected.
+
+## 2.16.1 (April 18, 2024)
+
+### Fixed
+
+* Hotfix for search bar losing focus.
+
 ## 2.16.0 (April 18, 2024)
 
 ### Added

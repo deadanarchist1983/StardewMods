@@ -45,10 +45,11 @@ internal class ChildContainer : IStorageContainer
     public IInventory Items => this.child.Items;
 
     /// <inheritdoc />
-    public GameLocation Location => this.parent.Location;
+    public GameLocation Location => this.child.Location ?? this.parent.Location;
 
     /// <inheritdoc />
-    public Vector2 TileLocation => this.parent.TileLocation;
+    public Vector2 TileLocation =>
+        this.child.TileLocation.Equals(Vector2.Zero) ? this.parent.TileLocation : this.child.TileLocation;
 
     /// <inheritdoc />
     public ModDataDictionary ModData => this.child.ModData;

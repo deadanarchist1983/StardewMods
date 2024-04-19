@@ -34,7 +34,6 @@ internal sealed class SearchBar : ClickableComponent
             X = this.bounds.X,
             Y = this.bounds.Y,
             Width = this.bounds.Width,
-            Selected = true,
             Text = this.previousText,
         };
 

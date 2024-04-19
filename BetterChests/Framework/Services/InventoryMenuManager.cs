@@ -114,7 +114,7 @@ internal sealed class InventoryMenuManager : BaseService, IInventoryMenuManager
     /// </summary>
     /// <param name="parent">The parent ItemGrabMenu, if any.</param>
     /// <param name="current">The current InventoryMenu, if any.</param>
-    public void Reset(ItemGrabMenu? parent, InventoryMenu? current)
+    public void Reset(IClickableMenu? parent, InventoryMenu? current)
     {
         this.source.SetTarget(current);
         if (parent is null || current is null)

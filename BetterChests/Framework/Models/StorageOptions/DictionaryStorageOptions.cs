@@ -138,7 +138,7 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
-    public int ResizeChestCapacity
+    public virtual int ResizeChestCapacity
     {
         get => this.Get(IntegerKey.ResizeChestCapacity);
         set => this.Set(IntegerKey.ResizeChestCapacity, value);
@@ -196,10 +196,10 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
     public IStorageOptions GetParentOptions() => this;
 
     /// <inheritdoc />
-    public string GetDescription() => I18n.Storage_Other_Tooltip();
+    public virtual string GetDescription() => I18n.Storage_Other_Tooltip();
 
     /// <inheritdoc />
-    public string GetDisplayName() => I18n.Storage_Other_Name();
+    public virtual string GetDisplayName() => I18n.Storage_Other_Name();
 
     /// <summary>Tries to get the data associated with the specified key.</summary>
     /// <param name="key">The key to search for.</param>

@@ -98,7 +98,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
         // Events
         this.Events.Subscribe<RenderedActiveMenuEventArgs>(this.OnRenderedActiveMenu);
         this.Events.Subscribe<ButtonPressedEventArgs>(this.OnButtonPressed);
-        this.Events.Subscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
+        this.Events.Subscribe<InventoryMenuChangedEventArgs>(this.OnInventoryMenuChanged);
 
         // Patches
         this.patchManager.Patch(this.UniqueId);
@@ -110,7 +110,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
         // Events
         this.Events.Unsubscribe<RenderedActiveMenuEventArgs>(this.OnRenderedActiveMenu);
         this.Events.Unsubscribe<ButtonPressedEventArgs>(this.OnButtonPressed);
-        this.Events.Unsubscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
+        this.Events.Unsubscribe<InventoryMenuChangedEventArgs>(this.OnInventoryMenuChanged);
 
         // Patches
         this.patchManager.Unpatch(this.UniqueId);
@@ -184,7 +184,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
         }
 
         var (mouseX, mouseY) = Game1.getMousePosition(true);
-        if (this.menuManager.CurrentMenu?.colorPickerToggleButton.containsPoint(mouseX, mouseY) == true)
+        if ((Game1.activeClickableMenu as ItemGrabMenu)?.colorPickerToggleButton.containsPoint(mouseX, mouseY) == true)
         {
             this.inputHelper.Suppress(e.Button);
             Game1.playSound("drumkit6");
@@ -208,12 +208,15 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
         }
     }
 
-    private void OnItemGrabMenuChanged(ItemGrabMenuChangedEventArgs e)
+    private void OnInventoryMenuChanged(InventoryMenuChangedEventArgs e)
     {
-        if (this.menuManager.CurrentMenu?.chestColorPicker is not
+        if (Game1.activeClickableMenu is not ItemGrabMenu
             {
-                itemToDrawColored: Chest chest,
-            } chestColorPicker
+                chestColorPicker:
+                {
+                    itemToDrawColored: Chest chest,
+                } chestColorPicker,
+            } itemGrabMenu
             || this.menuManager.Top.Container is not ChestContainer container
             || container.Options.HslColorPicker != FeatureOption.Enabled)
         {
@@ -226,14 +229,14 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
             chest.modData[key] = value;
         }
 
-        this.menuManager.CurrentMenu.colorPickerToggleButton.texture = this.assetHandler.Icons.Value;
-        this.menuManager.CurrentMenu.colorPickerToggleButton.sourceRect = new Rectangle(126, 0, 16, 16);
+        itemGrabMenu.colorPickerToggleButton.texture = this.assetHandler.Icons.Value;
+        itemGrabMenu.colorPickerToggleButton.sourceRect = new Rectangle(126, 0, 16, 16);
 
         this.colorPicker.Value = new HslComponent(
             this.assetHandler,
             chestColorPicker,
             this.inputHelper,
-            this.menuManager.CurrentMenu,
+            itemGrabMenu,
             this.reflectionHelper,
             this.Config,
             () => container.Chest.playerChoiceColor.Value,

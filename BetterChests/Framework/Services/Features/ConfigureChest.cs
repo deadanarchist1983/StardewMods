@@ -111,7 +111,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         this.Events.Subscribe<RenderedActiveMenuEventArgs>(this.OnRenderedActiveMenu);
         this.Events.Subscribe<ButtonPressedEventArgs>(this.OnButtonPressed);
         this.Events.Subscribe<ButtonsChangedEventArgs>(this.OnButtonsChanged);
-        this.Events.Subscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
+        this.Events.Subscribe<InventoryMenuChangedEventArgs>(this.OnInventoryMenuChanged);
 
         // Patches
         this.patchManager.Patch(this.UniqueId);
@@ -125,7 +125,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         this.Events.Unsubscribe<RenderedActiveMenuEventArgs>(this.OnRenderedActiveMenu);
         this.Events.Unsubscribe<ButtonPressedEventArgs>(this.OnButtonPressed);
         this.Events.Unsubscribe<ButtonsChangedEventArgs>(this.OnButtonsChanged);
-        this.Events.Unsubscribe<ItemGrabMenuChangedEventArgs>(this.OnItemGrabMenuChanged);
+        this.Events.Unsubscribe<InventoryMenuChangedEventArgs>(this.OnInventoryMenuChanged);
 
         // Patches
         this.patchManager.Unpatch(this.UniqueId);
@@ -163,11 +163,6 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         var stepSize = Game1.tileSize + buttons.Count switch { >= 4 => 8, _ => 16 };
         var yOffset = buttons[0].bounds.Y;
 
-        // if (yOffset - (stepSize * (buttons.Count - 1)) < __instance.yPositionOnScreen)
-        // {
-        //     yOffset += ((stepSize * (buttons.Count - 1)) + __instance.yPositionOnScreen - yOffset) / 2;
-        // }
-
         var xPosition = Math.Max(buttons[0].bounds.X, __instance.okButton.bounds.X);
 
         for (var index = 0; index < buttons.Count; ++index)
@@ -198,8 +193,6 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     {
         if (!this.isActive.Value
             || e.Button is not (SButton.MouseLeft or SButton.ControllerA)
-            || this.menuManager.CurrentMenu is null
-            || this.menuManager.Top.Container is null
             || !this.menuManager.CanFocus(this))
         {
             return;
@@ -211,8 +204,15 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             return;
         }
 
+        this.lastContainer.Value = this.menuManager.Top.Container;
+        this.lastContainer.Value ??= this.menuManager.Bottom.Container;
+        if (this.lastContainer.Value is null)
+        {
+            return;
+        }
+
         this.inputHelper.Suppress(e.Button);
-        this.ShowMenu(this.menuManager.Top.Container);
+        this.ShowMenu();
     }
 
     private void OnButtonsChanged(ButtonsChangedEventArgs e)
@@ -231,21 +231,40 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         }
 
         this.inputHelper.SuppressActiveKeybinds(this.Config.Controls.ConfigureChest);
-        this.ShowMenu(container);
+        this.lastContainer.Value = container;
+        this.ShowMenu();
     }
 
     [Priority(1000)]
-    private void OnItemGrabMenuChanged(ItemGrabMenuChangedEventArgs e)
+    private void OnInventoryMenuChanged(InventoryMenuChangedEventArgs e)
     {
-        if (this.menuManager.CurrentMenu is null
-            || this.menuManager.Top.Container?.Options.ConfigureChest != FeatureOption.Enabled)
+        switch (Game1.activeClickableMenu)
         {
-            this.isActive.Value = false;
-            return;
-        }
+            case ItemGrabMenu itemGrabMenu:
+                if (this.menuManager.Top.Container?.Options.ConfigureChest != FeatureOption.Enabled)
+                {
+                    this.isActive.Value = false;
+                    return;
+                }
 
-        this.isActive.Value = true;
-        this.menuManager.CurrentMenu.RepositionSideButtons();
+                this.isActive.Value = true;
+                itemGrabMenu.RepositionSideButtons();
+                return;
+
+            case GameMenu gameMenu when gameMenu.pages[gameMenu.currentTab] is InventoryPage inventoryPage:
+                this.isActive.Value = true;
+                inventoryPage.allClickableComponents.Add(this.configButton.Value);
+                this.configButton.Value.bounds.X = inventoryPage.organizeButton.bounds.X;
+                this.configButton.Value.bounds.Y = inventoryPage.organizeButton.bounds.Y
+                    - Game1.tileSize
+                    - (IClickableMenu.borderWidth / 2);
+
+                return;
+
+            default:
+                this.isActive.Value = false;
+                return;
+        }
     }
 
     private void OnMenuChanged(MenuChangedEventArgs e)
@@ -271,7 +290,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
 
     private void OnRenderedActiveMenu(RenderedActiveMenuEventArgs e)
     {
-        if (!this.isActive.Value || this.menuManager.CurrentMenu is null)
+        if (!this.isActive.Value)
         {
             return;
         }
@@ -292,9 +311,20 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             0.86f);
 
         this.configButton.Value.draw(e.SpriteBatch);
-        if (this.configButton.Value.containsPoint(mouseX, mouseY))
+        if (!this.configButton.Value.containsPoint(mouseX, mouseY))
         {
-            this.menuManager.CurrentMenu.hoverText = this.configButton.Value.hoverText;
+            return;
+        }
+
+        switch (Game1.activeClickableMenu)
+        {
+            case ItemGrabMenu itemGrabMenu:
+                itemGrabMenu.hoverText = this.configButton.Value.hoverText;
+                return;
+
+            case GameMenu gameMenu when gameMenu.pages[gameMenu.currentTab] is InventoryPage inventoryPage:
+                inventoryPage.hoverText = this.configButton.Value.hoverText;
+                return;
         }
     }
 
@@ -305,25 +335,29 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             return;
         }
 
-        this.ShowMenu(container);
+        this.lastContainer.Value = container;
+        this.ShowMenu();
     }
 
-    private void ShowMenu(IStorageContainer container)
+    private void ShowMenu()
     {
-        if (!this.genericModConfigMenuIntegration.IsLoaded)
+        if (!this.genericModConfigMenuIntegration.IsLoaded || this.lastContainer.Value is null)
         {
             return;
         }
 
-        this.Log.Info("{0}: Configuring {1}", this.Id, container);
+        this.Log.Info("{0}: Configuring {1}", this.Id, this.lastContainer.Value);
 
         var gmcm = this.genericModConfigMenuIntegration.Api;
         var defaultOptions = new DefaultStorageOptions();
-        var options = new TemporaryStorageOptions(container.Options.GetActualOptions(), defaultOptions);
-        var parentOptions = container.Options.GetParentOptions();
+        var options = new TemporaryStorageOptions(this.lastContainer.Value.Options.GetActualOptions(), defaultOptions);
+        var parentOptions = this.lastContainer.Value.Options.GetParentOptions();
         this.genericModConfigMenuIntegration.Register(options.Reset, Save);
 
-        gmcm.AddSectionTitle(this.manifest, () => container.DisplayName, container.ToString);
+        gmcm.AddSectionTitle(
+            this.manifest,
+            () => this.lastContainer.Value.DisplayName,
+            this.lastContainer.Value.ToString);
 
         gmcm.AddTextOption(
             this.manifest,
@@ -332,7 +366,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             I18n.Config_StorageName_Name,
             I18n.Config_StorageName_Tooltip);
 
-        if (container.Options.StashToChest is not (RangeOption.Disabled or RangeOption.Default))
+        if (this.lastContainer.Value.Options.StashToChest is not (RangeOption.Disabled or RangeOption.Default))
         {
             gmcm.AddNumberOption(
                 this.manifest,
@@ -347,7 +381,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         }
 
         // Categorize Chest
-        if (container.Options.CategorizeChest is not (FeatureOption.Disabled or FeatureOption.Default))
+        if (this.lastContainer.Value.Options.CategorizeChest is not (FeatureOption.Disabled or FeatureOption.Default))
         {
             gmcm.AddTextOption(
                 this.manifest,
@@ -369,16 +403,13 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         }
 
         gmcm.AddPageLink(this.manifest, "Main", I18n.Section_Main_Name, I18n.Section_Main_Description);
-
         this.configManager.AddMainOption("Main", I18n.Section_Main_Name, options, parentOptions: parentOptions);
-
         gmcm.OpenModMenu(this.manifest);
-        this.lastContainer.Value = container;
         return;
 
         void Save()
         {
-            this.Log.Trace("Config changed: {0}\n{1}", container, options);
+            this.Log.Trace("Config changed: {0}\n{1}", this.lastContainer.Value, options);
             options.Save();
         }
     }

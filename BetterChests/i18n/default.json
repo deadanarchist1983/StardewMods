@@ -10,7 +10,8 @@
   "storage.Fridge.tooltip": "Storage in the farmhouse for cooking ingredients.",
   "storage.Island-Fridge.name": "Island Fridge",
   "storage.Island-Fridge.tooltip": "Storage in the island farmhouse for cooking ingredients.",
-  "storage.Object.name": "Object",
+  "storage.Backpack.name": "Backpack",
+  "storage.Backpack.tooltip": "Storage in the farmer's backpack.",
   "storage.Other.name": "Other",
   "storage.Other.tooltip": "An unknown storage type.",
   // Effects
@@ -184,7 +185,7 @@
   "priority.higher.name": "Higher",
   "priority.highest.name": "Highest",
   // UI - Button
-  "button.configure.name": "Configure Chest",
+  "button.configure.name": "Configure Storage",
   "button.find-chest.name": "Search for Chest",
   "button.stash-to-chest.name": "Stash to Chest",
   "button.craft-from-chest.name": "Craft from Chest",
