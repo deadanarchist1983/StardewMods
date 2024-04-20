@@ -19,9 +19,11 @@ internal sealed class OpenHeldChest : BaseFeature<OpenHeldChest>
 {
     private readonly ContainerFactory containerFactory;
     private readonly IInputHelper inputHelper;
+    private readonly MenuManager menuManager;
     private readonly IPatchManager patchManager;
 
     /// <summary>Initializes a new instance of the <see cref="OpenHeldChest" /> class.</summary>
+    /// <param name="menuManager">Dependency used for managing the current menu.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
     /// <param name="containerFactory">Dependency used for accessing containers.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
@@ -35,12 +37,14 @@ internal sealed class OpenHeldChest : BaseFeature<OpenHeldChest>
         IInputHelper inputHelper,
         ILog log,
         IManifest manifest,
+        MenuManager menuManager,
         IModConfig modConfig,
         IPatchManager patchManager)
         : base(eventManager, log, manifest, modConfig)
     {
         this.containerFactory = containerFactory;
         this.inputHelper = inputHelper;
+        this.menuManager = menuManager;
         this.patchManager = patchManager;
 
         this.patchManager.Add(
@@ -115,7 +119,7 @@ internal sealed class OpenHeldChest : BaseFeature<OpenHeldChest>
 
     private void OnItemHighlighting(ItemHighlightingEventArgs e)
     {
-        if (e.Container is FarmerContainer && (Game1.activeClickableMenu as ItemGrabMenu)?.sourceItem == e.Item)
+        if (e.Container is FarmerContainer && (this.menuManager.CurrentMenu as ItemGrabMenu)?.sourceItem == e.Item)
         {
             e.UnHighlight();
         }

@@ -104,6 +104,13 @@ internal sealed class MenuManager : BaseService<MenuManager>
         patchManager.Patch(this.UniqueId);
     }
 
+    /// <summary>Gets the current menu.</summary>
+    public IClickableMenu? CurrentMenu
+    {
+        get => this.currentMenu.Value;
+        private set => this.currentMenu.Value = value;
+    }
+
     /// <summary>Gets the inventory menu manager for the top inventory menu.</summary>
     public IInventoryMenuManager Top => this.topMenu.Value;
 
@@ -167,11 +174,28 @@ internal sealed class MenuManager : BaseService<MenuManager>
         __instance.actualInventory = itemsDisplayingEventArgs.Items.ToList();
 
         var defaultName = int.MaxValue.ToString(CultureInfo.InvariantCulture);
+        var emptyIndex = -1;
         for (var index = 0; index < __instance.inventory.Count; ++index)
         {
             if (index >= __instance.actualInventory.Count)
             {
                 __instance.inventory[index].name = defaultName;
+                continue;
+            }
+
+            if (__instance.actualInventory[index] is null)
+            {
+                // Iterate to next empty index
+                while (++emptyIndex < __state.Container.Items.Count
+                    && __state.Container.Items[emptyIndex] is not null) { }
+
+                if (emptyIndex >= __state.Container.Items.Count)
+                {
+                    __instance.inventory[index].name = defaultName;
+                    continue;
+                }
+
+                __instance.inventory[index].name = emptyIndex.ToString(CultureInfo.InvariantCulture);
                 continue;
             }
 
@@ -271,7 +295,7 @@ internal sealed class MenuManager : BaseService<MenuManager>
 
     private void UpdateHighlightMethods()
     {
-        switch (Game1.activeClickableMenu)
+        switch (this.CurrentMenu)
         {
             case ItemGrabMenu itemGrabMenu:
                 if (itemGrabMenu.ItemsToGrabMenu.highlightMethod != this.topMenu.Value.HighlightMethod)
@@ -288,7 +312,7 @@ internal sealed class MenuManager : BaseService<MenuManager>
 
                 break;
 
-            case GameMenu gameMenu when gameMenu.pages[gameMenu.currentTab] is InventoryPage inventoryPage:
+            case InventoryPage inventoryPage:
                 if (inventoryPage.inventory.highlightMethod != this.bottomMenu.Value.HighlightMethod)
                 {
                     this.bottomMenu.Value.OriginalHighlightMethod = inventoryPage.inventory.highlightMethod;
@@ -303,14 +327,21 @@ internal sealed class MenuManager : BaseService<MenuManager>
 
     private void UpdateMenu()
     {
-        var menu = Game1.activeClickableMenu?.GetChildMenu() ?? Game1.activeClickableMenu;
-        if (menu == this.currentMenu.Value)
+        var menu = Game1.activeClickableMenu switch
+        {
+            { } menuWithChild when menuWithChild.GetChildMenu() is
+                { } childMenu => childMenu,
+            GameMenu gameMenu => gameMenu.GetCurrentPage(),
+            _ => Game1.activeClickableMenu,
+        };
+
+        if (menu == this.CurrentMenu)
         {
             this.UpdateHighlightMethods();
             return;
         }
 
-        this.currentMenu.Value = menu;
+        this.CurrentMenu = menu;
         this.focus.Value = null;
         IClickableMenu? parentMenu = null;
         InventoryMenu? top = null;
@@ -326,7 +357,7 @@ internal sealed class MenuManager : BaseService<MenuManager>
             // Disable background fade
             itemGrabMenu.setBackgroundTransparency(false);
         }
-        else if (menu is GameMenu gameMenu && gameMenu.pages[gameMenu.currentTab] is InventoryPage inventoryPage)
+        else if (menu is InventoryPage inventoryPage)
         {
             parentMenu = inventoryPage;
             bottom = inventoryPage.inventory;
@@ -378,14 +409,14 @@ internal sealed class MenuManager : BaseService<MenuManager>
     [Priority(int.MaxValue)]
     private void OnRenderingActiveMenu(RenderingActiveMenuEventArgs e)
     {
-        if (Game1.activeClickableMenu is not ItemGrabMenu || Game1.options.showClearBackgrounds)
+        if (Game1.options.showClearBackgrounds)
         {
             return;
         }
 
-        switch (Game1.activeClickableMenu)
+        switch (this.CurrentMenu)
         {
-            case ItemGrabMenu itemGrabMenu:
+            case ItemGrabMenu:
                 // Redraw background
                 e.SpriteBatch.Draw(
                     Game1.fadeToBlackRect,
@@ -393,7 +424,8 @@ internal sealed class MenuManager : BaseService<MenuManager>
                     Color.Black * 0.5f);
 
                 break;
-            case GameMenu gameMenu when gameMenu.pages[gameMenu.currentTab] is InventoryPage inventoryPage: break;
+
+            case InventoryPage: break;
             default: return;
         }
 
@@ -403,7 +435,7 @@ internal sealed class MenuManager : BaseService<MenuManager>
     [Priority(int.MinValue)]
     private void OnRenderedActiveMenu(RenderedActiveMenuEventArgs e)
     {
-        switch (Game1.activeClickableMenu)
+        switch (this.CurrentMenu)
         {
             case ItemGrabMenu itemGrabMenu:
                 // Draw overlay
@@ -464,7 +496,7 @@ internal sealed class MenuManager : BaseService<MenuManager>
 
                 break;
 
-            case GameMenu gameMenu when gameMenu.pages[gameMenu.currentTab] is InventoryPage inventoryPage:
+            case InventoryPage inventoryPage:
                 // Draw overlay
                 this.topMenu.Value.Draw(e.SpriteBatch);
                 this.bottomMenu.Value.Draw(e.SpriteBatch);

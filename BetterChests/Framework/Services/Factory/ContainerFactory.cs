@@ -326,7 +326,7 @@ internal sealed class ContainerFactory : BaseService
             return true;
         }
 
-        var storageType = new BackpackStorageOptions(this.modConfig.DefaultOptions, farmer);
+        var storageType = new BackpackStorageOptions(farmer);
         farmerContainer = new FarmerContainer(storageType, farmer);
         this.cachedContainers.AddOrUpdate(farmer, farmerContainer);
         return true;

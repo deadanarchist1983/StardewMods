@@ -42,7 +42,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="genericModConfigMenuIntegration">Dependency for Generic Mod Config Menu integration.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
-    /// <param name="menuManager">Dependency used for managing the item grab menu.</param>
+    /// <param name="menuManager">Dependency used for managing the current menu.</param>
     /// <param name="localizedTextManager">Dependency used for formatting and translating text.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
@@ -238,7 +238,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     [Priority(1000)]
     private void OnInventoryMenuChanged(InventoryMenuChangedEventArgs e)
     {
-        switch (Game1.activeClickableMenu)
+        switch (this.menuManager.CurrentMenu)
         {
             case ItemGrabMenu itemGrabMenu:
                 if (this.menuManager.Top.Container?.Options.ConfigureChest != FeatureOption.Enabled)
@@ -251,7 +251,13 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
                 itemGrabMenu.RepositionSideButtons();
                 return;
 
-            case GameMenu gameMenu when gameMenu.pages[gameMenu.currentTab] is InventoryPage inventoryPage:
+            case InventoryPage inventoryPage:
+                if (this.menuManager.Bottom.Container?.Options.ConfigureChest != FeatureOption.Enabled)
+                {
+                    this.isActive.Value = false;
+                    return;
+                }
+
                 this.isActive.Value = true;
                 inventoryPage.allClickableComponents.Add(this.configButton.Value);
                 this.configButton.Value.bounds.X = inventoryPage.organizeButton.bounds.X;
@@ -316,13 +322,13 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             return;
         }
 
-        switch (Game1.activeClickableMenu)
+        switch (this.menuManager.CurrentMenu)
         {
             case ItemGrabMenu itemGrabMenu:
                 itemGrabMenu.hoverText = this.configButton.Value.hoverText;
                 return;
 
-            case GameMenu gameMenu when gameMenu.pages[gameMenu.currentTab] is InventoryPage inventoryPage:
+            case InventoryPage inventoryPage:
                 inventoryPage.hoverText = this.configButton.Value.hoverText;
                 return;
         }

@@ -29,7 +29,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
     /// <param name="containerHandler">Dependency used for handling operations between containers.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
-    /// <param name="menuManager">Dependency used for managing the item grab menu.</param>
+    /// <param name="menuManager">Dependency used for managing the current menu.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
@@ -102,7 +102,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
         if (e.Button is not SButton.MouseLeft
-            || Game1.activeClickableMenu is not ItemGrabMenu itemGrabMenu
+            || this.menuManager.CurrentMenu is not ItemGrabMenu itemGrabMenu
             || itemGrabMenu.fillStacksButton is null
             || this.menuManager.Bottom.Container is null
             || this.menuManager.Top.Container is null
@@ -189,7 +189,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
     private void OnRenderingActiveMenu(RenderingActiveMenuEventArgs obj)
     {
-        if (Game1.activeClickableMenu is not ItemGrabMenu itemGrabMenu
+        if (this.menuManager.CurrentMenu is not ItemGrabMenu itemGrabMenu
             || itemGrabMenu.fillStacksButton is null
             || !this.containerFactory.TryGetOne(out var container)
             || container.Options.StashToChest is RangeOption.Disabled or RangeOption.Default)

@@ -32,7 +32,7 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
     /// <summary>Initializes a new instance of the <see cref="CategorizeChest" /> class.</summary>
     /// <param name="cacheManager">Dependency used for managing cache tables.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
-    /// <param name="menuManager">Dependency used for managing the item grab menu.</param>
+    /// <param name="menuManager">Dependency used for managing the current menu.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>

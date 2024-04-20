@@ -37,7 +37,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
     /// <param name="containerFactory">Dependency used for accessing containers.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
-    /// <param name="menuManager">Dependency used for managing the item grab menu.</param>
+    /// <param name="menuManager">Dependency used for managing the current menu.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
@@ -397,7 +397,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
     {
         this.isActive.Value = false;
         var top = this.menuManager.Top;
-        if (Game1.activeClickableMenu is not ItemGrabMenu || top.Container is null || top.Menu is null)
+        if (this.menuManager.CurrentMenu is not ItemGrabMenu || top.Container is null || top.Menu is null)
         {
             this.dropDown.Value = null;
             return;

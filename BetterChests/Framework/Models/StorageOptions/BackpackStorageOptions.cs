@@ -10,11 +10,10 @@ internal sealed class BackpackStorageOptions : IStorageOptions
     private readonly IStorageOptions storageOptions;
 
     /// <summary>Initializes a new instance of the <see cref="BackpackStorageOptions" /> class.</summary>
-    /// <param name="storageOptions">The default storage options.</param>
     /// <param name="farmer">The farmer whose backpack storage this represents.</param>
-    public BackpackStorageOptions(IStorageOptions storageOptions, Farmer farmer)
+    public BackpackStorageOptions(Farmer farmer)
     {
-        this.storageOptions = new ChildStorageOptions(() => storageOptions, new ModDataStorageOptions(farmer.modData));
+        this.storageOptions = new ModDataStorageOptions(farmer.modData);
         this.farmer = farmer;
     }
 

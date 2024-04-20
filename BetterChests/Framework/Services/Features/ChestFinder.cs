@@ -20,6 +20,7 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
     private readonly ContainerFactory containerFactory;
     private readonly PerScreen<int> currentIndex = new();
     private readonly IInputHelper inputHelper;
+    private readonly MenuManager menuManager;
     private readonly PerScreen<List<Pointer>> pointers = new(() => []);
     private readonly PerScreen<ISearchExpression?> searchExpression;
     private readonly SearchHandler searchHandler;
@@ -33,6 +34,7 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
+    /// <param name="menuManager">Dependency used for managing the current menu.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
     /// <param name="searchExpression">Dependency for retrieving a parsed search expression.</param>
     /// <param name="searchHandler">Dependency used for handling search.</param>
@@ -45,6 +47,7 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
         IInputHelper inputHelper,
         ILog log,
         IManifest manifest,
+        MenuManager menuManager,
         IModConfig modConfig,
         PerScreen<ISearchExpression?> searchExpression,
         SearchHandler searchHandler,
@@ -55,6 +58,7 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
         this.assetHandler = assetHandler;
         this.containerFactory = containerFactory;
         this.inputHelper = inputHelper;
+        this.menuManager = menuManager;
         this.searchExpression = searchExpression;
         this.searchHandler = searchHandler;
         this.searchText = searchText;
@@ -114,7 +118,7 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
         // Activate Search Bar
         if (Context.IsPlayerFree
             && Game1.displayHUD
-            && Game1.activeClickableMenu is null
+            && this.menuManager.CurrentMenu is null
             && this.Config.Controls.ToggleSearch.JustPressed())
         {
             this.inputHelper.SuppressActiveKeybinds(this.Config.Controls.ToggleSearch);
@@ -122,7 +126,7 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
             return;
         }
 
-        if (Game1.activeClickableMenu is not SearchOverlay
+        if (this.menuManager.CurrentMenu is not SearchOverlay
             || !this.pointers.Value.Any()
             || !this.Config.Controls.OpenFoundChest.JustPressed())
         {
@@ -141,7 +145,7 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
 
     private void OnRenderedHud(RenderedHudEventArgs e)
     {
-        if (Game1.activeClickableMenu is not SearchOverlay && (!Game1.displayHUD || !Context.IsPlayerFree))
+        if (this.menuManager.CurrentMenu is not SearchOverlay && (!Game1.displayHUD || !Context.IsPlayerFree))
         {
             return;
         }
@@ -197,7 +201,7 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
             return;
         }
 
-        if (Game1.activeClickableMenu is not SearchOverlay && (!Game1.displayHUD || !Context.IsPlayerFree))
+        if (this.menuManager.CurrentMenu is not SearchOverlay && (!Game1.displayHUD || !Context.IsPlayerFree))
         {
             return;
         }

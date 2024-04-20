@@ -32,7 +32,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
     /// <param name="assetHandler">Dependency used for handling assets.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
-    /// <param name="menuManager">Dependency used for managing the item grab menu.</param>
+    /// <param name="menuManager">Dependency used for managing the current menu.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
@@ -184,7 +184,8 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
         }
 
         var (mouseX, mouseY) = Game1.getMousePosition(true);
-        if ((Game1.activeClickableMenu as ItemGrabMenu)?.colorPickerToggleButton.containsPoint(mouseX, mouseY) == true)
+        if ((this.menuManager.CurrentMenu as ItemGrabMenu)?.colorPickerToggleButton.containsPoint(mouseX, mouseY)
+            == true)
         {
             this.inputHelper.Suppress(e.Button);
             Game1.playSound("drumkit6");
@@ -210,7 +211,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
 
     private void OnInventoryMenuChanged(InventoryMenuChangedEventArgs e)
     {
-        if (Game1.activeClickableMenu is not ItemGrabMenu
+        if (this.menuManager.CurrentMenu is not ItemGrabMenu
             {
                 chestColorPicker:
                 {

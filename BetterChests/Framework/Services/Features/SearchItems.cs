@@ -29,7 +29,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
     /// <param name="assetHandler">Dependency used for handling assets.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
-    /// <param name="menuManager">Dependency used for managing the item grab menu.</param>
+    /// <param name="menuManager">Dependency used for managing the current menu.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
@@ -127,7 +127,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         if (container is null
             || !this.isActive.Value
             || this.searchBar.Value is null
-            || Game1.activeClickableMenu is not ItemGrabMenu
+            || this.menuManager.CurrentMenu is not ItemGrabMenu
             || !this.menuManager.CanFocus(this))
         {
             return;
@@ -190,10 +190,10 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
                 break;
 
-            case SButton.Escape when Game1.activeClickableMenu.readyToClose():
+            case SButton.Escape when this.menuManager.CurrentMenu.readyToClose():
                 this.inputHelper.Suppress(e.Button);
                 Game1.playSound("bigDeSelect");
-                Game1.activeClickableMenu.exitThisMenu();
+                this.menuManager.CurrentMenu.exitThisMenu();
                 break;
 
             case SButton.Escape: return;
@@ -336,7 +336,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         var container = this.menuManager.Top.Container;
         if (this.searchBar.Value is null
             || !this.isActive.Value
-            || Game1.activeClickableMenu is not ItemGrabMenu itemGrabMenu
+            || this.menuManager.CurrentMenu is not ItemGrabMenu itemGrabMenu
             || container is null)
         {
             return;
@@ -381,7 +381,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
     private void OnRenderingActiveMenu(RenderingActiveMenuEventArgs e)
     {
-        if (this.searchBar.Value is null || !this.isActive.Value || Game1.activeClickableMenu is not ItemGrabMenu)
+        if (this.searchBar.Value is null || !this.isActive.Value || this.menuManager.CurrentMenu is not ItemGrabMenu)
         {
             return;
         }

@@ -1,6 +1,19 @@
 ﻿# Better Chests Change Log
 
-## 2.16.2 (Unreleased)
+## 2.16.3 (April 19, 2024)
+
+### Changed
+
+* Backpack Storage options will not inherit from the global storage options.
+* Temporarily hiding backpack config behind the console
+  command `bc_player_config` until it is fully implemented.
+
+### Fixed
+
+* Fixed backpack config button showing up in other game menus.
+* Fixed backpack items not being placeable in any slot.
+
+## 2.16.2 (April 19, 2024)
 
 ### Added
 
@@ -9,7 +22,8 @@
 
 ### Changed
 
-* Adjusted the Access Chest overlay so that the dropdown does not go over the arrows.
+* Adjusted the Access Chest overlay so that the dropdown does not go over the
+  arrows.
 * When doing a reverse transfer, allow any items to go into the backpack.
 * Improved the the precision of logging storage activity and their location.
 
