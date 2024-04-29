@@ -1,5 +1,11 @@
 # Custom Bush Change Log
 
+## 1.2.1 (Unreleased)
+
+### Added
+
+* Inject an Id property to the ICustomBush interface.
+
 ## 1.2.0 (April 15, 2024)
 
 ### Added

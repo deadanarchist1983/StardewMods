@@ -10,6 +10,9 @@ internal sealed class CustomBush : ICustomBush
     public List<CustomBushDrop> ItemsProduced { get; set; } = [];
 
     /// <inheritdoc />
+    public string Id { get; set; } = string.Empty;
+
+    /// <inheritdoc />
     public int AgeToProduce { get; set; } = 20;
 
     /// <inheritdoc />

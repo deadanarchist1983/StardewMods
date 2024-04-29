@@ -35,8 +35,24 @@ internal sealed class AssetHandler : BaseService
     }
 
     /// <summary>Gets the data model for all Custom Bush.</summary>
-    public Dictionary<string, CustomBush> Data =>
-        this.data ??= this.gameContentHelper.Load<Dictionary<string, CustomBush>>(this.dataPath);
+    public Dictionary<string, CustomBush> Data
+    {
+        get
+        {
+            if (this.data is not null)
+            {
+                return this.data;
+            }
+
+            this.data = this.gameContentHelper.Load<Dictionary<string, CustomBush>>(this.dataPath);
+            foreach (var (id, customBush) in this.data)
+            {
+                customBush.Id = id;
+            }
+
+            return this.data;
+        }
+    }
 
     private void OnConditionsApiReady(ConditionsApiReadyEventArgs e) => this.data = null;
 
