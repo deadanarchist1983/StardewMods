@@ -21,6 +21,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
     private readonly LocalizedTextManager localizedTextManager;
     private readonly ILog log;
     private readonly IManifest manifest;
+    private readonly IModRegistry modRegistry;
 
     /// <summary>Initializes a new instance of the <see cref="ConfigManager" /> class.</summary>
     /// <param name="eventManager">Dependency used for managing events.</param>
@@ -29,19 +30,22 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modHelper">Dependency for events, input, and content.</param>
+    /// <param name="modRegistry">Dependency used for fetching metadata about loaded mods.</param>
     public ConfigManager(
         IEventManager eventManager,
         GenericModConfigMenuIntegration genericModConfigMenuIntegration,
         LocalizedTextManager localizedTextManager,
         ILog log,
         IManifest manifest,
-        IModHelper modHelper)
+        IModHelper modHelper,
+        IModRegistry modRegistry)
         : base(eventManager, modHelper)
     {
         this.genericModConfigMenuIntegration = genericModConfigMenuIntegration;
         this.localizedTextManager = localizedTextManager;
         this.log = log;
         this.manifest = manifest;
+        this.modRegistry = modRegistry;
 
         eventManager.Subscribe<GameLaunchedEventArgs>(this.OnGameLaunched);
         eventManager.Subscribe<ConfigChangedEventArgs<DefaultConfig>>(this.OnConfigChanged);
@@ -133,6 +137,10 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     case "BigCraftables" when Game1.bigCraftableData.TryGetValue(storageId, out var bigCraftableData):
                         name = TokenParser.ParseText(bigCraftableData.DisplayName);
                         description = TokenParser.ParseText(bigCraftableData.Description);
+                        break;
+                    case "Buildings" when storageId == "Stable":
+                        name = I18n.Storage_Saddlebag_Name();
+                        description = I18n.Storage_Saddlebag_Tooltip();
                         break;
                     case "Buildings" when Game1.buildingData.TryGetValue(storageId, out var buildingData):
                         name = TokenParser.ParseText(buildingData.Name);
@@ -874,6 +882,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                 "213",
                 new DefaultStorageOptions
                 {
+                    CookFromChest = RangeOption.Location,
                     HslColorPicker = FeatureOption.Disabled,
                     ResizeChest = ChestMenuOption.Large,
                     ResizeChestCapacity = -1,
@@ -1058,5 +1067,20 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     ResizeChestCapacity = -1,
                     SearchItems = FeatureOption.Disabled,
                 });
+
+        // Initialize Horse Overhaul Saddlebags
+        if (this.modRegistry.IsLoaded("Goldenrevolver.HorseOverhaul"))
+        {
+            config
+                .StorageOptions["Buildings"]
+                .TryAdd(
+                    "Stable",
+                    new DefaultStorageOptions
+                    {
+                        AutoOrganize = FeatureOption.Disabled,
+                        CarryChest = FeatureOption.Disabled,
+                        HslColorPicker = FeatureOption.Disabled,
+                    });
+        }
     }
 }

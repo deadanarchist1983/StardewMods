@@ -17,4 +17,10 @@ internal sealed class NegatedExpression : ISearchExpression
 
     /// <inheritdoc />
     public bool PartialMatch(Item item) => !this.InnerExpression.PartialMatch(item);
+
+    /// <inheritdoc />
+    public bool ExactMatch(string term) => !this.InnerExpression.ExactMatch(term);
+
+    /// <inheritdoc />
+    public bool PartialMatch(string term) => !this.InnerExpression.ExactMatch(term);
 }

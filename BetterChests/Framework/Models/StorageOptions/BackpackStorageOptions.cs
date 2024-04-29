@@ -132,8 +132,8 @@ internal sealed class BackpackStorageOptions : IStorageOptions
     /// <inheritdoc />
     public ChestMenuOption ResizeChest
     {
-        get => this.storageOptions.ResizeChest;
-        set => this.storageOptions.ResizeChest = value;
+        get => ChestMenuOption.Medium;
+        set { }
     }
 
     /// <inheritdoc />
@@ -143,6 +143,7 @@ internal sealed class BackpackStorageOptions : IStorageOptions
         set
         {
             this.farmer.MaxItems = value;
+            this.farmer.Items.RemoveEmptySlots();
             while (this.farmer.Items.Count < this.farmer.MaxItems)
             {
                 this.farmer.Items.Add(null);

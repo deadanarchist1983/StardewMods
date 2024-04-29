@@ -39,6 +39,7 @@ internal sealed class MenuManager : BaseService<MenuManager>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
+    /// <param name="modEvents">Dependency used for managing access to SMAPI events.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="patchManager">Dependency used for managing patches.</param>
     public MenuManager(
@@ -47,6 +48,7 @@ internal sealed class MenuManager : BaseService<MenuManager>
         ILog log,
         IManifest manifest,
         IModConfig modConfig,
+        IModEvents modEvents,
         IInputHelper inputHelper,
         IPatchManager patchManager)
         : base(log, manifest)
@@ -63,11 +65,11 @@ internal sealed class MenuManager : BaseService<MenuManager>
             () => new InventoryMenuManager(eventManager, inputHelper, log, manifest, modConfig));
 
         // Events
-        eventManager.Subscribe<RenderingActiveMenuEventArgs>(this.OnRenderingActiveMenu);
         eventManager.Subscribe<RenderedActiveMenuEventArgs>(this.OnRenderedActiveMenu);
         eventManager.Subscribe<UpdateTickingEventArgs>(this.OnUpdateTicking);
         eventManager.Subscribe<UpdateTickedEventArgs>(this.OnUpdateTicked);
         eventManager.Subscribe<WindowResizedEventArgs>(this.OnWindowResized);
+        modEvents.Display.RenderingActiveMenu += this.OnRenderingActiveMenu;
 
         // Patches
         patchManager.Add(
@@ -406,8 +408,8 @@ internal sealed class MenuManager : BaseService<MenuManager>
         this.eventManager.Publish(new InventoryMenuChangedEventArgs());
     }
 
-    [Priority(int.MaxValue)]
-    private void OnRenderingActiveMenu(RenderingActiveMenuEventArgs e)
+    [EventPriority((EventPriority)int.MaxValue)]
+    private void OnRenderingActiveMenu(object? sender, RenderingActiveMenuEventArgs e)
     {
         if (Game1.options.showClearBackgrounds)
         {
@@ -416,7 +418,10 @@ internal sealed class MenuManager : BaseService<MenuManager>
 
         switch (this.CurrentMenu)
         {
-            case ItemGrabMenu:
+            case ItemGrabMenu
+            {
+                context: not null,
+            }:
                 // Redraw background
                 e.SpriteBatch.Draw(
                     Game1.fadeToBlackRect,

@@ -15,15 +15,22 @@ internal sealed class SearchTerm : ISearchExpression
     /// <inheritdoc />
     public bool ExactMatch(Item? item) =>
         item is not null
-        && ((item.Name is not null && item.Name.Equals(this.Term, StringComparison.OrdinalIgnoreCase))
-            || (item.DisplayName is not null && item.DisplayName.Equals(this.Term, StringComparison.OrdinalIgnoreCase))
-            || item.GetContextTags().Any(tag => tag.Equals(this.Term, StringComparison.OrdinalIgnoreCase)));
+        && ((item.Name is not null && this.ExactMatch(item.Name))
+            || (item.DisplayName is not null && this.ExactMatch(item.DisplayName))
+            || item.GetContextTags().Any(this.ExactMatch));
 
     /// <inheritdoc />
     public bool PartialMatch(Item? item) =>
         item is not null
-        && ((item.Name is not null && item.Name.Contains(this.Term, StringComparison.OrdinalIgnoreCase))
-            || (item.DisplayName is not null
-                && item.DisplayName.Contains(this.Term, StringComparison.OrdinalIgnoreCase))
-            || item.GetContextTags().Any(tag => tag.Contains(this.Term, StringComparison.OrdinalIgnoreCase)));
+        && ((item.Name is not null && this.PartialMatch(item.Name))
+            || (item.DisplayName is not null && this.PartialMatch(item.DisplayName))
+            || item.GetContextTags().Any(this.PartialMatch));
+
+    /// <inheritdoc />
+    public bool ExactMatch(string term) =>
+        !string.IsNullOrWhiteSpace(term) && term.Equals(this.Term, StringComparison.OrdinalIgnoreCase);
+
+    /// <inheritdoc />
+    public bool PartialMatch(string term) =>
+        !string.IsNullOrWhiteSpace(term) && term.Contains(this.Term, StringComparison.OrdinalIgnoreCase);
 }

@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
+using StardewMods.BetterChests.Framework.Models.Containers;
 using StardewMods.BetterChests.Framework.Models.Events;
 using StardewMods.BetterChests.Framework.Models.StorageOptions;
 using StardewMods.BetterChests.Framework.Services.Factory;
@@ -85,7 +86,8 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             });
 
         // Commands
-        commandHelper.Add("bc_player_config", "Configure the player backpack", this.ConfigurePlayer);
+        commandHelper.Add("bc_player_config", I18n.Command_PlayerConfig_Documentation(), this.ConfigurePlayer);
+        commandHelper.Add("bc_reset_all", I18n.Command_ResetAll_Documentation(), this.ResetAll);
 
         // Patches
         this.patchManager.Add(
@@ -345,6 +347,17 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         this.ShowMenu();
     }
 
+    private void ResetAll(string commands, string[] args)
+    {
+        var defaultOptions = new DefaultStorageOptions();
+        foreach (var container in this.containerFactory.GetAll())
+        {
+            var options = new TemporaryStorageOptions(container.Options.GetActualOptions(), defaultOptions);
+            options.Reset();
+            options.Save();
+        }
+    }
+
     private void ShowMenu()
     {
         if (!this.genericModConfigMenuIntegration.IsLoaded || this.lastContainer.Value is null)
@@ -417,6 +430,14 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         {
             this.Log.Trace("Config changed: {0}\n{1}", this.lastContainer.Value, options);
             options.Save();
+
+            if (this.lastContainer.Value is not ChestContainer chestContainer)
+            {
+                return;
+            }
+
+            chestContainer.Chest.fridge.Value =
+                this.lastContainer.Value.Options.CookFromChest is not (RangeOption.Default or RangeOption.Disabled);
         }
     }
 }

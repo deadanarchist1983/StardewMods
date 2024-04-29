@@ -110,6 +110,7 @@ internal sealed class CarryChest : BaseFeature<CarryChest>
         // Copy data from chest
         placedChest.GlobalInventoryId = chest.GlobalInventoryId;
         placedChest.playerChoiceColor.Value = chest.playerChoiceColor.Value;
+        placedChest.fridge.Value = chest.fridge.Value;
         foreach (var (key, value) in chest.modData.Pairs)
         {
             placedChest.modData[key] = value;

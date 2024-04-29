@@ -34,6 +34,7 @@ internal sealed class BuildingContainer : BaseContainer<Building>
         this.Source = new WeakReference<Building>(shippingBin);
 
     /// <summary>Gets the source building of the container.</summary>
+    /// <exception cref="ObjectDisposedException">Thrown when the Building is disposed.</exception>
     public Building Building =>
         this.Source.TryGetTarget(out var target)
             ? target

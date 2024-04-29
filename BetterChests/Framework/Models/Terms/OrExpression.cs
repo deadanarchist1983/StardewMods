@@ -23,4 +23,12 @@ internal sealed class OrExpression : ISearchExpression
     /// <inheritdoc />
     public bool PartialMatch(Item item) =>
         this.LeftExpression.PartialMatch(item) || this.RightExpression.PartialMatch(item);
+
+    /// <inheritdoc />
+    public bool ExactMatch(string term) =>
+        this.LeftExpression.ExactMatch(term) || this.RightExpression.ExactMatch(term);
+
+    /// <inheritdoc />
+    public bool PartialMatch(string term) =>
+        this.LeftExpression.PartialMatch(term) || this.RightExpression.PartialMatch(term);
 }

@@ -15,6 +15,7 @@ internal sealed class ProxyChestFactory : BaseService<ProxyChestFactory>
 {
     private const string AlphaNumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private const string ColorKey = "PlayerChoiceColor";
+    private const string FridgeKey = "Fridge";
     private const string GlobalInventoryIdKey = "GlobalInventoryId";
 
     private static ProxyChestFactory instance = null!;
@@ -98,6 +99,11 @@ internal sealed class ProxyChestFactory : BaseService<ProxyChestFactory>
             item.modData[this.Prefix + ProxyChestFactory.ColorKey] = color.ToString(CultureInfo.InvariantCulture);
         }
 
+        if (chest.fridge.Value)
+        {
+            item.modData[this.Prefix + ProxyChestFactory.FridgeKey] = "true";
+        }
+
         foreach (var (key, value) in chest.modData.Pairs)
         {
             item.modData[key] = value;
@@ -177,6 +183,7 @@ internal sealed class ProxyChestFactory : BaseService<ProxyChestFactory>
             Name = item.Name,
             GlobalInventoryId = id,
             playerChoiceColor = { Value = color },
+            fridge = { Value = item.modData.ContainsKey(this.Prefix + ProxyChestFactory.FridgeKey) },
         };
 
         foreach (var (key, value) in item.modData.Pairs)
@@ -209,6 +216,7 @@ internal sealed class ProxyChestFactory : BaseService<ProxyChestFactory>
         // Clear Global Inventory
         chest.modData.Remove(this.Prefix + ProxyChestFactory.GlobalInventoryIdKey);
         chest.modData.Remove(this.Prefix + ProxyChestFactory.ColorKey);
+        chest.modData.Remove(this.Prefix + ProxyChestFactory.FridgeKey);
         Game1.player.team.globalInventories.Remove(id);
         Game1.player.team.globalInventoryMutexes.Remove(id);
         this.proxyChests.Remove(id);

@@ -6,6 +6,7 @@ using StardewMods.BetterChests.Framework.Interfaces;
 using StardewMods.BetterChests.Framework.Models.Containers;
 using StardewMods.BetterChests.Framework.Models.StorageOptions;
 using StardewMods.Common.Services;
+using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewValley.Buildings;
@@ -154,9 +155,9 @@ internal sealed class ContainerFactory : BaseService
         }
 
         // Search for containers from placed objects
-        foreach (var obj in location.Objects.Values)
+        foreach (var (pos, obj) in location.Objects.Pairs)
         {
-            if (!this.TryGetAny(obj, out container))
+            if (pos.X <= 0 || pos.Y <= 0 || !this.TryGetAny(obj, out container))
             {
                 continue;
             }
@@ -343,29 +344,60 @@ internal sealed class ContainerFactory : BaseService
             return true;
         }
 
-        var storageType = this.GetStorageOptions(building);
-        if (building is ShippingBin shippingBin)
+        IStorageOptions? storageType;
+        switch (building)
         {
-            buildingContainer = new BuildingContainer(storageType, shippingBin);
-            this.cachedContainers.AddOrUpdate(shippingBin, buildingContainer);
-            return true;
-        }
+            case ShippingBin shippingBin:
+                storageType = this.GetStorageOptions(building);
+                buildingContainer = new BuildingContainer(storageType, shippingBin);
+                this.cachedContainers.AddOrUpdate(shippingBin, buildingContainer);
+                return true;
 
-        var chest = building.GetBuildingChest("Output");
-        if (chest is null)
-        {
-            return false;
-        }
+            // Horse Overhaul
+            case Stable stable:
+                if (!stable.modData.TryGetValue("Goldenrevolver.HorseOverhaul/stableID", out var stableData)
+                    || string.IsNullOrWhiteSpace(stableData)
+                    || !int.TryParse(stableData, out var stableId)
+                    || !Game1.getFarm().Objects.TryGetValue(new Vector2(stableId, 0), out var saddleBag)
+                    || saddleBag is not Chest saddleBagChest)
+                {
+                    return false;
+                }
 
-        if (this.cachedContainers.TryGetValue(chest, out buildingContainer))
-        {
-            return true;
-        }
+                if (this.cachedContainers.TryGetValue(saddleBagChest, out buildingContainer))
+                {
+                    return true;
+                }
 
-        buildingContainer = new BuildingContainer(storageType, building, chest);
-        this.cachedContainers.AddOrUpdate(building, buildingContainer);
-        this.cachedContainers.AddOrUpdate(chest, buildingContainer);
-        return true;
+                if (!this.storageOptions.TryGetValue("(B)Stable", out storageType))
+                {
+                    storageType = new SaddleBagStorageOptions(() => this.modConfig.DefaultOptions, stable);
+                    this.storageOptions.Add("(B)Stable", storageType);
+                }
+
+                buildingContainer = new NpcContainer(storageType, stable.getStableHorse(), saddleBagChest);
+                this.cachedContainers.AddOrUpdate(stable, buildingContainer);
+                this.cachedContainers.AddOrUpdate(saddleBagChest, buildingContainer);
+                return true;
+
+            default:
+                var chest = building.GetBuildingChest("Output");
+                if (chest is null)
+                {
+                    return false;
+                }
+
+                if (this.cachedContainers.TryGetValue(chest, out buildingContainer))
+                {
+                    return true;
+                }
+
+                storageType = this.GetStorageOptions(building);
+                buildingContainer = new BuildingContainer(storageType, building, chest);
+                this.cachedContainers.AddOrUpdate(building, buildingContainer);
+                this.cachedContainers.AddOrUpdate(chest, buildingContainer);
+                return true;
+        }
     }
 
     /// <summary>Tries to get a container from the specified location and position.</summary>
@@ -470,9 +502,14 @@ internal sealed class ContainerFactory : BaseService
         var foundLocations = new HashSet<GameLocation>();
         var locationQueue = new Queue<GameLocation>();
 
+        locationQueue.Enqueue(Game1.currentLocation);
+
         foreach (var location in Game1.locations)
         {
-            locationQueue.Enqueue(location);
+            if (!location.Equals(Game1.currentLocation))
+            {
+                locationQueue.Enqueue(location);
+            }
         }
 
         while (locationQueue.TryDequeue(out var location))
@@ -560,6 +597,7 @@ internal sealed class ContainerFactory : BaseService
             _ => new ChestContainer(storageOption, chest),
         };
 
+        chest.fridge.Value = storageOption.CookFromChest is not (RangeOption.Disabled or RangeOption.Default);
         this.cachedContainers.AddOrUpdate(item, container);
         this.cachedContainers.AddOrUpdate(chest, container);
         return true;

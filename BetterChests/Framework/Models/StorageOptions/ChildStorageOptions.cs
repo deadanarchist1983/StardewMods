@@ -204,7 +204,7 @@ internal class ChildStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
-    public string StorageName
+    public virtual string StorageName
     {
         get => this.ActualOptions.StorageName;
         set => this.ActualOptions.StorageName = value;

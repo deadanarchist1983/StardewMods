@@ -1,5 +1,21 @@
 ﻿# Better Chests Change Log
 
+## 2.17.0-beta.1 (Unreleased)
+
+### Added
+
+* Added support for Horse Overhaul Saddle Bags.
+* Added console command for resetting all storage options back to default.
+
+### Changed
+
+* Access Chests now includes container names and location when searching.
+* Love of Cooking will now use chests in the current location with Cook From Chest enabled. 
+
+### Fixed
+
+* Fixed compatibility issue with Love of Cooking.
+
 ## 2.16.3 (April 19, 2024)
 
 ### Changed
