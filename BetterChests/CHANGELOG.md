@@ -1,6 +1,6 @@
 ﻿# Better Chests Change Log
 
-## 2.17.0-beta.1 (Unreleased)
+## 2.17.0 (Unreleased)
 
 ### Added
 
