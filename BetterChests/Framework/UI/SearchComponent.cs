@@ -57,6 +57,9 @@ internal sealed class SearchComponent : ClickableComponent
         set => this.setMethod(value);
     }
 
+    /// <summary>Reset the value of the text box.</summary>
+    public void Reset() => this.textBox.Text = this.Text;
+
     /// <summary>Draws the search overlay to the screen.</summary>
     /// <param name="spriteBatch">The SpriteBatch used for drawing.</param>
     public void Draw(SpriteBatch spriteBatch)

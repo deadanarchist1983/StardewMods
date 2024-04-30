@@ -7,12 +7,15 @@
 * Added support for Horse Overhaul Saddle Bags.
 * Added console command for resetting all storage options back to default.
 * Added hotkey for clearing the search bar.
+* Added inventory tabs for saving search texts.
 
 ### Changed
 
 * Access Chests now includes container names and location when searching.
 * Love of Cooking will now use chests in the current location with Cook From Chest enabled.
 * Multiple search terms separated by space will return items where any of the terms match.
+* Default options now must be set to an enabled option or disabled.
+* If a default option is set to default, it will be overridden.
 
 ### Fixed
 

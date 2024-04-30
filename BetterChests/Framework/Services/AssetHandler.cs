@@ -24,10 +24,11 @@ internal sealed class AssetHandler : BaseService
     private readonly IModConfig modConfig;
     private readonly IModContentHelper modContentHelper;
     private readonly string tabIconsPath;
-
     private HslColor[]? hslColors;
     private Texture2D? hslTexture;
     private Color[]? hslTextureData;
+
+    private Dictionary<string, TabIcon>? tabIcons;
 
     /// <summary>Initializes a new instance of the <see cref="AssetHandler" /> class.</summary>
     /// <param name="eventSubscriber">Dependency used for subscribing to events.</param>
@@ -85,6 +86,10 @@ internal sealed class AssetHandler : BaseService
 
     /// <summary>Gets the managed icons texture.</summary>
     public IManagedTexture Icons => this.icons.Value;
+
+    /// <summary>Gets the tab icons.</summary>
+    public Dictionary<string, TabIcon> TabIcons =>
+        this.tabIcons ??= this.gameContentHelper.Load<Dictionary<string, TabIcon>>(this.tabIconsPath);
 
     private void OnAssetRequested(AssetRequestedEventArgs e)
     {

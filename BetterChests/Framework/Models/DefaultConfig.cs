@@ -139,46 +139,62 @@ internal sealed class DefaultConfig : IModConfig
     {
         StringBuilder sb = new();
 
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.AccessChestsShowArrows)}: {this.AccessChestsShowArrows}");
+        this.ForEachConfig(
+            (name, config) =>
+            {
+                switch (config)
+                {
+                    case DefaultStorageOptions defaultOptions:
+                        sb.AppendLine("Default Options");
+                        sb.AppendLine(defaultOptions.ToString());
+                        break;
 
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CarryChestLimit)}: {this.CarryChestLimit}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CarryChestSlowLimit)}: {this.CarryChestSlowLimit}");
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.CraftFromChestDisableLocations)}: {string.Join(", ", this.CraftFromChestDisableLocations)}");
+                    case Controls controls:
+                        sb.AppendLine("Controls");
+                        sb.AppendLine(controls.ToString());
+                        break;
 
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.HslColorPickerHueSteps)}: {this.HslColorPickerHueSteps}");
+                    case Dictionary<string, Dictionary<string, DefaultStorageOptions>> storageOptions:
+                        foreach (var (storageType, typeOptions) in storageOptions)
+                        {
+                            foreach (var (storageName, storageOption) in typeOptions)
+                            {
+                                sb.AppendLine(CultureInfo.InvariantCulture, $"{storageType}: {storageName}");
+                                sb.AppendLine(storageOption.ToString());
+                            }
+                        }
 
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.HslColorPickerSaturationSteps)}: {this.HslColorPickerSaturationSteps}");
+                        break;
 
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.HslColorPickerLightnessSteps)}: {this.HslColorPickerLightnessSteps}");
+                    case FeatureOption featureOption:
+                        sb.AppendLine(CultureInfo.InvariantCulture, $"{name}: {featureOption.ToStringFast()}");
+                        break;
 
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.HslColorPickerPlacement)}: {this.HslColorPickerPlacement}");
+                    case FilterMethod filterMethod:
+                        sb.AppendLine(CultureInfo.InvariantCulture, $"{name}: {filterMethod.ToStringFast()}");
+                        break;
 
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.InventoryTabList)}: {string.Join(", ", this.InventoryTabList)}");
+                    case InventoryMenu.BorderSide placement:
+                        sb.AppendLine(CultureInfo.InvariantCulture, $"{name}: {placement.ToString()}");
+                        break;
 
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.LockItem)}: {this.LockItem}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.LockItemHold)}: {this.LockItemHold}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.SearchItemsMethod)}: {this.SearchItemsMethod}");
+                    case HashSet<string> hashSet:
+                        sb.AppendLine(CultureInfo.InvariantCulture, $"{name}: {string.Join(", ", hashSet)}");
+                        break;
 
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.StashToChestDisableLocations)}: {string.Join(", ", this.StashToChestDisableLocations)}");
+                    case bool boolValue:
+                        sb.AppendLine(CultureInfo.InvariantCulture, $"{name}: {boolValue}");
+                        break;
 
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.DefaultOptions)}: {this.DefaultOptions}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.Controls)}: {this.Controls}");
+                    case int intValue:
+                        sb.AppendLine(CultureInfo.InvariantCulture, $"{name}: {intValue}");
+                        break;
+
+                    case float floatValue:
+                        sb.AppendLine(CultureInfo.InvariantCulture, $"{name}: {floatValue}");
+                        break;
+                }
+            });
 
         return sb.ToString();
     }

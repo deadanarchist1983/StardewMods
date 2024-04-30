@@ -77,6 +77,7 @@ internal sealed class Controls
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.AccessChests)}: {this.AccessChests}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.AccessNextChest)}: {this.AccessNextChest}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.AccessPreviousChest)}: {this.AccessPreviousChest}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ClearSearch)}: {this.ClearSearch}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ConfigureChest)}: {this.ConfigureChest}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.LockSlot)}: {this.LockSlot}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.OpenCrafting)}: {this.OpenCrafting}");

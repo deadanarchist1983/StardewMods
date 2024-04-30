@@ -106,6 +106,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         this.Events.Subscribe<InventoryMenuChangedEventArgs>(this.OnInventoryMenuChanged);
         this.Events.Subscribe<ItemHighlightingEventArgs>(this.OnItemHighlighting);
         this.Events.Subscribe<ItemsDisplayingEventArgs>(this.OnItemsDisplaying);
+        this.Events.Subscribe<SearchChangedEventArgs>(this.OnSearchChanged);
     }
 
     /// <inheritdoc />
@@ -119,6 +120,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         this.Events.Unsubscribe<InventoryMenuChangedEventArgs>(this.OnInventoryMenuChanged);
         this.Events.Unsubscribe<ItemHighlightingEventArgs>(this.OnItemHighlighting);
         this.Events.Unsubscribe<ItemsDisplayingEventArgs>(this.OnItemsDisplaying);
+        this.Events.Unsubscribe<SearchChangedEventArgs>(this.OnSearchChanged);
     }
 
     private void OnButtonPressed(ButtonPressedEventArgs e)
@@ -395,5 +397,15 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
         var (mouseX, mouseY) = Game1.getMousePosition(true);
         this.searchBar.Value.Update(mouseX, mouseY);
+    }
+
+    private void OnSearchChanged(SearchChangedEventArgs e)
+    {
+        if (this.searchBar.Value is null || !this.isActive.Value || this.menuManager.CurrentMenu is not ItemGrabMenu)
+        {
+            return;
+        }
+
+        this.searchBar.Value.Reset();
     }
 }

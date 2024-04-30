@@ -211,6 +211,14 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                 () => $"{I18n.Config_DefaultOption_Description(I18n.Config_DefaultOption_Indicator())}");
         }
 
+        var featureOptions = (isDefault
+            ? FeatureOptionExtensions.GetNames().Except(new[] { FeatureOption.Default.ToStringFast() })
+            : FeatureOptionExtensions.GetNames()).ToArray();
+
+        var rangeOptions = (isDefault
+            ? RangeOptionExtensions.GetNames().Except(new[] { RangeOption.Default.ToStringFast() })
+            : RangeOptionExtensions.GetNames()).ToArray();
+
         // Access Chest
         if (isDefault || this.DefaultOptions.AccessChest != RangeOption.Disabled)
         {
@@ -222,7 +230,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     : RangeOption.Default,
                 I18n.Config_AccessChests_Name,
                 I18n.Config_AccessChests_Tooltip,
-                RangeOptionExtensions.GetNames(),
+                rangeOptions,
                 this.localizedTextManager.FormatRange(parentOptions?.AccessChest));
         }
 
@@ -237,7 +245,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     : FeatureOption.Default,
                 I18n.Config_AutoOrganize_Name,
                 I18n.Config_AutoOrganize_Tooltip,
-                FeatureOptionExtensions.GetNames(),
+                featureOptions,
                 this.localizedTextManager.FormatOption(parentOptions?.AutoOrganize));
         }
 
@@ -252,7 +260,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     : FeatureOption.Default,
                 I18n.Config_CarryChest_Name,
                 I18n.Config_CarryChest_Tooltip,
-                FeatureOptionExtensions.GetNames(),
+                featureOptions,
                 this.localizedTextManager.FormatOption(parentOptions?.CarryChest));
         }
 
@@ -267,7 +275,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     : FeatureOption.Default,
                 I18n.Config_CategorizeChest_Name,
                 I18n.Config_CategorizeChest_Tooltip,
-                FeatureOptionExtensions.GetNames(),
+                featureOptions,
                 this.localizedTextManager.FormatOption(parentOptions?.CategorizeChest));
         }
 
@@ -282,7 +290,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     : FeatureOption.Default,
                 I18n.Config_ChestFinder_Name,
                 I18n.Config_ChestFinder_Tooltip,
-                FeatureOptionExtensions.GetNames(),
+                featureOptions,
                 this.localizedTextManager.FormatOption(parentOptions?.ChestFinder));
         }
 
@@ -297,7 +305,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     : FeatureOption.Default,
                 I18n.Config_ChestInfo_Name,
                 I18n.Config_ChestInfo_Tooltip,
-                FeatureOptionExtensions.GetNames(),
+                featureOptions,
                 this.localizedTextManager.FormatOption(parentOptions?.ChestInfo));
         }
 
@@ -312,7 +320,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     : FeatureOption.Default,
                 I18n.Config_CollectItems_Name,
                 I18n.Config_CollectItems_Tooltip,
-                FeatureOptionExtensions.GetNames(),
+                featureOptions,
                 this.localizedTextManager.FormatOption(parentOptions?.CollectItems));
         }
 
@@ -327,7 +335,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     : FeatureOption.Default,
                 I18n.Config_ConfigureChest_Name,
                 I18n.Config_ConfigureChest_Tooltip,
-                FeatureOptionExtensions.GetNames(),
+                featureOptions,
                 this.localizedTextManager.FormatOption(parentOptions?.ConfigureChest));
         }
 
@@ -342,7 +350,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     : RangeOption.Default,
                 I18n.Config_CookFromChest_Name,
                 I18n.Config_CookFromChest_Tooltip,
-                RangeOptionExtensions.GetNames(),
+                rangeOptions,
                 this.localizedTextManager.FormatRange(parentOptions?.CookFromChest));
         }
 
@@ -388,7 +396,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                 },
                 I18n.Config_CraftFromChest_Name,
                 I18n.Config_CraftFromChest_Tooltip,
-                (int)RangeOption.Default,
+                isDefault ? (int)RangeOption.Disabled : (int)RangeOption.Default,
                 (int)RangeOption.World,
                 1,
                 this.localizedTextManager.FormatDistance(
@@ -407,8 +415,23 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     : FeatureOption.Default,
                 I18n.Config_HslColorPicker_Name,
                 I18n.Config_HslColorPicker_Tooltip,
-                FeatureOptionExtensions.GetNames(),
+                featureOptions,
                 this.localizedTextManager.FormatOption(parentOptions?.HslColorPicker));
+        }
+
+        // Inventory Tabs
+        if (isDefault || this.DefaultOptions.InventoryTabs != FeatureOption.Disabled)
+        {
+            gmcm.AddTextOption(
+                this.manifest,
+                () => options.InventoryTabs.ToStringFast(),
+                value => options.InventoryTabs = FeatureOptionExtensions.TryParse(value, out var option)
+                    ? option
+                    : FeatureOption.Default,
+                I18n.Config_InventoryTabs_Name,
+                I18n.Config_InventoryTabs_Tooltip,
+                featureOptions,
+                this.localizedTextManager.FormatOption(parentOptions?.InventoryTabs));
         }
 
         // Open Held Chest
@@ -422,7 +445,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     : FeatureOption.Default,
                 I18n.Config_OpenHeldChest_Name,
                 I18n.Config_OpenHeldChest_Tooltip,
-                FeatureOptionExtensions.GetNames(),
+                featureOptions,
                 this.localizedTextManager.FormatOption(parentOptions?.OpenHeldChest));
         }
 
@@ -490,7 +513,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     : FeatureOption.Default,
                 I18n.Config_SearchItems_Name,
                 I18n.Config_SearchItems_Tooltip,
-                FeatureOptionExtensions.GetNames(),
+                featureOptions,
                 this.localizedTextManager.FormatOption(parentOptions?.SearchItems));
         }
 
@@ -505,7 +528,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     : FeatureOption.Default,
                 I18n.Config_ShopFromChest_Name,
                 I18n.Config_ShopFromChest_Tooltip,
-                FeatureOptionExtensions.GetNames(),
+                featureOptions,
                 this.localizedTextManager.FormatOption(parentOptions?.ShopFromChest));
         }
 
@@ -551,7 +574,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                 },
                 I18n.Config_StashToChest_Name,
                 I18n.Config_StashToChest_Tooltip,
-                (int)RangeOption.Default,
+                isDefault ? (int)RangeOption.Disabled : (int)RangeOption.Default,
                 (int)RangeOption.World,
                 1,
                 this.localizedTextManager.FormatDistance(
@@ -832,6 +855,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
 
     private void OnConfigChanged(ConfigChangedEventArgs<DefaultConfig> e)
     {
+        this.InitializeDefaultOptions(this.Config.DefaultOptions);
         this.InitializeStorageTypes(this.Config);
         this.log.Trace("Config changed:\n{0}", e.Config);
     }
@@ -844,7 +868,42 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         }
     }
 
-    private void InitializeStorageTypes(DefaultConfig config)
+    private void InitializeDefaultOptions(IStorageOptions options)
+    {
+        var defaultOptions = this.GetDefault().DefaultOptions;
+
+        options.ForEachOption(
+            (name, option) =>
+            {
+                switch (option)
+                {
+                    case FeatureOption.Default when defaultOptions.TryGetOption(name, out FeatureOption featureOption):
+                        options.SetOption(name, featureOption);
+                        break;
+
+                    case RangeOption.Default when defaultOptions.TryGetOption(name, out RangeOption rangeOption):
+                        options.SetOption(name, rangeOption);
+                        break;
+
+                    case ChestMenuOption.Default when defaultOptions.TryGetOption(
+                        name,
+                        out ChestMenuOption chestMenuOption):
+                        options.SetOption(name, chestMenuOption);
+                        break;
+
+                    case string stringValue when string.IsNullOrWhiteSpace(stringValue)
+                        && defaultOptions.TryGetOption(name, out string defaultString):
+                        options.SetOption(name, defaultString);
+                        break;
+
+                    case 0 when defaultOptions.TryGetOption(name, out int defaultInt):
+                        options.SetOption(name, defaultInt);
+                        break;
+                }
+            });
+    }
+
+    private void InitializeStorageTypes(IModConfig config)
     {
         // Initialize Data Types
         config.StorageOptions.TryAdd("BigCraftables", []);

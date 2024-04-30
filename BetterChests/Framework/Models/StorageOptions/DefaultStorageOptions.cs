@@ -102,48 +102,36 @@ internal class DefaultStorageOptions : IStorageOptions
 
         sb.AppendLine(CultureInfo.InvariantCulture, $"Display Name: {this.GetDisplayName()}");
 
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.AccessChest)}: {this.AccessChest}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.AutoOrganize)}: {this.AutoOrganize}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CarryChest)}: {this.CarryChest}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CategorizeChest)}: {this.CategorizeChest}");
+        this.ForEachOption(
+            (name, option) =>
+            {
+                switch (option)
+                {
+                    case FeatureOption featureOption:
+                        sb.AppendLine(CultureInfo.InvariantCulture, $"{name}: {featureOption.ToStringFast()}");
+                        break;
 
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.CategorizeChestBlockItems)}: {this.CategorizeChestBlockItems}");
+                    case RangeOption rangeOption:
+                        sb.AppendLine(CultureInfo.InvariantCulture, $"{name}: {rangeOption.ToStringFast()}");
+                        break;
 
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.CategorizeChestSearchTerm)}: {this.CategorizeChestSearchTerm}");
+                    case ChestMenuOption chestMenuOption:
+                        sb.AppendLine(CultureInfo.InvariantCulture, $"{name}: {chestMenuOption.ToStringFast()}");
+                        break;
 
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.CategorizeChestIncludeStacks)}: {this.CategorizeChestIncludeStacks}");
+                    case StashPriority stashPriority:
+                        sb.AppendLine(CultureInfo.InvariantCulture, $"{name}: {stashPriority.ToStringFast()}");
+                        break;
 
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ChestFinder)}: {this.ChestFinder}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ChestInfo)}: {this.ChestInfo}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CollectItems)}: {this.CollectItems}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ConfigureChest)}: {this.ConfigureChest}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CookFromChest)}: {this.CookFromChest}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.CraftFromChest)}: {this.CraftFromChest}");
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.CraftFromChestDistance)}: {this.CraftFromChestDistance}");
+                    case string stringValue:
+                        sb.AppendLine(CultureInfo.InvariantCulture, $"{name}: {stringValue}");
+                        break;
 
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.HslColorPicker)}: {this.HslColorPicker}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.InventoryTabs)}: {this.InventoryTabs}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.OpenHeldChest)}: {this.OpenHeldChest}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ResizeChest)}: {this.ResizeChest}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ResizeChestCapacity)}: {this.ResizeChestCapacity}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.SearchItems)}: {this.SearchItems}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.ShopFromChest)}: {this.ShopFromChest}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"{nameof(this.StashToChest)}: {this.StashToChest}");
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.StashToChestDistance)}: {this.StashToChestDistance}");
-
-        sb.AppendLine(
-            CultureInfo.InvariantCulture,
-            $"{nameof(this.StashToChestPriority)}: {this.StashToChestPriority}");
+                    case int intValue:
+                        sb.AppendLine(CultureInfo.InvariantCulture, $"{name}: {intValue}");
+                        break;
+                }
+            });
 
         return sb.ToString();
     }

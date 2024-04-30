@@ -60,6 +60,8 @@
   "config.craft-from-chest-distance.tooltip": "The tiles away from the player that chests can be remotely crafted from.",
   "config.hsl-color-picker.name": "HSL Color Picker",
   "config.hsl-color-picker.tooltip": "Adds an HSL Color Picker for selecting the chest color.",
+  "config.inventory-tabs.name": "Inventory Tabs",
+  "config.inventory-tabs.tooltip": "Adds tabs to the inventory menu for organizing items.",
   "config.open-held-chest.name": "Open Held Chest",
   "config.open-held-chest.tooltip": "Open a currently held Chest and access its contents.",
   "config.organize-items.name": "Organize Items",
