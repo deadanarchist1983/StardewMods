@@ -104,14 +104,9 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
 
     private bool Predicate(IStorageContainer container) =>
         container is not FarmerContainer
-        && this.SearchContainer(container)
         && container.Options.AccessChest is not (RangeOption.Disabled or RangeOption.Default)
+        && (this.searchExpression.Value is null || this.searchExpression.Value.PartialMatch(container))
         && container.Options.AccessChest.WithinRange(-1, container.Location, container.TileLocation);
-
-    private bool SearchContainer(IStorageContainer container) =>
-        this.searchExpression.Value is null
-        || this.searchExpression.Value.PartialMatch(container.ToString()!)
-        || container.Items.Any(this.searchExpression.Value.PartialMatch);
 
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {

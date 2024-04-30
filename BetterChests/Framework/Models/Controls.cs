@@ -16,6 +16,9 @@ internal sealed class Controls
     /// <summary>Gets or sets a value to access the next chest.</summary>
     public KeybindList AccessNextChest { get; set; } = new(SButton.RightTrigger);
 
+    /// <summary>Gets or sets a value to clear the current search.</summary>
+    public KeybindList ClearSearch { get; set; } = new(SButton.Escape);
+
     /// <summary>Gets or sets controls to configure currently held object.</summary>
     public KeybindList ConfigureChest { get; set; } = new(SButton.End);
 

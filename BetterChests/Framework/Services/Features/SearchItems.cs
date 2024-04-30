@@ -20,7 +20,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
     private readonly MenuManager menuManager;
     private readonly PerScreen<ClickableTextureComponent> rejectButton;
     private readonly PerScreen<ClickableTextureComponent> saveButton;
-    private readonly PerScreen<SearchBar?> searchBar = new();
+    private readonly PerScreen<SearchComponent?> searchBar = new();
     private readonly PerScreen<ISearchExpression?> searchExpression;
     private readonly SearchHandler searchHandler;
     private readonly PerScreen<string> searchText;
@@ -29,9 +29,9 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
     /// <param name="assetHandler">Dependency used for handling assets.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
-    /// <param name="menuManager">Dependency used for managing the current menu.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
+    /// <param name="menuManager">Dependency used for managing the current menu.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
     /// <param name="searchExpression">Dependency for retrieving a parsed search expression.</param>
     /// <param name="searchHandler">Dependency used for handling search.</param>
@@ -40,9 +40,9 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         AssetHandler assetHandler,
         IEventManager eventManager,
         IInputHelper inputHelper,
-        MenuManager menuManager,
         ILog log,
         IManifest manifest,
+        MenuManager menuManager,
         IModConfig modConfig,
         PerScreen<ISearchExpression?> searchExpression,
         SearchHandler searchHandler,
@@ -216,29 +216,36 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
     private void OnButtonsChanged(ButtonsChangedEventArgs e)
     {
-        if (this.menuManager.Top.Container?.Options.SearchItems != FeatureOption.Enabled
-            || !this.Config.Controls.ToggleSearch.JustPressed())
+        if (this.menuManager.Top.Container?.Options.SearchItems is not FeatureOption.Enabled)
         {
             return;
         }
 
-        this.inputHelper.SuppressActiveKeybinds(this.Config.Controls.ToggleSearch);
-        this.isActive.Value = !this.isActive.Value;
+        // Toggle Search Bar
+        if (this.Config.Controls.ToggleSearch.JustPressed())
+        {
+            this.inputHelper.SuppressActiveKeybinds(this.Config.Controls.ToggleSearch);
+            this.isActive.Value = !this.isActive.Value;
+            return;
+        }
+
+        // Clear Search
+        if (this.isActive.Value && this.Config.Controls.ClearSearch.JustPressed())
+        {
+            this.searchText.Value = string.Empty;
+            this.searchExpression.Value = null;
+            this.Events.Publish(new SearchChangedEventArgs(this.searchExpression.Value));
+        }
     }
 
     private void OnInventoryMenuChanged(InventoryMenuChangedEventArgs e)
     {
         var container = this.menuManager.Top.Container;
         var top = this.menuManager.Top;
-        if (top.Menu is null || container is null)
+        if (top.Menu is null || container?.Options.SearchItems is not FeatureOption.Enabled)
         {
             this.searchBar.Value = null;
             return;
-        }
-
-        if (container.Options.SearchItems != FeatureOption.Enabled)
-        {
-            this.searchBar.Value = null;
         }
 
         var width = Math.Min(12 * Game1.tileSize, Game1.uiViewport.Width);
@@ -256,7 +263,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
             - Game1.tileSize
             - (top.Rows == 3 ? 25 : 4);
 
-        this.searchBar.Value = new SearchBar(
+        this.searchBar.Value = new SearchComponent(
             x,
             y,
             width,

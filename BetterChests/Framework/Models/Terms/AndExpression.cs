@@ -1,6 +1,7 @@
 namespace StardewMods.BetterChests.Framework.Models.Terms;
 
 using StardewMods.BetterChests.Framework.Interfaces;
+using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 
 /// <summary>Represents an and expression.</summary>
 internal sealed class AndExpression : ISearchExpression
@@ -25,10 +26,10 @@ internal sealed class AndExpression : ISearchExpression
         this.LeftExpression.PartialMatch(item) && this.RightExpression.PartialMatch(item);
 
     /// <inheritdoc />
-    public bool ExactMatch(string term) =>
-        this.LeftExpression.ExactMatch(term) && this.RightExpression.ExactMatch(term);
+    public bool ExactMatch(IStorageContainer container) =>
+        this.LeftExpression.ExactMatch(container) && this.RightExpression.ExactMatch(container);
 
     /// <inheritdoc />
-    public bool PartialMatch(string term) =>
-        this.LeftExpression.PartialMatch(term) && this.RightExpression.PartialMatch(term);
+    public bool PartialMatch(IStorageContainer container) =>
+        this.LeftExpression.PartialMatch(container) && this.RightExpression.PartialMatch(container);
 }

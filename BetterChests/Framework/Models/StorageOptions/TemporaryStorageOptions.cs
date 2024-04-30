@@ -30,6 +30,7 @@ internal sealed class TemporaryStorageOptions : DefaultStorageOptions
         this.CraftFromChest = storageOptions.CraftFromChest;
         this.CraftFromChestDistance = storageOptions.CraftFromChestDistance;
         this.HslColorPicker = storageOptions.HslColorPicker;
+        this.InventoryTabs = this.storageOptions.InventoryTabs;
         this.OpenHeldChest = storageOptions.OpenHeldChest;
         this.ResizeChest = storageOptions.ResizeChest;
         this.ResizeChestCapacity = storageOptions.ResizeChestCapacity;
@@ -65,6 +66,7 @@ internal sealed class TemporaryStorageOptions : DefaultStorageOptions
         this.CraftFromChest = this.defaultOptions.CraftFromChest;
         this.CraftFromChestDistance = this.defaultOptions.CraftFromChestDistance;
         this.HslColorPicker = this.defaultOptions.HslColorPicker;
+        this.InventoryTabs = this.defaultOptions.InventoryTabs;
         this.OpenHeldChest = this.defaultOptions.OpenHeldChest;
         this.ResizeChest = this.defaultOptions.ResizeChest;
         this.ResizeChestCapacity = this.defaultOptions.ResizeChestCapacity;
@@ -94,6 +96,7 @@ internal sealed class TemporaryStorageOptions : DefaultStorageOptions
         this.storageOptions.CraftFromChest = this.CraftFromChest;
         this.storageOptions.CraftFromChestDistance = this.CraftFromChestDistance;
         this.storageOptions.HslColorPicker = this.HslColorPicker;
+        this.storageOptions.InventoryTabs = this.InventoryTabs;
         this.storageOptions.OpenHeldChest = this.OpenHeldChest;
         this.storageOptions.ResizeChest = this.ResizeChest;
         this.storageOptions.ResizeChestCapacity = this.ResizeChestCapacity;

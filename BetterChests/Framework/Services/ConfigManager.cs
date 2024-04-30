@@ -88,6 +88,9 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
     public InventoryMenu.BorderSide HslColorPickerPlacement => this.Config.HslColorPickerPlacement;
 
     /// <inheritdoc />
+    public List<InventoryTab> InventoryTabList => this.Config.InventoryTabList;
+
+    /// <inheritdoc />
     public FeatureOption LockItem => this.Config.LockItem;
 
     /// <inheritdoc />
@@ -589,6 +592,14 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
             value => controls.AccessNextChest = value,
             I18n.Controls_AccessNextChest_Name,
             I18n.Controls_AccessNextChest_Tooltip);
+
+        // Clear Search
+        gmcm.AddKeybindList(
+            this.manifest,
+            () => controls.ClearSearch,
+            value => controls.ClearSearch = value,
+            I18n.Controls_ClearSearch_Name,
+            I18n.Controls_ClearSearch_Tooltip);
 
         // Configure Chest
         gmcm.AddKeybindList(

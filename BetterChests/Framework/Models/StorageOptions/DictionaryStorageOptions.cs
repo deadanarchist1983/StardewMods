@@ -121,6 +121,13 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
+    public FeatureOption InventoryTabs
+    {
+        get => this.Get(OptionKey.InventoryTabs);
+        set => this.Set(OptionKey.InventoryTabs, value);
+    }
+
+    /// <inheritdoc />
     public FeatureOption OpenHeldChest
     {
         get => this.Get(OptionKey.OpenHeldChest);
@@ -339,6 +346,7 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
         CollectItems,
         ConfigureChest,
         HslColorPicker,
+        InventoryTabs,
         OpenHeldChest,
         SearchItems,
         ShopFromChest,

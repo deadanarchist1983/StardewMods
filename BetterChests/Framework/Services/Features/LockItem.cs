@@ -90,12 +90,12 @@ internal sealed class LockItem : BaseFeature<LockItem>
 
     private void OnRenderedActiveMenu(RenderedActiveMenuEventArgs e)
     {
-        if (this.menuManager.Top.Menu is not null)
+        if (this.menuManager.Top.Menu is not null && this.menuManager.Top.Container is not null)
         {
             this.DrawOverlay(e.SpriteBatch, this.menuManager.Top.Menu);
         }
 
-        if (this.menuManager.Bottom.Menu is not null)
+        if (this.menuManager.Bottom.Menu is not null && this.menuManager.Bottom.Container is not null)
         {
             this.DrawOverlay(e.SpriteBatch, this.menuManager.Bottom.Menu);
         }

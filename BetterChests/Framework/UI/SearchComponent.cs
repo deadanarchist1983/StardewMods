@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewValley.Menus;
 
 /// <summary>Represents a search overlay control that allows the user to input text.</summary>
-internal sealed class SearchBar : ClickableComponent
+internal sealed class SearchComponent : ClickableComponent
 {
     private const int CountdownTimer = 20;
 
@@ -16,13 +16,13 @@ internal sealed class SearchBar : ClickableComponent
     private string previousText;
     private int timeout;
 
-    /// <summary>Initializes a new instance of the <see cref="SearchBar" /> class.</summary>
+    /// <summary>Initializes a new instance of the <see cref="SearchComponent" /> class.</summary>
     /// <param name="x">The x-coordinate of the search bar.</param>
     /// <param name="y">The y-coordinate of the search bar.</param>
     /// <param name="width">The width of the search bar.</param>
     /// <param name="getMethod">The function that gets the current search text.</param>
     /// <param name="setMethod">The action that sets the search text.</param>
-    public SearchBar(int x, int y, int width, Func<string> getMethod, Action<string> setMethod)
+    public SearchComponent(int x, int y, int width, Func<string> getMethod, Action<string> setMethod)
         : base(new Rectangle(x, y, width, 48), "SearchBar")
     {
         this.previousText = getMethod();
@@ -49,42 +49,6 @@ internal sealed class SearchBar : ClickableComponent
     {
         get => this.textBox.Selected;
         set => this.textBox.Selected = value;
-    }
-
-    /// <summary>Gets or sets the width of the search bar.</summary>
-    public int Width
-    {
-        get => this.bounds.Width;
-        set
-        {
-            this.bounds.Width = value;
-            this.textBox.Width = value;
-            this.icon.bounds.X = this.bounds.X + this.textBox.Width - 38;
-        }
-    }
-
-    /// <summary>Gets or sets the x-coordinate of the search bar.</summary>
-    public int X
-    {
-        get => this.bounds.X;
-        set
-        {
-            this.bounds.X = value;
-            this.textBox.X = value;
-            this.icon.bounds.X = value + this.textBox.Width - 38;
-        }
-    }
-
-    /// <summary>Gets or sets the y-coordinate of the search bar.</summary>
-    public int Y
-    {
-        get => this.bounds.Y;
-        set
-        {
-            this.bounds.Y = value;
-            this.textBox.Y = value;
-            this.icon.bounds.Y = value + 6;
-        }
     }
 
     private string Text
@@ -128,18 +92,6 @@ internal sealed class SearchBar : ClickableComponent
         return this.Selected;
     }
 
-    /// <summary>Resets the textbox text to match the current search text.</summary>
-    public void Reset() => this.textBox.Text = this.Text;
-
-    /// <summary>Updates the current search text with the textbox text.</summary>
-    public void Update()
-    {
-        if (this.Text != this.textBox.Text)
-        {
-            this.Text = this.textBox.Text;
-        }
-    }
-
     /// <summary>Updates the search bar based on the mouse position.</summary>
     /// <param name="mouseX">The x-coordinate of the mouse position.</param>
     /// <param name="mouseY">The y-coordinate of the mouse position.</param>
@@ -148,7 +100,7 @@ internal sealed class SearchBar : ClickableComponent
         this.textBox.Hover(mouseX, mouseY);
         if (this.timeout > 0 && --this.timeout == 0 && this.Text != this.textBox.Text)
         {
-            this.Update();
+            this.Text = this.textBox.Text;
         }
 
         if (this.textBox.Text.Equals(this.previousText, StringComparison.Ordinal))
@@ -156,7 +108,7 @@ internal sealed class SearchBar : ClickableComponent
             return;
         }
 
-        this.timeout = SearchBar.CountdownTimer;
+        this.timeout = SearchComponent.CountdownTimer;
         this.previousText = this.textBox.Text;
     }
 }

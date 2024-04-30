@@ -9,6 +9,7 @@ using StardewMods.Common.Services;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 using StardewMods.Common.Services.Integrations.FauxCore;
+using StardewValley.ItemTypeDefinitions;
 
 /// <summary>Restricts what items can be added into a chest.</summary>
 internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
@@ -54,6 +55,153 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
 
     /// <inheritdoc />
     public override bool ShouldBeActive => this.Config.DefaultOptions.CategorizeChest != FeatureOption.Disabled;
+
+    private static IEnumerable<Item> GetItems(Func<Item, bool>? predicate)
+    {
+        foreach (var itemType in ItemRegistry.ItemTypes)
+        {
+            var definition = ItemRegistry.GetTypeDefinition(itemType.Identifier);
+            foreach (var itemId in itemType.GetAllIds())
+            {
+                var item = ItemRegistry.Create(itemType.Identifier + itemId);
+                switch (definition)
+                {
+                    case BigCraftableDataDefinition bigCraftableDataDefinition:
+                        if (predicate is null || predicate(item))
+                        {
+                            yield return item;
+                        }
+
+                        break;
+
+                    case BootsDataDefinition bootsDataDefinition:
+                        if (predicate is null || predicate(item))
+                        {
+                            yield return item;
+                        }
+
+                        break;
+
+                    case FlooringDataDefinition flooringDataDefinition:
+                        if (predicate is null || predicate(item))
+                        {
+                            yield return item;
+                        }
+
+                        break;
+
+                    case FurnitureDataDefinition furnitureDataDefinition:
+                        if (predicate is null || predicate(item))
+                        {
+                            yield return item;
+                        }
+
+                        break;
+
+                    case HatDataDefinition hatDataDefinition:
+                        if (predicate is null || predicate(item))
+                        {
+                            yield return item;
+                        }
+
+                        break;
+
+                    case MannequinDataDefinition mannequinDataDefinition:
+                        if (predicate is null || predicate(item))
+                        {
+                            yield return item;
+                        }
+
+                        break;
+
+                    case ObjectDataDefinition objectDataDefinition:
+                        if (item.QualifiedItemId == "(O)340")
+                        {
+                            item = objectDataDefinition.CreateFlavoredHoney(null);
+                        }
+
+                        var ingredient = item as SObject;
+                        switch (item.Category)
+                        {
+                            case SObject.FruitsCategory:
+                                var wine = objectDataDefinition.CreateFlavoredWine(ingredient);
+                                var jelly = objectDataDefinition.CreateFlavoredJelly(ingredient);
+                                var driedFruit = objectDataDefinition.CreateFlavoredDriedFruit(ingredient);
+                                break;
+
+                            case SObject.VegetableCategory:
+                                var juice = objectDataDefinition.CreateFlavoredJuice(ingredient);
+                                var pickle = objectDataDefinition.CreateFlavoredPickle(ingredient);
+                                break;
+
+                            case SObject.flowersCategory:
+                                var honey = objectDataDefinition.CreateFlavoredHoney(ingredient);
+                                break;
+                        }
+
+                        if (item.HasContextTag("edible_mushroom"))
+                        {
+                            var driedMushroom = objectDataDefinition.CreateFlavoredDriedMushroom(item as SObject);
+                        }
+
+                        if (predicate is null || predicate(item))
+                        {
+                            yield return item;
+                        }
+
+                        break;
+
+                    case PantsDataDefinition pantsDataDefinition:
+                        if (predicate is null || predicate(item))
+                        {
+                            yield return item;
+                        }
+
+                        break;
+
+                    case ShirtDataDefinition shirtDataDefinition:
+                        if (predicate is null || predicate(item))
+                        {
+                            yield return item;
+                        }
+
+                        break;
+
+                    case ToolDataDefinition toolDataDefinition:
+                        if (predicate is null || predicate(item))
+                        {
+                            yield return item;
+                        }
+
+                        break;
+
+                    case TrinketDataDefinition trinketDataDefinition:
+                        if (predicate is null || predicate(item))
+                        {
+                            yield return item;
+                        }
+
+                        break;
+
+                    case WallpaperDataDefinition wallpaperDataDefinition:
+                        if (predicate is null || predicate(item))
+                        {
+                            yield return item;
+                        }
+
+                        break;
+
+                    case WeaponDataDefinition weaponDataDefinition:
+                        if (predicate is null || predicate(item))
+                        {
+                            yield return item;
+                        }
+
+                        break;
+                }
+            }
+        }
+    }
 
     /// <inheritdoc />
     protected override void Activate()

@@ -123,6 +123,13 @@ internal sealed class BackpackStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
+    public FeatureOption InventoryTabs
+    {
+        get => this.storageOptions.InventoryTabs;
+        set => this.storageOptions.InventoryTabs = value;
+    }
+
+    /// <inheritdoc />
     public FeatureOption OpenHeldChest
     {
         get => this.storageOptions.OpenHeldChest;

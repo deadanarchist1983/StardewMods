@@ -11,6 +11,7 @@ internal sealed class SearchHandler : BaseService<SearchHandler>
 {
     private static readonly Parser<char, char> BeginGroup;
     private static readonly Parser<char, char> EndGroup;
+    private static readonly Parser<char, char> Negation;
     private static readonly Parser<char, Unit> LogicalAnd;
     private static readonly Parser<char, Unit> LogicalOr;
 
@@ -25,50 +26,64 @@ internal sealed class SearchHandler : BaseService<SearchHandler>
     {
         SearchHandler.BeginGroup = Parser.Char('(');
         SearchHandler.EndGroup = Parser.Char(')');
-        SearchHandler.LogicalAnd = Parser.CIString("AND").Then(Parser.SkipWhitespaces).IgnoreResult();
-        SearchHandler.LogicalOr = Parser.CIString("OR").Then(Parser.SkipWhitespaces).IgnoreResult();
-
-        SearchHandler.TermParser = Parser
-            .AnyCharExcept('(', ')', ' ')
-            .ManyString()
-            .Between(Parser.SkipWhitespaces)
-            .Select(term => (ISearchExpression)new SearchTerm(term));
+        SearchHandler.Negation = Parser.Char('!');
+        SearchHandler.LogicalAnd = Parser.CIString("AND").Between(Parser.SkipWhitespaces).IgnoreResult();
+        SearchHandler.LogicalOr = Parser.CIString("OR").Between(Parser.SkipWhitespaces).IgnoreResult();
 
         SearchHandler.SearchParser = null!;
-        var searchExpression = Parser.Rec(() => SearchHandler.SearchParser);
+        SearchHandler.AndParser = null!;
+        SearchHandler.OrParser = null!;
 
-        SearchHandler.GroupedExpressionParser = searchExpression
-            .Between(SearchHandler.BeginGroup, SearchHandler.EndGroup)
-            .Between(Parser.SkipWhitespaces);
+        SearchHandler.TermParser = Parser
+            .AnyCharExcept('(', ')', '!', ' ')
+            .ManyString()
+            .Between(Parser.SkipWhitespaces)
+            .Where(term => !string.IsNullOrWhiteSpace(term))
+            .Select(term => new SearchTerm(term))
+            .OfType<ISearchExpression>();
 
-        SearchHandler.NegatedParser = Parser
-            .Char('!')
-            .Then(searchExpression)
-            .Select(term => (ISearchExpression)new NegatedExpression(term));
+        SearchHandler.GroupedExpressionParser = Parser
+            .Rec(() => SearchHandler.SearchParser)
+            .Between(SearchHandler.BeginGroup, SearchHandler.EndGroup);
 
-        var nonRecursiveSearchParser = Parser.OneOf(
-            SearchHandler.NegatedParser,
-            SearchHandler.GroupedExpressionParser,
-            SearchHandler.TermParser);
+        SearchHandler.NegatedParser = SearchHandler
+            .Negation.Then(SearchHandler.GroupedExpressionParser.Or(SearchHandler.TermParser))
+            .Between(Parser.SkipWhitespaces)
+            .Select(term => new NegatedExpression(term))
+            .OfType<ISearchExpression>();
 
-        SearchHandler.AndParser = Parser.Try(
-            Parser.Map(
-                (left, right) => (ISearchExpression)new AndExpression(left, right),
-                nonRecursiveSearchParser,
-                SearchHandler.LogicalAnd.Then(nonRecursiveSearchParser)));
+        SearchHandler.AndParser = Parser
+            .Try(
+                Parser.Map(
+                    (left, right) => new AndExpression(left, right),
+                    SearchHandler
+                        .NegatedParser.Or(SearchHandler.GroupedExpressionParser)
+                        .Or(SearchHandler.TermParser)
+                        .Before(SearchHandler.LogicalAnd),
+                    SearchHandler.NegatedParser.Or(SearchHandler.GroupedExpressionParser).Or(SearchHandler.TermParser)))
+            .OfType<ISearchExpression>();
 
-        SearchHandler.OrParser = Parser.Try(
-            Parser.Map(
-                (left, right) => (ISearchExpression)new OrExpression(left, right),
-                nonRecursiveSearchParser,
-                SearchHandler.LogicalOr.Then(nonRecursiveSearchParser)));
+        SearchHandler.OrParser = Parser
+            .Try(
+                Parser.Map(
+                    (left, right) => new OrExpression(left, right),
+                    SearchHandler
+                        .NegatedParser.Or(SearchHandler.GroupedExpressionParser)
+                        .Or(SearchHandler.TermParser)
+                        .Before(SearchHandler.LogicalOr),
+                    SearchHandler.NegatedParser.Or(SearchHandler.GroupedExpressionParser).Or(SearchHandler.TermParser)))
+            .OfType<ISearchExpression>();
 
-        SearchHandler.SearchParser = Parser.OneOf(
-            SearchHandler.AndParser,
-            SearchHandler.OrParser,
-            SearchHandler.NegatedParser,
-            SearchHandler.GroupedExpressionParser,
-            SearchHandler.TermParser);
+        SearchHandler.SearchParser = Parser
+            .OneOf(
+                SearchHandler.NegatedParser,
+                SearchHandler.GroupedExpressionParser,
+                SearchHandler.AndParser,
+                SearchHandler.OrParser,
+                SearchHandler.TermParser)
+            .Many()
+            .Select(expressions => new GroupedExpression(expressions))
+            .OfType<ISearchExpression>();
     }
 
     /// <summary>Initializes a new instance of the <see cref="SearchHandler" /> class.</summary>
@@ -76,24 +91,6 @@ internal sealed class SearchHandler : BaseService<SearchHandler>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     public SearchHandler(ILog log, IManifest manifest)
         : base(log, manifest) { }
-
-    /// <summary>Searches for items that exactly match the specified expression.</summary>
-    /// <param name="expression">The search expression to evaluate.</param>
-    /// <param name="items">The collection of items to search within.</param>
-    /// <returns>A collection of items that match the specified expression.</returns>
-    public IEnumerable<Item> ExactSearch(string expression, IEnumerable<Item> items) =>
-        this.TryParseExpression(expression, out var parsedExpression)
-            ? items.Where(item => parsedExpression.ExactMatch(item))
-            : Enumerable.Empty<Item>();
-
-    /// <summary>Searches for items that partially match the specified expression.</summary>
-    /// <param name="expression">The search expression to evaluate.</param>
-    /// <param name="items">The collection of items to search within.</param>
-    /// <returns>A collection of items that match the specified expression.</returns>
-    public IEnumerable<Item> PartialSearch(string expression, IEnumerable<Item> items) =>
-        this.TryParseExpression(expression, out var parsedExpression)
-            ? items.Where(item => parsedExpression.PartialMatch(item))
-            : Enumerable.Empty<Item>();
 
     /// <summary>Attempts to parse the given search expression.</summary>
     /// <param name="expression">The search expression to be parsed.</param>

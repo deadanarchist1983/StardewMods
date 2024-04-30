@@ -82,6 +82,7 @@ public sealed class ModEntry : Mod
                 typeof(ConfigureChest),
                 typeof(CraftFromChest),
                 typeof(HslColorPicker),
+                typeof(InventoryTabs),
                 typeof(LockItem),
                 typeof(OpenHeldChest),
                 typeof(ResizeChest),

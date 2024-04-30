@@ -50,6 +50,9 @@ public interface IStorageOptions
     /// <summary>Gets or sets a value indicating if the color picker will be replaced by an hsl color picker.</summary>
     public FeatureOption HslColorPicker { get; set; }
 
+    /// <summary>Gets or sets a value indicating if inventory tabs will be added to the chest menu.</summary>
+    public FeatureOption InventoryTabs { get; set; }
+
     /// <summary>Gets or sets a value indicating if the chest can be opened while it's being carried in the players inventory.</summary>
     public FeatureOption OpenHeldChest { get; set; }
 

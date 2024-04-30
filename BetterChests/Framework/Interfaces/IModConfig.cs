@@ -47,6 +47,9 @@ internal interface IModConfig
     /// <summary>Gets the placement for the Hsl Color Picker.</summary>
     public InventoryMenu.BorderSide HslColorPickerPlacement { get; }
 
+    /// <summary>Gets the inventory tabs.</summary>
+    public List<InventoryTab> InventoryTabList { get; }
+
     /// <summary>Gets a value indicating whether the slot lock feature is enabled.</summary>
     public FeatureOption LockItem { get; }
 

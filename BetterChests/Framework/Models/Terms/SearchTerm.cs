@@ -1,6 +1,7 @@
 namespace StardewMods.BetterChests.Framework.Models.Terms;
 
 using StardewMods.BetterChests.Framework.Interfaces;
+using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 
 /// <summary>Represents a search term.</summary>
 internal sealed class SearchTerm : ISearchExpression
@@ -27,10 +28,16 @@ internal sealed class SearchTerm : ISearchExpression
             || item.GetContextTags().Any(this.PartialMatch));
 
     /// <inheritdoc />
-    public bool ExactMatch(string term) =>
-        !string.IsNullOrWhiteSpace(term) && term.Equals(this.Term, StringComparison.OrdinalIgnoreCase);
+    public bool ExactMatch(IStorageContainer container) =>
+        this.ExactMatch(container.ToString()!) || container.Items.Any(this.ExactMatch);
 
     /// <inheritdoc />
-    public bool PartialMatch(string term) =>
+    public bool PartialMatch(IStorageContainer container) =>
+        this.PartialMatch(container.ToString()!) || container.Items.Any(this.PartialMatch);
+
+    private bool ExactMatch(string term) =>
+        !string.IsNullOrWhiteSpace(term) && term.Equals(this.Term, StringComparison.OrdinalIgnoreCase);
+
+    private bool PartialMatch(string term) =>
         !string.IsNullOrWhiteSpace(term) && term.Contains(this.Term, StringComparison.OrdinalIgnoreCase);
 }

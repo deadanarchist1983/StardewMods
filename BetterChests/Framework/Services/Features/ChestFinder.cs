@@ -10,6 +10,7 @@ using StardewMods.BetterChests.Framework.Services.Factory;
 using StardewMods.BetterChests.Framework.UI;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
+using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewMods.Common.Services.Integrations.ToolbarIcons;
 
@@ -126,21 +127,32 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
             return;
         }
 
-        if (this.menuManager.CurrentMenu is not SearchOverlay
-            || !this.pointers.Value.Any()
-            || !this.Config.Controls.OpenFoundChest.JustPressed())
+        if (this.menuManager.CurrentMenu is not SearchOverlay)
         {
             return;
         }
 
         // Open Found Chest
-        this.inputHelper.SuppressActiveKeybinds(this.Config.Controls.OpenFoundChest);
-        var container = this.pointers.Value.First().Container;
-        container.Mutex?.RequestLock(
-            () =>
-            {
-                container.ShowMenu();
-            });
+        if (this.pointers.Value.Any() && this.Config.Controls.OpenFoundChest.JustPressed())
+        {
+            this.inputHelper.SuppressActiveKeybinds(this.Config.Controls.OpenFoundChest);
+            var container = this.pointers.Value.First().Container;
+            container.Mutex?.RequestLock(
+                () =>
+                {
+                    container.ShowMenu();
+                });
+
+            return;
+        }
+
+        // Clear Search
+        if (this.Config.Controls.ClearSearch.JustPressed())
+        {
+            this.searchText.Value = string.Empty;
+            this.searchExpression.Value = null;
+            this.Events.Publish(new SearchChangedEventArgs(this.searchExpression.Value));
+        }
     }
 
     private void OnRenderedHud(RenderedHudEventArgs e)
@@ -206,19 +218,14 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
             return;
         }
 
-        foreach (var container in this
-            .containerFactory.GetAll(
-                Game1.player.currentLocation,
-                container => container.Options.ChestFinder == FeatureOption.Enabled)
-            .Where(container => container is not FarmerContainer))
-        {
-            if (container.Items.Any(this.searchExpression.Value.PartialMatch))
-            {
-                this.pointers.Value.Add(new Pointer(container));
-            }
-        }
-
+        var containers = this.containerFactory.GetAll(Game1.player.currentLocation, this.Predicate);
+        this.pointers.Value.AddRange(containers.Select(container => new Pointer(container)));
         this.Log.Info("{0}: Found {1} chests", this.Id, this.pointers.Value.Count);
         this.currentIndex.Value = 0;
     }
+
+    private bool Predicate(IStorageContainer container) =>
+        container is not FarmerContainer
+        && container.Options.ChestFinder is FeatureOption.Enabled
+        && (this.searchExpression.Value is null || this.searchExpression.Value.PartialMatch(container));
 }
