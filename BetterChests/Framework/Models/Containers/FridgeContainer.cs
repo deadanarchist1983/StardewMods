@@ -1,8 +1,7 @@
 namespace StardewMods.BetterChests.Framework.Models.Containers;
 
 using Microsoft.Xna.Framework;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
-using StardewValley.Menus;
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewValley.Mods;
 using StardewValley.Objects;
 
@@ -27,29 +26,5 @@ internal sealed class FridgeContainer : ChestContainer
     public override ModDataDictionary ModData => this.Location.modData;
 
     /// <inheritdoc />
-    public override void ShowMenu(bool playSound = false)
-    {
-        if (playSound)
-        {
-            Game1.player.currentLocation.localSound("openChest");
-        }
-
-        Game1.activeClickableMenu = new ItemGrabMenu(
-            this.Items,
-            false,
-            true,
-            InventoryMenu.highlightAllItems,
-            this.GrabItemFromInventory,
-            null,
-            this.GrabItemFromChest,
-            false,
-            true,
-            true,
-            true,
-            true,
-            1,
-            null,
-            -1,
-            this.Chest);
-    }
+    public override Item? SourceItem => null;
 }

@@ -1,7 +1,7 @@
 namespace StardewMods.BetterChests.Framework.Models.Containers;
 
 using Microsoft.Xna.Framework;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewValley.Inventories;
 using StardewValley.Locations;
 using StardewValley.Menus;
@@ -48,7 +48,8 @@ internal sealed class FarmerContainer : BaseContainer<Farmer>
     public override WeakReference<Farmer> Source { get; }
 
     /// <inheritdoc />
-    public override void ShowMenu(bool playSound = false) => Game1.activeClickableMenu = new GameMenu();
+    public override void ShowMenu(bool playSound = false) =>
+        Game1.activeClickableMenu = new GameMenu(playOpeningSound: playSound);
 
     /// <inheritdoc />
     public override bool TryAdd(Item item, out Item? remaining)

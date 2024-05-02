@@ -1,9 +1,8 @@
 namespace StardewMods.BetterChests.Framework.Models.Containers;
 
 using Microsoft.Xna.Framework;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewValley.Inventories;
-using StardewValley.Menus;
 using StardewValley.Mods;
 using StardewValley.Network;
 using StardewValley.Objects;
@@ -52,33 +51,6 @@ internal class ObjectContainer : BaseContainer<SObject>
 
     /// <inheritdoc />
     public override WeakReference<SObject> Source { get; }
-
-    /// <inheritdoc />
-    public override void ShowMenu(bool playSound = false)
-    {
-        if (playSound)
-        {
-            Game1.player.currentLocation.localSound("openChest");
-        }
-
-        Game1.activeClickableMenu = new ItemGrabMenu(
-            this.Items,
-            false,
-            true,
-            InventoryMenu.highlightAllItems,
-            this.GrabItemFromInventory,
-            null,
-            this.GrabItemFromChest,
-            false,
-            true,
-            true,
-            true,
-            true,
-            1,
-            this.Object,
-            -1,
-            this.Object);
-    }
 
     /// <inheritdoc />
     public override bool TryAdd(Item item, out Item? remaining)

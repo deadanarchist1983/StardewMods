@@ -1,8 +1,8 @@
 namespace StardewMods.BetterChests.Framework.Models.Containers;
 
 using Microsoft.Xna.Framework;
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 using StardewValley.Buildings;
 using StardewValley.Inventories;
 using StardewValley.Menus;
@@ -70,116 +70,79 @@ internal sealed class BuildingContainer : BaseContainer<Building>
     /// <inheritdoc />
     public override void ShowMenu(bool playSound = false)
     {
-        switch (this.Building)
+        var itemGrabMenu = this.Building switch
         {
-            case ShippingBin shippingBin:
-                if (playSound)
-                {
-                    Game1.player.currentLocation.localSound("shwip");
-                }
-
-                ItemGrabMenu itemGrabMenu;
-
-                if (this.Options.ResizeChest is ChestMenuOption.Default or ChestMenuOption.Disabled)
-                {
-                    itemGrabMenu = new ItemGrabMenu(
-                        null,
-                        true,
-                        false,
-                        Utility.highlightShippableObjects,
-                        this.GrabItemFromInventory,
-                        null,
-                        null,
-                        true,
-                        true,
-                        false,
-                        true,
-                        false,
-                        0,
-                        null,
-                        -1,
-                        shippingBin);
-
-                    itemGrabMenu.initializeUpperRightCloseButton();
-                    itemGrabMenu.setBackgroundTransparency(b: false);
-                    itemGrabMenu.setDestroyItemOnClick(b: true);
-                    itemGrabMenu.initializeShippingBin();
-                }
-                else
-                {
-                    itemGrabMenu = new ItemGrabMenu(
-                        this.Items,
-                        false,
-                        true,
-                        Utility.highlightShippableObjects,
-                        this.GrabItemFromInventory,
-                        null,
-                        this.GrabItemFromChest,
-                        false,
-                        true,
-                        true,
-                        true,
-                        true,
-                        0,
-                        null,
-                        -1,
-                        shippingBin);
-                }
-
-                Game1.activeClickableMenu = itemGrabMenu;
-
-                break;
-
-            case JunimoHut when this.chest is not null:
-                Game1.activeClickableMenu = new ItemGrabMenu(
-                    this.Items,
-                    false,
+            ShippingBin when this.Options.ResizeChest is ChestMenuOption.Default or ChestMenuOption.Disabled =>
+                new ItemGrabMenu(
+                    null,
                     true,
-                    InventoryMenu.highlightAllItems,
+                    false,
+                    this.HighlightItems,
                     this.GrabItemFromInventory,
                     null,
-                    this.GrabItemFromChest,
+                    null,
+                    true,
+                    true,
                     false,
                     true,
-                    true,
-                    true,
-                    true,
-                    1,
+                    false,
+                    0,
                     null,
-                    1,
-                    this.Building);
+                    -1,
+                    this),
+            ShippingBin => new ItemGrabMenu(
+                this.Items,
+                false,
+                true,
+                this.HighlightItems,
+                this.GrabItemFromInventory,
+                null,
+                this.GrabItemFromChest,
+                false,
+                true,
+                true,
+                true,
+                true,
+                0,
+                null,
+                -1,
+                this),
+            JunimoHut => new ItemGrabMenu(
+                this.Items,
+                false,
+                true,
+                this.HighlightItems,
+                this.GrabItemFromInventory,
+                null,
+                this.GrabItemFromChest,
+                false,
+                true,
+                true,
+                true,
+                true,
+                1,
+                null,
+                1,
+                this.Building),
+            _ => null,
+        };
 
-                break;
-
-            default:
-                if (this.chest is not null)
-                {
-                    if (playSound)
-                    {
-                        Game1.player.currentLocation.localSound("openChest");
-                    }
-
-                    Game1.activeClickableMenu = new ItemGrabMenu(
-                        this.Items,
-                        false,
-                        true,
-                        InventoryMenu.highlightAllItems,
-                        this.GrabItemFromInventory,
-                        null,
-                        this.GrabItemFromChest,
-                        false,
-                        true,
-                        true,
-                        true,
-                        true,
-                        1,
-                        null,
-                        -1,
-                        this.Building);
-                }
-
-                break;
+        if (itemGrabMenu is null)
+        {
+            base.ShowMenu(playSound);
+            return;
         }
+
+        if (this.Building is ShippingBin
+            && this.Options.ResizeChest is ChestMenuOption.Default or ChestMenuOption.Disabled)
+        {
+            itemGrabMenu.initializeUpperRightCloseButton();
+            itemGrabMenu.setBackgroundTransparency(b: false);
+            itemGrabMenu.setDestroyItemOnClick(b: true);
+            itemGrabMenu.initializeShippingBin();
+        }
+
+        Game1.activeClickableMenu = itemGrabMenu;
     }
 
     /// <inheritdoc />
@@ -229,7 +192,7 @@ internal sealed class BuildingContainer : BaseContainer<Building>
     }
 
     /// <inheritdoc />
-    public override void GrabItemFromChest(Item item, Farmer who)
+    public override void GrabItemFromChest(Item? item, Farmer who)
     {
         if (item is null || !who.couldInventoryAcceptThisItem(item))
         {
@@ -244,4 +207,8 @@ internal sealed class BuildingContainer : BaseContainer<Building>
         this.Items.RemoveEmptySlots();
         this.ShowMenu();
     }
+
+    /// <inheritdoc />
+    public override bool HighlightItems(Item? item) =>
+        this.Building is ShippingBin ? Utility.highlightShippableObjects(item) : base.HighlightItems(item);
 }

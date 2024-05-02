@@ -5,7 +5,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using StardewMods.BetterChests.Framework.Interfaces;
 using StardewMods.BetterChests.Framework.Models.StorageOptions;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewValley.Inventories;
 using StardewValley.Menus;
 using StardewValley.Mods;
@@ -68,6 +68,9 @@ internal abstract class BaseContainer : IStorageContainer
     public abstract GameLocation Location { get; }
 
     /// <inheritdoc />
+    public virtual Item? SourceItem => null;
+
+    /// <inheritdoc />
     public abstract Vector2 TileLocation { get; }
 
     /// <inheritdoc />
@@ -94,7 +97,31 @@ internal abstract class BaseContainer : IStorageContainer
     }
 
     /// <inheritdoc />
-    public virtual void ShowMenu(bool playSound = false) { }
+    public virtual void ShowMenu(bool playSound = false)
+    {
+        if (playSound)
+        {
+            Game1.player.currentLocation.localSound("openChest");
+        }
+
+        Game1.activeClickableMenu = new ItemGrabMenu(
+            this.Items,
+            false,
+            true,
+            this.HighlightItems,
+            this.GrabItemFromInventory,
+            null,
+            this.GrabItemFromChest,
+            false,
+            true,
+            true,
+            true,
+            true,
+            1,
+            this.SourceItem,
+            -1,
+            this);
+    }
 
     /// <inheritdoc />
     public abstract bool TryAdd(Item item, out Item? remaining);
@@ -103,7 +130,7 @@ internal abstract class BaseContainer : IStorageContainer
     public abstract bool TryRemove(Item item);
 
     /// <inheritdoc />
-    public virtual void GrabItemFromInventory(Item item, Farmer who)
+    public virtual void GrabItemFromInventory(Item? item, Farmer who)
     {
         if (item is null)
         {
@@ -150,7 +177,7 @@ internal abstract class BaseContainer : IStorageContainer
     }
 
     /// <inheritdoc />
-    public virtual void GrabItemFromChest(Item item, Farmer who)
+    public virtual void GrabItemFromChest(Item? item, Farmer who)
     {
         if (item is null || !who.couldInventoryAcceptThisItem(item))
         {
@@ -161,6 +188,9 @@ internal abstract class BaseContainer : IStorageContainer
         this.Items.RemoveEmptySlots();
         this.ShowMenu();
     }
+
+    /// <inheritdoc />
+    public virtual bool HighlightItems(Item? item) => InventoryMenu.highlightAllItems(item);
 
     /// <inheritdoc />
     public override string ToString()

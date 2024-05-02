@@ -1,7 +1,7 @@
 namespace StardewMods.BetterChests.Framework.Models.Containers;
 
 using Microsoft.Xna.Framework;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewValley.Inventories;
 using StardewValley.Mods;
 using StardewValley.Network;
@@ -48,6 +48,9 @@ internal class ChildContainer : IStorageContainer
     public GameLocation Location => this.child.Location ?? this.parent.Location;
 
     /// <inheritdoc />
+    public Item? SourceItem => this.child.SourceItem ?? this.Parent.SourceItem;
+
+    /// <inheritdoc />
     public Vector2 TileLocation =>
         this.child.TileLocation.Equals(Vector2.Zero) ? this.parent.TileLocation : this.child.TileLocation;
 
@@ -70,10 +73,13 @@ internal class ChildContainer : IStorageContainer
     public bool TryRemove(Item item) => this.child.TryRemove(item);
 
     /// <inheritdoc />
-    public void GrabItemFromInventory(Item item, Farmer who) => this.child.GrabItemFromInventory(item, who);
+    public void GrabItemFromInventory(Item? item, Farmer who) => this.child.GrabItemFromInventory(item, who);
 
     /// <inheritdoc />
-    public void GrabItemFromChest(Item item, Farmer who) => this.child.GrabItemFromChest(item, who);
+    public void GrabItemFromChest(Item? item, Farmer who) => this.child.GrabItemFromChest(item, who);
+
+    /// <inheritdoc />
+    public bool HighlightItems(Item? item) => this.child.HighlightItems(item);
 
     /// <inheritdoc />
     public override string ToString() => $"{this.DisplayName} in {this.Parent}";

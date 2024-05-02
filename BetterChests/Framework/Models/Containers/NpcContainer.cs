@@ -1,9 +1,8 @@
 namespace StardewMods.BetterChests.Framework.Models.Containers;
 
 using Microsoft.Xna.Framework;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewValley.Inventories;
-using StardewValley.Menus;
 using StardewValley.Mods;
 using StardewValley.Network;
 using StardewValley.Objects;
@@ -52,26 +51,6 @@ internal sealed class NpcContainer : BaseContainer<NPC>
 
     /// <inheritdoc />
     public override WeakReference<NPC> Source { get; }
-
-    /// <inheritdoc />
-    public override void ShowMenu(bool playSound = false) =>
-        Game1.activeClickableMenu = new ItemGrabMenu(
-            this.Items,
-            false,
-            true,
-            InventoryMenu.highlightAllItems,
-            this.GrabItemFromInventory,
-            null,
-            this.GrabItemFromChest,
-            false,
-            true,
-            true,
-            true,
-            true,
-            1,
-            this.chest,
-            -1,
-            this.chest);
 
     /// <inheritdoc />
     public override bool TryAdd(Item item, out Item? remaining)
