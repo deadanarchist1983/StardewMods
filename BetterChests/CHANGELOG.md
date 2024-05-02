@@ -1,6 +1,6 @@
 ﻿# Better Chests Change Log
 
-## 2.17.0 (Unreleased)
+## 2.17.0 (May 1, 2024)
 
 ### Added
 
@@ -14,8 +14,10 @@
 ### Changed
 
 * Access Chests now includes container names and location when searching.
-* Love of Cooking will now use chests in the current location with Cook From Chest enabled.
-* Multiple search terms separated by space will return items where any of the terms match.
+* Love of Cooking will now use chests in the current location with Cook From
+  Chest enabled.
+* Multiple search terms separated by space will return items where any of the
+  terms match.
 * Default options now must be set to an enabled option or disabled.
 * If a default option is set to default, it will be overridden.
 
