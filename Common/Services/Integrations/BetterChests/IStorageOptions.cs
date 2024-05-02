@@ -1,4 +1,4 @@
-namespace StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
+namespace StardewMods.Common.Services.Integrations.BetterChests;
 
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 
@@ -28,9 +28,6 @@ public interface IStorageOptions
 
     /// <summary>Gets or sets a value indicating whether chests  in the current location can be searched for.</summary>
     public FeatureOption ChestFinder { get; set; }
-
-    /// <summary>Gets or sets a value indicating whether chest info will be displayed next to the chest menu.</summary>
-    public FeatureOption ChestInfo { get; set; }
 
     /// <summary>Gets or sets a value indicating if the chest can collect dropped items.</summary>
     public FeatureOption CollectItems { get; set; }
@@ -68,6 +65,12 @@ public interface IStorageOptions
     /// <summary>Gets or sets a value indicating if the shops can use items from the chest.</summary>
     public FeatureOption ShopFromChest { get; set; }
 
+    /// <summary>Gets or sets a value indicating if storage can be sorted using a custom key.</summary>
+    public FeatureOption SortInventory { get; set; }
+
+    /// <summary>Gets or sets what the storage will be sorted by.</summary>
+    public string SortInventoryBy { get; set; }
+
     /// <summary>Gets or sets a value indicating if the chest can be remotely stashed into.</summary>
     public RangeOption StashToChest { get; set; }
 
@@ -76,6 +79,12 @@ public interface IStorageOptions
 
     /// <summary>Gets or sets a value indicating the priority that chests will be stashed into.</summary>
     public StashPriority StashToChestPriority { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether info will be displayed about the chest.</summary>
+    public FeatureOption StorageInfo { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether info will be displayed on hovering over a storage.</summary>
+    public FeatureOption StorageInfoHover { get; set; }
 
     /// <summary>Gets or sets the name of the chest.</summary>
     public string StorageName { get; set; }

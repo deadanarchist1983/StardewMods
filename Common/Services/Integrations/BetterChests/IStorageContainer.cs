@@ -1,4 +1,4 @@
-namespace StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
+namespace StardewMods.Common.Services.Integrations.BetterChests;
 
 using Microsoft.Xna.Framework;
 using StardewValley.Inventories;
@@ -25,6 +25,9 @@ public interface IStorageContainer
 
     /// <summary>Gets the game location of an object.</summary>
     GameLocation Location { get; }
+
+    /// <summary>Gets the source item of the container.</summary>
+    Item? SourceItem { get; }
 
     /// <summary>Gets the tile location of an object.</summary>
     Vector2 TileLocation { get; }
@@ -57,10 +60,15 @@ public interface IStorageContainer
     /// <summary>Grabs an item from the inventory.</summary>
     /// <param name="item">The item to grab from the inventory.</param>
     /// <param name="who">The farmer who is grabbing the item.</param>
-    public void GrabItemFromInventory(Item item, Farmer who);
+    public void GrabItemFromInventory(Item? item, Farmer who);
 
     /// <summary>Grabs an item from the chest.</summary>
     /// <param name="item">The item to be grabbed from the chest.</param>
     /// <param name="who">The farmer who is grabbing the item.</param>
-    public void GrabItemFromChest(Item item, Farmer who);
+    public void GrabItemFromChest(Item? item, Farmer who);
+
+    /// <summary>Highlights the specified item.</summary>
+    /// <param name="item">The item to highlight.</param>
+    /// <returns>Returns true if the item is successfully highlighted, otherwise returns false.</returns>
+    public bool HighlightItems(Item? item);
 }

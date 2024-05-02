@@ -31,8 +31,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\CacheManager.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\BetterChests\Enums\FilterMethod.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\BetterChests\Enums\StashPriority.cs"/>
-    <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\BetterChests\Interfaces\IItemsDisplaying.cs"/>
-    <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\BetterChests\Interfaces\IItemHighlighting.cs"/>
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\BetterChests\IStorageContainer.cs"/>
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\BetterChests\IStorageOptions.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\ContentPatcher\ConditionsApiReadyEventArgs.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\CustomBush\CustomBushIntegration.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\CustomBush\ICustomBush.cs"/>
@@ -53,14 +53,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\BaseService.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\ConfigManager.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\BetterChests\Enums\ChestMenuOption.cs"/>
-    <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\BetterChests\Enums\GroupBy.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\BetterChests\Enums\FeatureOption.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\BetterChests\Enums\RangeOption.cs"/>
-    <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\BetterChests\Enums\SortBy.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\BetterChests\IBetterChestsApi.cs"/>
-    <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\BetterChests\Interfaces\IItemTransferring.cs"/>
-    <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\BetterChests\Interfaces\IStorageContainer.cs"/>
-    <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\BetterChests\Interfaces\IStorageOptions.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\ExpandedStorage\ExpandedStorageIntegration.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\ExpandedStorage\IChestCreatedEventArgs.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)Services\Integrations\ExpandedStorage\IExpandedStorageApi.cs"/>

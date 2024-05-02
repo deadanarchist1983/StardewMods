@@ -1,7 +1,7 @@
-namespace StardewMods.GarbageDay.Services.Integrations.BetterChests;
+namespace StardewMods.Common.Services.Integrations.BetterChests;
 
 using Microsoft.Xna.Framework;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
+using StardewMods.Common.Services.Integrations.BetterChests;
 
 /// <summary>Mod API for Better Chests.</summary>
 public interface IBetterChestsApi
