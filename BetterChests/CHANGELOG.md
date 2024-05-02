@@ -8,6 +8,7 @@
 * Added console command for resetting all storage options back to default.
 * Added hotkey for clearing the search bar.
 * Added inventory tabs for saving search texts.
+* Added info tooltip when hovering over a storage.
 
 ### Changed
 

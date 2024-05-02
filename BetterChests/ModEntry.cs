@@ -77,7 +77,6 @@ public sealed class ModEntry : Mod
                 typeof(CarryChest),
                 typeof(CategorizeChest),
                 typeof(ChestFinder),
-                typeof(ChestInfo),
                 typeof(CollectItems),
                 typeof(ConfigureChest),
                 typeof(CraftFromChest),
@@ -89,6 +88,7 @@ public sealed class ModEntry : Mod
                 typeof(SearchItems),
                 typeof(ShopFromChest),
                 typeof(StashToChest),
+                typeof(StorageInfo),
             },
             Lifestyle.Singleton);
 

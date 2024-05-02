@@ -3,8 +3,7 @@ namespace StardewMods.BetterChests.Framework;
 using Microsoft.Xna.Framework;
 using StardewMods.BetterChests.Framework.Services;
 using StardewMods.BetterChests.Framework.Services.Factory;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
-using StardewMods.GarbageDay.Services.Integrations.BetterChests;
+using StardewMods.Common.Services.Integrations.BetterChests;
 
 /// <inheritdoc />
 public sealed class BetterChestsApi : IBetterChestsApi

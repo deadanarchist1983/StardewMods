@@ -2,8 +2,8 @@
 
 using Microsoft.Xna.Framework;
 using StardewMods.BetterChests.Framework.Interfaces;
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 
 /// <summary>Extension methods for Better Chests.</summary>
 internal static class Extensions
@@ -29,6 +29,8 @@ internal static class Extensions
         action(nameof(config.Controls), config.Controls);
         action(nameof(config.DefaultOptions), config.DefaultOptions);
         action(nameof(config.StorageOptions), config.StorageOptions);
+        action(nameof(config.StorageInfoHoverItems), config.StorageInfoHoverItems);
+        action(nameof(config.StorageInfoMenuItems), config.StorageInfoMenuItems);
     }
 
     /// <summary>Executes the specified action for each option in the class.</summary>
@@ -44,7 +46,6 @@ internal static class Extensions
         action(nameof(options.CategorizeChestSearchTerm), options.CategorizeChestSearchTerm);
         action(nameof(options.CategorizeChestIncludeStacks), options.CategorizeChestIncludeStacks);
         action(nameof(options.ChestFinder), options.ChestFinder);
-        action(nameof(options.ChestInfo), options.ChestInfo);
         action(nameof(options.CollectItems), options.CollectItems);
         action(nameof(options.ConfigureChest), options.ConfigureChest);
         action(nameof(options.CookFromChest), options.CookFromChest);
@@ -57,9 +58,14 @@ internal static class Extensions
         action(nameof(options.ResizeChestCapacity), options.ResizeChestCapacity);
         action(nameof(options.SearchItems), options.SearchItems);
         action(nameof(options.ShopFromChest), options.ShopFromChest);
+        action(nameof(options.SortInventory), options.SortInventory);
+        action(nameof(options.SortInventoryBy), options.SortInventoryBy);
         action(nameof(options.StashToChest), options.StashToChest);
         action(nameof(options.StashToChestDistance), options.StashToChestDistance);
         action(nameof(options.StashToChestPriority), options.StashToChestPriority);
+        action(nameof(options.StorageInfo), options.StorageInfo);
+        action(nameof(options.StorageInfoHover), options.StorageInfoHover);
+        action(nameof(options.StorageName), options.StorageName);
     }
 
     /// <summary>ets the value of the specified option from the given storage options.</summary>
@@ -77,7 +83,6 @@ internal static class Extensions
             nameof(options.CategorizeChestBlockItems) => options.CategorizeChestBlockItems,
             nameof(options.CategorizeChestIncludeStacks) => options.CategorizeChestIncludeStacks,
             nameof(options.ChestFinder) => options.ChestFinder,
-            nameof(options.ChestInfo) => options.ChestInfo,
             nameof(options.CollectItems) => options.CollectItems,
             nameof(options.ConfigureChest) => options.ConfigureChest,
             nameof(options.HslColorPicker) => options.HslColorPicker,
@@ -85,7 +90,10 @@ internal static class Extensions
             nameof(options.OpenHeldChest) => options.OpenHeldChest,
             nameof(options.SearchItems) => options.SearchItems,
             nameof(options.ShopFromChest) => options.ShopFromChest,
-            _ => default(FeatureOption),
+            nameof(options.SortInventory) => options.SortInventory,
+            nameof(options.StorageInfo) => options.StorageInfo,
+            nameof(options.StorageInfoHover) => options.StorageInfoHover,
+            _ => throw new ArgumentOutOfRangeException(name),
         };
 
         return value is not default(FeatureOption);
@@ -104,7 +112,7 @@ internal static class Extensions
             nameof(options.CookFromChest) => options.CookFromChest,
             nameof(options.CraftFromChest) => options.CraftFromChest,
             nameof(options.StashToChest) => options.StashToChest,
-            _ => default(RangeOption),
+            _ => throw new ArgumentOutOfRangeException(name),
         };
 
         return value is not default(RangeOption);
@@ -117,7 +125,10 @@ internal static class Extensions
     /// <returns>true if the options exists; otherwise, false.</returns>
     public static bool TryGetOption(this IStorageOptions options, string name, out ChestMenuOption value)
     {
-        value = name switch { nameof(options.ResizeChest) => options.ResizeChest, _ => default(ChestMenuOption) };
+        value = name switch
+        {
+            nameof(options.ResizeChest) => options.ResizeChest, _ => throw new ArgumentOutOfRangeException(name),
+        };
 
         return value is not default(ChestMenuOption);
     }
@@ -131,7 +142,8 @@ internal static class Extensions
     {
         value = name switch
         {
-            nameof(options.StashToChestPriority) => options.StashToChestPriority, _ => default(StashPriority),
+            nameof(options.StashToChestPriority) => options.StashToChestPriority,
+            _ => throw new ArgumentOutOfRangeException(name),
         };
 
         return value is not default(StashPriority);
@@ -146,7 +158,10 @@ internal static class Extensions
     {
         value = name switch
         {
-            nameof(options.CategorizeChestSearchTerm) => options.CategorizeChestSearchTerm, _ => string.Empty,
+            nameof(options.CategorizeChestSearchTerm) => options.CategorizeChestSearchTerm,
+            nameof(options.SortInventoryBy) => options.SortInventoryBy,
+            nameof(options.StorageName) => options.StorageName,
+            _ => throw new ArgumentOutOfRangeException(name),
         };
 
         return !string.IsNullOrWhiteSpace(value);
@@ -164,7 +179,7 @@ internal static class Extensions
             nameof(options.CraftFromChestDistance) => options.CraftFromChestDistance,
             nameof(options.ResizeChestCapacity) => options.ResizeChestCapacity,
             nameof(options.StashToChestDistance) => options.StashToChestDistance,
-            _ => 0,
+            _ => throw new ArgumentOutOfRangeException(name),
         };
 
         return value != 0;
@@ -180,46 +195,53 @@ internal static class Extensions
         {
             case nameof(options.AutoOrganize):
                 options.AutoOrganize = value;
-                break;
+                return;
             case nameof(options.CarryChest):
                 options.CarryChest = value;
-                break;
+                return;
             case nameof(options.CategorizeChest):
                 options.CategorizeChest = value;
-                break;
+                return;
             case nameof(options.CategorizeChestBlockItems):
                 options.CategorizeChestBlockItems = value;
-                break;
+                return;
             case nameof(options.CategorizeChestIncludeStacks):
                 options.CategorizeChestIncludeStacks = value;
-                break;
+                return;
             case nameof(options.ChestFinder):
                 options.ChestFinder = value;
-                break;
-            case nameof(options.ChestInfo):
-                options.ChestInfo = value;
-                break;
+                return;
             case nameof(options.CollectItems):
                 options.CollectItems = value;
-                break;
+                return;
             case nameof(options.ConfigureChest):
                 options.ConfigureChest = value;
-                break;
+                return;
             case nameof(options.HslColorPicker):
                 options.HslColorPicker = value;
-                break;
+                return;
             case nameof(options.InventoryTabs):
                 options.InventoryTabs = value;
-                break;
+                return;
             case nameof(options.OpenHeldChest):
                 options.OpenHeldChest = value;
-                break;
+                return;
             case nameof(options.SearchItems):
                 options.SearchItems = value;
-                break;
+                return;
             case nameof(options.ShopFromChest):
                 options.ShopFromChest = value;
-                break;
+                return;
+            case nameof(options.SortInventory):
+                options.SortInventory = value;
+                return;
+            case nameof(options.StorageInfo):
+                options.StorageInfo = value;
+                return;
+            case nameof(options.StorageInfoHover):
+                options.StorageInfoHover = value;
+                return;
+            default: throw new ArgumentOutOfRangeException(name);
         }
     }
 
@@ -233,16 +255,17 @@ internal static class Extensions
         {
             case nameof(options.AccessChest):
                 options.AccessChest = value;
-                break;
+                return;
             case nameof(options.CookFromChest):
                 options.CookFromChest = value;
-                break;
+                return;
             case nameof(options.CraftFromChest):
                 options.CraftFromChest = value;
-                break;
+                return;
             case nameof(options.StashToChest):
                 options.StashToChest = value;
-                break;
+                return;
+            default: throw new ArgumentOutOfRangeException(name);
         }
     }
 
@@ -256,7 +279,14 @@ internal static class Extensions
         {
             case nameof(options.CategorizeChestSearchTerm):
                 options.CategorizeChestSearchTerm = value;
-                break;
+                return;
+            case nameof(options.SortInventoryBy):
+                options.SortInventoryBy = value;
+                return;
+            case nameof(options.StorageName):
+                options.StorageName = value;
+                return;
+            default: throw new ArgumentOutOfRangeException(name);
         }
     }
 
@@ -270,13 +300,14 @@ internal static class Extensions
         {
             case nameof(options.CraftFromChestDistance):
                 options.CraftFromChestDistance = value;
-                break;
+                return;
             case nameof(options.ResizeChestCapacity):
                 options.ResizeChestCapacity = value;
-                break;
+                return;
             case nameof(options.StashToChestDistance):
                 options.StashToChestDistance = value;
-                break;
+                return;
+            default: throw new ArgumentOutOfRangeException(name);
         }
     }
 
@@ -290,7 +321,8 @@ internal static class Extensions
         {
             case nameof(options.ResizeChest):
                 options.ResizeChest = value;
-                break;
+                return;
+            default: throw new ArgumentOutOfRangeException(name);
         }
     }
 
@@ -304,7 +336,8 @@ internal static class Extensions
         {
             case nameof(options.StashToChestPriority):
                 options.StashToChestPriority = value;
-                break;
+                return;
+            default: throw new ArgumentOutOfRangeException(name);
         }
     }
 

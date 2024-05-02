@@ -1,14 +1,15 @@
 namespace StardewMods.BetterChests.Framework.Services;
 
 using StardewModdingAPI.Events;
+using StardewMods.BetterChests.Framework.Enums;
 using StardewMods.BetterChests.Framework.Interfaces;
 using StardewMods.BetterChests.Framework.Models;
 using StardewMods.BetterChests.Framework.Models.StorageOptions;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Models.Events;
 using StardewMods.Common.Services;
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewMods.Common.Services.Integrations.GenericModConfigMenu;
 using StardewValley.Menus;
@@ -88,7 +89,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
     public InventoryMenu.BorderSide HslColorPickerPlacement => this.Config.HslColorPickerPlacement;
 
     /// <inheritdoc />
-    public List<InventoryTab> InventoryTabList => this.Config.InventoryTabList;
+    public List<TabData> InventoryTabList => this.Config.InventoryTabList;
 
     /// <inheritdoc />
     public FeatureOption LockItem => this.Config.LockItem;
@@ -101,6 +102,12 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
 
     /// <inheritdoc />
     public HashSet<string> StashToChestDisableLocations => this.Config.StashToChestDisableLocations;
+
+    /// <inheritdoc />
+    public HashSet<StorageInfoItem> StorageInfoHoverItems => this.Config.StorageInfoHoverItems;
+
+    /// <inheritdoc />
+    public HashSet<StorageInfoItem> StorageInfoMenuItems => this.Config.StorageInfoMenuItems;
 
     /// <summary>Setup the main config options.</summary>
     public void SetupMainConfig()
@@ -292,21 +299,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                 I18n.Config_ChestFinder_Tooltip,
                 featureOptions,
                 this.localizedTextManager.FormatOption(parentOptions?.ChestFinder));
-        }
-
-        // Chest Info
-        if (isDefault || this.DefaultOptions.ChestInfo != FeatureOption.Disabled)
-        {
-            gmcm.AddTextOption(
-                this.manifest,
-                () => options.ChestInfo.ToStringFast(),
-                value => options.ChestInfo = FeatureOptionExtensions.TryParse(value, out var option)
-                    ? option
-                    : FeatureOption.Default,
-                I18n.Config_ChestInfo_Name,
-                I18n.Config_ChestInfo_Tooltip,
-                featureOptions,
-                this.localizedTextManager.FormatOption(parentOptions?.ChestInfo));
         }
 
         // Collect Items
@@ -532,6 +524,28 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                 this.localizedTextManager.FormatOption(parentOptions?.ShopFromChest));
         }
 
+        // Sort Inventory
+        if (isDefault || this.DefaultOptions.SortInventory != FeatureOption.Disabled)
+        {
+            gmcm.AddTextOption(
+                this.manifest,
+                () => options.SortInventory.ToStringFast(),
+                value => options.SortInventory = FeatureOptionExtensions.TryParse(value, out var option)
+                    ? option
+                    : FeatureOption.Default,
+                I18n.Config_SortInventory_Name,
+                I18n.Config_SortInventory_Tooltip,
+                featureOptions,
+                this.localizedTextManager.FormatOption(parentOptions?.SortInventory));
+
+            gmcm.AddTextOption(
+                this.manifest,
+                () => options.SortInventoryBy,
+                value => options.SortInventoryBy = value,
+                I18n.Config_SortInventoryBy_Name,
+                I18n.Config_SortInventoryBy_Tooltip);
+        }
+
         // Stash to Chest
         if (isDefault || this.DefaultOptions.StashToChest != RangeOption.Disabled)
         {
@@ -580,6 +594,32 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                 this.localizedTextManager.FormatDistance(
                     parentOptions?.StashToChest,
                     parentOptions?.StashToChestDistance ?? 0));
+        }
+
+        // Storage Info
+        if (isDefault || this.DefaultOptions.StorageInfo != FeatureOption.Disabled)
+        {
+            gmcm.AddTextOption(
+                this.manifest,
+                () => options.StorageInfo.ToStringFast(),
+                value => options.StorageInfo = FeatureOptionExtensions.TryParse(value, out var option)
+                    ? option
+                    : FeatureOption.Default,
+                I18n.Config_StorageInfo_Name,
+                I18n.Config_StorageInfo_Tooltip,
+                featureOptions,
+                this.localizedTextManager.FormatOption(parentOptions?.StorageInfo));
+
+            gmcm.AddTextOption(
+                this.manifest,
+                () => options.StorageInfoHover.ToStringFast(),
+                value => options.StorageInfoHover = FeatureOptionExtensions.TryParse(value, out var option)
+                    ? option
+                    : FeatureOption.Default,
+                I18n.Config_StorageInfoHover_Name,
+                I18n.Config_StorageInfoHover_Tooltip,
+                featureOptions,
+                this.localizedTextManager.FormatOption(parentOptions?.StorageInfoHover));
         }
     }
 
@@ -970,7 +1010,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     CarryChest = FeatureOption.Disabled,
                     CategorizeChest = FeatureOption.Disabled,
                     ChestFinder = FeatureOption.Disabled,
-                    ChestInfo = FeatureOption.Disabled,
                     CollectItems = FeatureOption.Disabled,
                     ConfigureChest = FeatureOption.Disabled,
                     CraftFromChest = RangeOption.Disabled,
@@ -1016,7 +1055,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     CarryChest = FeatureOption.Disabled,
                     CategorizeChest = FeatureOption.Disabled,
                     ChestFinder = FeatureOption.Disabled,
-                    ChestInfo = FeatureOption.Disabled,
                     CollectItems = FeatureOption.Disabled,
                     ConfigureChest = FeatureOption.Disabled,
                     CraftFromChest = RangeOption.Disabled,
@@ -1051,7 +1089,6 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     CarryChest = FeatureOption.Disabled,
                     CategorizeChest = FeatureOption.Disabled,
                     ChestFinder = FeatureOption.Disabled,
-                    ChestInfo = FeatureOption.Disabled,
                     CollectItems = FeatureOption.Disabled,
                     ConfigureChest = FeatureOption.Disabled,
                     CraftFromChest = RangeOption.Disabled,
@@ -1075,9 +1112,9 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     CarryChest = FeatureOption.Disabled,
                     CategorizeChest = FeatureOption.Disabled,
                     ChestFinder = FeatureOption.Disabled,
-                    ChestInfo = FeatureOption.Disabled,
                     CollectItems = FeatureOption.Disabled,
                     ConfigureChest = FeatureOption.Disabled,
+                    CookFromChest = RangeOption.Disabled,
                     CraftFromChest = RangeOption.Disabled,
                     HslColorPicker = FeatureOption.Disabled,
                     OpenHeldChest = FeatureOption.Disabled,
@@ -1098,9 +1135,9 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
                     CarryChest = FeatureOption.Disabled,
                     CategorizeChest = FeatureOption.Disabled,
                     ChestFinder = FeatureOption.Disabled,
-                    ChestInfo = FeatureOption.Disabled,
                     CollectItems = FeatureOption.Disabled,
                     ConfigureChest = FeatureOption.Disabled,
+                    CookFromChest = RangeOption.Disabled,
                     CraftFromChest = RangeOption.Disabled,
                     HslColorPicker = FeatureOption.Disabled,
                     OpenHeldChest = FeatureOption.Disabled,
