@@ -15,6 +15,7 @@ using StardewMods.Common.Enums;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Models;
 using StardewMods.Common.Services;
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewValley.Buildings;
@@ -267,8 +268,10 @@ internal sealed class MenuManager : BaseService<MenuManager>
             {
                 heldObject.Value: Chest heldChest,
             } => heldChest,
-            Building building when building.buildingChests.Any() => building.buildingChests.First(),
-            GameLocation location when location.GetFridge() is Chest fridge => fridge,
+            Building building when building.GetBuildingChest("Output") is
+                { } outputChest => outputChest,
+            GameLocation location when location.GetFridge() is
+                { } fridge => fridge,
             _ => sourceItem,
         };
 
@@ -329,83 +332,85 @@ internal sealed class MenuManager : BaseService<MenuManager>
 
     private void UpdateMenu()
     {
-        var menu = Game1.activeClickableMenu switch
+        var depth = -1;
+        while (++depth < 2)
         {
-            { } menuWithChild when menuWithChild.GetChildMenu() is
-                { } childMenu => childMenu,
-            GameMenu gameMenu => gameMenu.GetCurrentPage(),
-            _ => Game1.activeClickableMenu,
-        };
-
-        if (menu == this.CurrentMenu)
-        {
-            this.UpdateHighlightMethods();
-            return;
-        }
-
-        this.CurrentMenu = menu;
-        this.focus.Value = null;
-        IClickableMenu? parentMenu = null;
-        InventoryMenu? top = null;
-        InventoryMenu? bottom = null;
-        var itemGrabMenu = menu as ItemGrabMenu;
-
-        if (itemGrabMenu is not null)
-        {
-            parentMenu = itemGrabMenu;
-            top = itemGrabMenu.ItemsToGrabMenu;
-            bottom = itemGrabMenu.inventory;
-
-            // Disable background fade
-            itemGrabMenu.setBackgroundTransparency(false);
-        }
-        else if (menu is InventoryPage inventoryPage)
-        {
-            parentMenu = inventoryPage;
-            bottom = inventoryPage.inventory;
-        }
-
-        this.topMenu.Value.Reset(parentMenu, top);
-        this.bottomMenu.Value.Reset(parentMenu, bottom);
-
-        if (parentMenu is null)
-        {
-            this.eventManager.Publish(new InventoryMenuChangedEventArgs());
-            return;
-        }
-
-        // Update top menu
-        if (this.containerFactory.TryGetOne(out var topContainer) && itemGrabMenu is not null)
-        {
-            // Relaunch shipping bin menu
-            if (itemGrabMenu.shippingBin
-                && topContainer is BuildingContainer
-                {
-                    Options.ResizeChest: not (ChestMenuOption.Default or ChestMenuOption.Disabled),
-                })
+            var menu = Game1.activeClickableMenu switch
             {
-                topContainer.ShowMenu();
+                { } menuWithChild when menuWithChild.GetChildMenu() is
+                    { } childMenu => childMenu,
+                GameMenu gameMenu => gameMenu.GetCurrentPage(),
+                _ => Game1.activeClickableMenu,
+            };
+
+            if (menu == this.CurrentMenu)
+            {
+                this.UpdateHighlightMethods();
                 return;
             }
 
-            itemGrabMenu.behaviorFunction = topContainer.GrabItemFromInventory;
-            itemGrabMenu.behaviorOnItemGrab = topContainer.GrabItemFromChest;
+            this.CurrentMenu = menu;
+            this.focus.Value = null;
+            IClickableMenu? parentMenu = null;
+            InventoryMenu? top = null;
+            InventoryMenu? bottom = null;
+            var itemGrabMenu = menu as ItemGrabMenu;
+
+            if (itemGrabMenu is not null)
+            {
+                parentMenu = itemGrabMenu;
+                top = itemGrabMenu.ItemsToGrabMenu;
+                bottom = itemGrabMenu.inventory;
+
+                // Disable background fade
+                itemGrabMenu.setBackgroundTransparency(false);
+            }
+            else if (menu is InventoryPage inventoryPage)
+            {
+                parentMenu = inventoryPage;
+                bottom = inventoryPage.inventory;
+            }
+
+            this.topMenu.Value.Reset(parentMenu, top);
+            this.bottomMenu.Value.Reset(parentMenu, bottom);
+
+            if (parentMenu is null)
+            {
+                this.eventManager.Publish(new InventoryMenuChangedEventArgs());
+                return;
+            }
+
+            // Update top menu
+            if (this.containerFactory.TryGetOne(out var topContainer) && itemGrabMenu is not null)
+            {
+                // Relaunch menu
+                if (itemGrabMenu.context is not IStorageContainer
+                    && topContainer is not BuildingContainer
+                    {
+                        Building: JunimoHut,
+                    })
+                {
+                    topContainer.ShowMenu();
+                    continue;
+                }
+
+                itemGrabMenu.behaviorFunction = topContainer.GrabItemFromInventory;
+                itemGrabMenu.behaviorOnItemGrab = topContainer.GrabItemFromChest;
+            }
+
+            this.topMenu.Value.Container = topContainer;
+
+            // Update bottom menu
+            if (bottom?.actualInventory.Equals(Game1.player.Items) != true
+                || !this.containerFactory.TryGetOne(Game1.player, out var bottomContainer)) { bottomContainer = null; }
+
+            this.bottomMenu.Value.Container = bottomContainer;
+
+            // Reset filters
+            this.UpdateHighlightMethods();
+            this.eventManager.Publish(new InventoryMenuChangedEventArgs());
+            break;
         }
-
-        this.topMenu.Value.Container = topContainer;
-
-        // Update bottom menu
-        if (bottom?.actualInventory.Equals(Game1.player.Items) != true
-            || !this.containerFactory.TryGetOne(Game1.player, out var bottomContainer))
-        {
-            bottomContainer = null;
-        }
-
-        this.bottomMenu.Value.Container = bottomContainer;
-
-        // Reset filters
-        this.UpdateHighlightMethods();
-        this.eventManager.Publish(new InventoryMenuChangedEventArgs());
     }
 
     [EventPriority((EventPriority)int.MaxValue)]
