@@ -9,6 +9,7 @@
 * Added hotkey for clearing the search bar.
 * Added inventory tabs for saving search texts.
 * Added info tooltip when hovering over a storage.
+* Added customizable sort options for storages.
 
 ### Changed
 

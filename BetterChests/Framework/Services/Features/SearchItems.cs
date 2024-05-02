@@ -70,7 +70,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         this.saveButton = new PerScreen<ClickableTextureComponent>(
             () => new ClickableTextureComponent(
                 new Rectangle(0, 0, Game1.tileSize / 2, Game1.tileSize / 2),
-                assetHandler.Icons.Value,
+                assetHandler.UiTextures.Value,
                 new Rectangle(142, 0, 16, 16),
                 2f)
             {

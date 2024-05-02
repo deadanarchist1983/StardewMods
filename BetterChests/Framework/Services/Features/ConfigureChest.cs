@@ -75,7 +75,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         this.configButton = new PerScreen<ClickableTextureComponent>(
             () => new ClickableTextureComponent(
                 new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
-                assetHandler.Icons.Value,
+                assetHandler.UiTextures.Value,
                 new Rectangle(0, 0, 16, 16),
                 Game1.pixelZoom)
             {
@@ -219,15 +219,9 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
 
     private void OnButtonsChanged(ButtonsChangedEventArgs e)
     {
-        if (!this.isActive.Value || !this.menuManager.CanFocus(this))
-        {
-            return;
-        }
-
         if (!Context.IsPlayerFree
             || !this.Config.Controls.ConfigureChest.JustPressed()
-            || !this.containerFactory.TryGetOne(Game1.player, Game1.player.CurrentToolIndex, out var container)
-            || container.Options.ConfigureChest != FeatureOption.Enabled)
+            || !this.containerFactory.TryGetOne(Game1.player, Game1.player.CurrentToolIndex, out var container))
         {
             return;
         }

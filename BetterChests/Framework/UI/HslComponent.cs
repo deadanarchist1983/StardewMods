@@ -103,7 +103,7 @@ internal sealed class HslComponent
         this.copyArea = new Rectangle(this.xPosition + 30, this.yPosition - 4, 36, 36);
         this.copyComponent = new ClickableTextureComponent(
             new Rectangle(this.xPosition + 34, this.yPosition + 2, 8, 8),
-            assetHandler.Icons.Value,
+            assetHandler.UiTextures.Value,
             new Rectangle(116, 4, 8, 8),
             3)
         {

@@ -234,7 +234,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
         }
 
         itemGrabMenu.chestColorPicker.visible = false;
-        itemGrabMenu.colorPickerToggleButton.texture = this.assetHandler.Icons.Value;
+        itemGrabMenu.colorPickerToggleButton.texture = this.assetHandler.UiTextures.Value;
         itemGrabMenu.colorPickerToggleButton.sourceRect = new Rectangle(126, 0, 16, 16);
 
         this.colorPicker.Value = new HslComponent(

@@ -87,7 +87,7 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
 
         this.toolbarIconsIntegration.Api.AddToolbarIcon(
             this.Id,
-            this.assetHandler.Icons.Name.BaseName,
+            this.assetHandler.UiTextures.Name.BaseName,
             new Rectangle(48, 0, 16, 16),
             I18n.Button_FindChest_Name());
 

@@ -111,7 +111,7 @@ internal sealed class CarryChest : BaseFeature<CarryChest>
         placedChest.GlobalInventoryId = chest.GlobalInventoryId;
         placedChest.playerChoiceColor.Value = chest.playerChoiceColor.Value;
         placedChest.fridge.Value = chest.fridge.Value;
-        foreach (var (key, value) in chest.modData.Pairs)
+        foreach (var (key, value) in __instance.modData.Pairs)
         {
             placedChest.modData[key] = value;
         }

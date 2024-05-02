@@ -74,7 +74,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
         this.toolbarIconsIntegration.Api.AddToolbarIcon(
             this.Id,
-            this.assetHandler.Icons.Name.BaseName,
+            this.assetHandler.UiTextures.Name.BaseName,
             new Rectangle(16, 0, 16, 16),
             I18n.Button_StashToChest_Name());
 
@@ -207,7 +207,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
             return;
         }
 
-        itemGrabMenu.fillStacksButton.texture = this.assetHandler.Icons.Value;
+        itemGrabMenu.fillStacksButton.texture = this.assetHandler.UiTextures.Value;
 
         itemGrabMenu.fillStacksButton.sourceRect = this.Config.Controls.TransferItemsReverse.IsDown()
             ? new Rectangle(96, 0, 16, 16)

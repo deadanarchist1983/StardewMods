@@ -87,6 +87,7 @@ public sealed class ModEntry : Mod
                 typeof(ResizeChest),
                 typeof(SearchItems),
                 typeof(ShopFromChest),
+                typeof(SortInventory),
                 typeof(StashToChest),
                 typeof(StorageInfo),
             },

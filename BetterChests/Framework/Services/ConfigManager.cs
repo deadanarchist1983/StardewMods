@@ -908,40 +908,43 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         }
     }
 
-    private void InitializeDefaultOptions(IStorageOptions options)
-    {
-        var defaultOptions = this.GetDefault().DefaultOptions;
-
-        options.ForEachOption(
-            (name, option) =>
-            {
-                switch (option)
+    private void InitializeDefaultOptions(IStorageOptions options) =>
+        this
+            .GetDefault()
+            .DefaultOptions.ForEachOption(
+                (name, option) =>
                 {
-                    case FeatureOption.Default when defaultOptions.TryGetOption(name, out FeatureOption featureOption):
-                        options.SetOption(name, featureOption);
-                        break;
+                    switch (option)
+                    {
+                        case FeatureOption featureOption when options.TryGetOption(
+                                name,
+                                out FeatureOption currentOption)
+                            && currentOption is FeatureOption.Default:
+                            options.SetOption(name, featureOption);
+                            return;
 
-                    case RangeOption.Default when defaultOptions.TryGetOption(name, out RangeOption rangeOption):
-                        options.SetOption(name, rangeOption);
-                        break;
+                        case RangeOption rangeOption when options.TryGetOption(name, out RangeOption currentRangeOption)
+                            && currentRangeOption is RangeOption.Default:
+                            options.SetOption(name, rangeOption);
+                            return;
 
-                    case ChestMenuOption.Default when defaultOptions.TryGetOption(
-                        name,
-                        out ChestMenuOption chestMenuOption):
-                        options.SetOption(name, chestMenuOption);
-                        break;
+                        case ChestMenuOption chestMenuOption when options.TryGetOption(
+                                name,
+                                out ChestMenuOption currentChestMenuOption)
+                            && currentChestMenuOption is ChestMenuOption.Default:
+                            options.SetOption(name, chestMenuOption);
+                            return;
 
-                    case string stringValue when string.IsNullOrWhiteSpace(stringValue)
-                        && defaultOptions.TryGetOption(name, out string defaultString):
-                        options.SetOption(name, defaultString);
-                        break;
+                        case string stringValue when options.TryGetOption(name, out string currentString)
+                            && string.IsNullOrWhiteSpace(currentString):
+                            options.SetOption(name, stringValue);
+                            return;
 
-                    case 0 when defaultOptions.TryGetOption(name, out int defaultInt):
-                        options.SetOption(name, defaultInt);
-                        break;
-                }
-            });
-    }
+                        case int intValue when options.TryGetOption(name, out int currentInt) && currentInt == 0:
+                            options.SetOption(name, intValue);
+                            return;
+                    }
+                });
 
     private void InitializeStorageTypes(IModConfig config)
     {

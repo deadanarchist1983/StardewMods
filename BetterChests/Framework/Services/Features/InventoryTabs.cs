@@ -126,7 +126,7 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
 
         foreach (var inventoryTab in this.Config.InventoryTabList)
         {
-            if (!this.assetHandler.TabIcons.TryGetValue(inventoryTab.Icon, out var tabIcon))
+            if (!this.assetHandler.Icons.TryGetValue(inventoryTab.Icon, out var tabIcon))
             {
                 continue;
             }

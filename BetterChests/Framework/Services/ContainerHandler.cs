@@ -111,14 +111,15 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
     {
         var containerSortingEventArgs = new ContainerSortingEventArgs(container);
         ItemGrabMenu.organizeItemsInList(container.Items);
+        this.eventPublisher.Publish(containerSortingEventArgs);
 
-        if (reverse)
+        if (!reverse)
         {
-            var copy = container.Items.Reverse().ToList();
-            container.Items.OverwriteWith(copy);
+            return;
         }
 
-        this.eventPublisher.Publish(containerSortingEventArgs);
+        var copy = container.Items.Reverse().ToList();
+        container.Items.OverwriteWith(copy);
     }
 
     /// <summary>Transfers items from one container to another.</summary>

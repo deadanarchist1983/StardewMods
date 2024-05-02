@@ -20,15 +20,15 @@ internal sealed class AssetHandler : BaseService
 {
     private readonly IGameContentHelper gameContentHelper;
     private readonly string hslTexturePath;
-    private readonly Lazy<IManagedTexture> icons;
+    private readonly string iconsPath;
     private readonly IModConfig modConfig;
     private readonly IModContentHelper modContentHelper;
-    private readonly string tabIconsPath;
+    private readonly Lazy<IManagedTexture> uiTextures;
     private HslColor[]? hslColors;
     private Texture2D? hslTexture;
     private Color[]? hslTextureData;
 
-    private Dictionary<string, TabIcon>? tabIcons;
+    private Dictionary<string, TabIcon>? icons;
 
     /// <summary>Initializes a new instance of the <see cref="AssetHandler" /> class.</summary>
     /// <param name="eventSubscriber">Dependency used for subscribing to events.</param>
@@ -53,12 +53,10 @@ internal sealed class AssetHandler : BaseService
         this.modConfig = modConfig;
         this.modContentHelper = modContentHelper;
         this.hslTexturePath = this.ModId + "/HueBar";
-        this.tabIconsPath = this.ModId + "/TabIcons";
+        this.iconsPath = this.ModId + "/Icons";
 
-        this.icons = new Lazy<IManagedTexture>(
-            () => themeHelper.AddAsset(
-                this.ModId + "/Icons",
-                modContentHelper.Load<IRawTextureData>("assets/icons.png")));
+        this.uiTextures = new Lazy<IManagedTexture>(
+            () => themeHelper.AddAsset(this.ModId + "/UI", modContentHelper.Load<IRawTextureData>("assets/ui.png")));
 
         // Events
         eventSubscriber.Subscribe<AssetRequestedEventArgs>(this.OnAssetRequested);
@@ -84,28 +82,28 @@ internal sealed class AssetHandler : BaseService
     /// <summary>Gets the hsl texture.</summary>
     public Texture2D HslTexture => this.hslTexture ??= this.gameContentHelper.Load<Texture2D>(this.hslTexturePath);
 
-    /// <summary>Gets the managed icons texture.</summary>
-    public IManagedTexture Icons => this.icons.Value;
-
     /// <summary>Gets the tab icons.</summary>
-    public Dictionary<string, TabIcon> TabIcons
+    public Dictionary<string, TabIcon> Icons
     {
         get
         {
-            if (this.tabIcons is not null)
+            if (this.icons is not null)
             {
-                return this.tabIcons;
+                return this.icons;
             }
 
-            this.tabIcons = this.gameContentHelper.Load<Dictionary<string, TabIcon>>(this.tabIconsPath);
-            foreach (var (id, tabIcon) in this.tabIcons)
+            this.icons = this.gameContentHelper.Load<Dictionary<string, TabIcon>>(this.iconsPath);
+            foreach (var (id, icon) in this.icons)
             {
-                tabIcon.Id = id;
+                icon.Id = id;
             }
 
-            return this.tabIcons;
+            return this.icons;
         }
     }
+
+    /// <summary>Gets the managed icons texture.</summary>
+    public IManagedTexture UiTextures => this.uiTextures.Value;
 
     private void OnAssetRequested(AssetRequestedEventArgs e)
     {
@@ -115,7 +113,7 @@ internal sealed class AssetHandler : BaseService
             return;
         }
 
-        if (e.Name.IsEquivalentTo(this.tabIconsPath))
+        if (e.Name.IsEquivalentTo(this.iconsPath))
         {
             e.LoadFrom(
                 () => new Dictionary<string, TabIcon>
@@ -124,7 +122,7 @@ internal sealed class AssetHandler : BaseService
                         this.ModId + "/Clothing",
                         new TabIcon
                         {
-                            Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
+                            Path = this.modContentHelper.GetInternalAssetName("assets/icons.png").Name,
                             Area = new Rectangle(0, 0, 16, 16),
                         }
                     },
@@ -132,7 +130,7 @@ internal sealed class AssetHandler : BaseService
                         this.ModId + "/Cooking",
                         new TabIcon
                         {
-                            Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
+                            Path = this.modContentHelper.GetInternalAssetName("assets/icons.png").Name,
                             Area = new Rectangle(16, 0, 16, 16),
                         }
                     },
@@ -140,7 +138,7 @@ internal sealed class AssetHandler : BaseService
                         this.ModId + "/Crops",
                         new TabIcon
                         {
-                            Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
+                            Path = this.modContentHelper.GetInternalAssetName("assets/icons.png").Name,
                             Area = new Rectangle(32, 0, 16, 16),
                         }
                     },
@@ -148,7 +146,7 @@ internal sealed class AssetHandler : BaseService
                         this.ModId + "/Equipment",
                         new TabIcon
                         {
-                            Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
+                            Path = this.modContentHelper.GetInternalAssetName("assets/icons.png").Name,
                             Area = new Rectangle(48, 0, 16, 16),
                         }
                     },
@@ -156,7 +154,7 @@ internal sealed class AssetHandler : BaseService
                         this.ModId + "/Fishing",
                         new TabIcon
                         {
-                            Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
+                            Path = this.modContentHelper.GetInternalAssetName("assets/icons.png").Name,
                             Area = new Rectangle(64, 0, 16, 16),
                         }
                     },
@@ -164,7 +162,7 @@ internal sealed class AssetHandler : BaseService
                         this.ModId + "/Materials",
                         new TabIcon
                         {
-                            Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
+                            Path = this.modContentHelper.GetInternalAssetName("assets/icons.png").Name,
                             Area = new Rectangle(80, 0, 16, 16),
                         }
                     },
@@ -172,7 +170,7 @@ internal sealed class AssetHandler : BaseService
                         this.ModId + "/Miscellaneous",
                         new TabIcon
                         {
-                            Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
+                            Path = this.modContentHelper.GetInternalAssetName("assets/icons.png").Name,
                             Area = new Rectangle(96, 0, 16, 16),
                         }
                     },
@@ -180,7 +178,7 @@ internal sealed class AssetHandler : BaseService
                         this.ModId + "/Seeds",
                         new TabIcon
                         {
-                            Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
+                            Path = this.modContentHelper.GetInternalAssetName("assets/icons.png").Name,
                             Area = new Rectangle(112, 0, 16, 16),
                         }
                     },
