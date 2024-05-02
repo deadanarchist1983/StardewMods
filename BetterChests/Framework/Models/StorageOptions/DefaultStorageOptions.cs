@@ -2,8 +2,8 @@ namespace StardewMods.BetterChests.Framework.Models.StorageOptions;
 
 using System.Globalization;
 using System.Text;
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 
 /// <inheritdoc />
 internal class DefaultStorageOptions : IStorageOptions
@@ -31,9 +31,6 @@ internal class DefaultStorageOptions : IStorageOptions
 
     /// <inheritdoc />
     public FeatureOption ChestFinder { get; set; } = FeatureOption.Default;
-
-    /// <inheritdoc />
-    public FeatureOption ChestInfo { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
     public FeatureOption CollectItems { get; set; } = FeatureOption.Default;
@@ -72,6 +69,12 @@ internal class DefaultStorageOptions : IStorageOptions
     public FeatureOption ShopFromChest { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
+    public FeatureOption SortInventory { get; set; } = FeatureOption.Default;
+
+    /// <inheritdoc />
+    public string SortInventoryBy { get; set; } = string.Empty;
+
+    /// <inheritdoc />
     public RangeOption StashToChest { get; set; } = RangeOption.Default;
 
     /// <inheritdoc />
@@ -79,6 +82,12 @@ internal class DefaultStorageOptions : IStorageOptions
 
     /// <inheritdoc />
     public StashPriority StashToChestPriority { get; set; }
+
+    /// <inheritdoc />
+    public FeatureOption StorageInfo { get; set; } = FeatureOption.Default;
+
+    /// <inheritdoc />
+    public FeatureOption StorageInfoHover { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
     public string StorageName { get; set; } = string.Empty;

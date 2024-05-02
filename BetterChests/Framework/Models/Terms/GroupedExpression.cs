@@ -2,7 +2,7 @@ namespace StardewMods.BetterChests.Framework.Models.Terms;
 
 using System.Collections.Immutable;
 using StardewMods.BetterChests.Framework.Interfaces;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
+using StardewMods.Common.Services.Integrations.BetterChests;
 
 /// <summary>Represents a grouped expression.</summary>
 internal sealed class GroupedExpression : ISearchExpression

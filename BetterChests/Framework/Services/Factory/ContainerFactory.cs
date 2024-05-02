@@ -6,10 +6,11 @@ using StardewMods.BetterChests.Framework.Interfaces;
 using StardewMods.BetterChests.Framework.Models.Containers;
 using StardewMods.BetterChests.Framework.Models.StorageOptions;
 using StardewMods.Common.Services;
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewValley.Buildings;
+using StardewValley.Characters;
 using StardewValley.GameData.BigCraftables;
 using StardewValley.GameData.Buildings;
 using StardewValley.GameData.Locations;
@@ -154,10 +155,10 @@ internal sealed class ContainerFactory : BaseService
             }
         }
 
-        // Search for containers from placed objects
-        foreach (var (pos, obj) in location.Objects.Pairs)
+        // Search for containers from buildings
+        foreach (var building in location.buildings)
         {
-            if (pos.X <= 0 || pos.Y <= 0 || !this.TryGetAny(obj, out container))
+            if (!this.TryGetOne(building, out container))
             {
                 continue;
             }
@@ -168,10 +169,24 @@ internal sealed class ContainerFactory : BaseService
             }
         }
 
-        // Search for containers from buildings
-        foreach (var building in location.buildings)
+        // Search for containers from NPCs
+        foreach (var npc in location.characters.OfType<NPC>())
         {
-            if (!this.TryGetOne(building, out container))
+            if (!this.TryGetOne(npc, out container))
+            {
+                continue;
+            }
+
+            if (predicate is null || predicate(container))
+            {
+                yield return container;
+            }
+        }
+
+        // Search for containers from placed objects
+        foreach (var (pos, obj) in location.Objects.Pairs)
+        {
+            if (pos.X <= 0 || pos.Y <= 0 || !this.TryGetAny(obj, out container))
             {
                 continue;
             }
@@ -229,6 +244,10 @@ internal sealed class ContainerFactory : BaseService
 
         switch (itemGrabMenu.context)
         {
+            case IStorageContainer contextContainer:
+                container = contextContainer;
+                return true;
+
             case Chest chest:
                 if (chest == Game1.player.ActiveObject
                     && this.TryGetOne(Game1.player, Game1.player.CurrentToolIndex, out container))
@@ -353,33 +372,6 @@ internal sealed class ContainerFactory : BaseService
                 this.cachedContainers.AddOrUpdate(shippingBin, buildingContainer);
                 return true;
 
-            // Horse Overhaul
-            case Stable stable:
-                if (!stable.modData.TryGetValue("Goldenrevolver.HorseOverhaul/stableID", out var stableData)
-                    || string.IsNullOrWhiteSpace(stableData)
-                    || !int.TryParse(stableData, out var stableId)
-                    || !Game1.getFarm().Objects.TryGetValue(new Vector2(stableId, 0), out var saddleBag)
-                    || saddleBag is not Chest saddleBagChest)
-                {
-                    return false;
-                }
-
-                if (this.cachedContainers.TryGetValue(saddleBagChest, out buildingContainer))
-                {
-                    return true;
-                }
-
-                if (!this.storageOptions.TryGetValue("(B)Stable", out storageType))
-                {
-                    storageType = new SaddleBagStorageOptions(() => this.modConfig.DefaultOptions, stable);
-                    this.storageOptions.Add("(B)Stable", storageType);
-                }
-
-                buildingContainer = new NpcContainer(storageType, stable.getStableHorse(), saddleBagChest);
-                this.cachedContainers.AddOrUpdate(stable, buildingContainer);
-                this.cachedContainers.AddOrUpdate(saddleBagChest, buildingContainer);
-                return true;
-
             default:
                 var chest = building.GetBuildingChest("Output");
                 if (chest is null)
@@ -400,6 +392,52 @@ internal sealed class ContainerFactory : BaseService
         }
     }
 
+    /// <summary>Tries to get a container from the specified NPC.</summary>
+    /// <param name="npc">The NPC to get a container from.</param>
+    /// <param name="npcContainer">When this method returns, contains the container if found; otherwise, null.</param>
+    /// <returns>true if a container is found; otherwise, false.</returns>
+    public bool TryGetOne(NPC npc, [NotNullWhen(true)] out IStorageContainer? npcContainer)
+    {
+        if (this.cachedContainers.TryGetValue(npc, out npcContainer))
+        {
+            return true;
+        }
+
+        switch (npc)
+        {
+            // Horse Overhaul
+            case Horse horse:
+                var stable = horse.TryFindStable();
+                if (stable is null
+                    || !stable.modData.TryGetValue("Goldenrevolver.HorseOverhaul/stableID", out var stableData)
+                    || string.IsNullOrWhiteSpace(stableData)
+                    || !int.TryParse(stableData, out var stableId)
+                    || !Game1.getFarm().Objects.TryGetValue(new Vector2(stableId, 0), out var saddleBag)
+                    || saddleBag is not Chest saddleBagChest)
+                {
+                    return false;
+                }
+
+                if (this.cachedContainers.TryGetValue(saddleBagChest, out npcContainer))
+                {
+                    return true;
+                }
+
+                if (!this.storageOptions.TryGetValue("(B)Stable", out var storageType))
+                {
+                    storageType = new SaddleBagStorageOptions(() => this.modConfig.DefaultOptions, stable);
+                    this.storageOptions.Add("(B)Stable", storageType);
+                }
+
+                npcContainer = new NpcContainer(storageType, horse, saddleBagChest);
+                this.cachedContainers.AddOrUpdate(npc, npcContainer);
+                this.cachedContainers.AddOrUpdate(saddleBagChest, npcContainer);
+                return true;
+
+            default: return false;
+        }
+    }
+
     /// <summary>Tries to get a container from the specified location and position.</summary>
     /// <param name="location">The location to get a container from.</param>
     /// <param name="pos">The position to get a the container from.</param>
@@ -416,6 +454,24 @@ internal sealed class ContainerFactory : BaseService
         if (location.Objects.TryGetValue(pos, out var obj) && this.TryGetAny(obj, out container))
         {
             return true;
+        }
+
+        // Container is a building
+        foreach (var building in location.buildings)
+        {
+            if (building.occupiesTile(pos) && this.TryGetOne(building, out container))
+            {
+                return true;
+            }
+        }
+
+        // Container is an npc
+        foreach (var npc in location.characters.OfType<NPC>())
+        {
+            if (npc.Tile.Equals(pos) && this.TryGetOne(npc, out container))
+            {
+                return true;
+            }
         }
 
         container = null;
@@ -567,23 +623,11 @@ internal sealed class ContainerFactory : BaseService
             return true;
         }
 
-        if (item is Chest chest)
-        {
-            if (!chest.playerChest.Value)
-            {
-                container = null;
-                return false;
-            }
-        }
-        else if (item is SObject obj && obj.heldObject.Value is Chest objChest)
-        {
-            chest = objChest;
-        }
-        else if (this.proxyChestFactory.TryGetProxy(item, out var proxyChest))
-        {
-            chest = proxyChest;
-        }
-        else
+        var chest = ((item as Chest)?.playerChest.Value == true ? item as Chest : null)
+            ?? (item as SObject)?.heldObject.Value as Chest
+            ?? (this.proxyChestFactory.TryGetProxy(item, out var proxyChest) ? proxyChest : null);
+
+        if (chest is null)
         {
             container = null;
             return false;

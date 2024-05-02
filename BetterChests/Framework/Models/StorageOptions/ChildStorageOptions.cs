@@ -1,7 +1,7 @@
 namespace StardewMods.BetterChests.Framework.Models.StorageOptions;
 
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 
 /// <inheritdoc />
 internal class ChildStorageOptions : IStorageOptions
@@ -84,13 +84,6 @@ internal class ChildStorageOptions : IStorageOptions
     {
         get => this.Get(storage => storage.ChestFinder);
         set => this.ActualOptions.ChestFinder = value == this.Parent.ChestFinder ? FeatureOption.Default : value;
-    }
-
-    /// <inheritdoc />
-    public FeatureOption ChestInfo
-    {
-        get => this.Get(storage => storage.ChestInfo);
-        set => this.ActualOptions.ChestInfo = value == this.Parent.ChestInfo ? FeatureOption.Default : value;
     }
 
     /// <inheritdoc />
@@ -184,6 +177,25 @@ internal class ChildStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
+    public FeatureOption SortInventory
+    {
+        get => this.Get(storage => storage.SortInventory);
+        set => this.ActualOptions.SortInventory = value == this.Parent.SortInventory ? FeatureOption.Default : value;
+    }
+
+    /// <inheritdoc />
+    public string SortInventoryBy
+    {
+        get =>
+            string.IsNullOrWhiteSpace(this.ActualOptions.SortInventoryBy)
+                ? this.Parent.SortInventoryBy
+                : this.ActualOptions.SortInventoryBy;
+        set =>
+            this.ActualOptions.SortInventoryBy =
+                value.Equals(this.Parent.SortInventoryBy, StringComparison.OrdinalIgnoreCase) ? string.Empty : value;
+    }
+
+    /// <inheritdoc />
     public RangeOption StashToChest
     {
         get => this.Get(storage => storage.StashToChest);
@@ -208,6 +220,21 @@ internal class ChildStorageOptions : IStorageOptions
                 ? this.Parent.StashToChestPriority
                 : this.ActualOptions.StashToChestPriority;
         set => this.ActualOptions.StashToChestPriority = value == this.Parent.StashToChestPriority ? 0 : value;
+    }
+
+    /// <inheritdoc />
+    public FeatureOption StorageInfo
+    {
+        get => this.Get(storage => storage.StorageInfo);
+        set => this.ActualOptions.StorageInfo = value == this.Parent.StorageInfo ? FeatureOption.Default : value;
+    }
+
+    /// <inheritdoc />
+    public FeatureOption StorageInfoHover
+    {
+        get => this.Get(storage => storage.StorageInfoHover);
+        set =>
+            this.ActualOptions.StorageInfoHover = value == this.Parent.StorageInfoHover ? FeatureOption.Default : value;
     }
 
     /// <inheritdoc />

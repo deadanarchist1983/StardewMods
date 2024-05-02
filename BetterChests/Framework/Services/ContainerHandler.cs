@@ -7,8 +7,9 @@ using StardewMods.Common.Enums;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Models;
 using StardewMods.Common.Services;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewMods.Common.Services.Integrations.FauxCore;
+using StardewValley.Menus;
 using StardewValley.Objects;
 
 /// <summary>Responsible for handling containers.</summary>
@@ -101,6 +102,23 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
 
         // Return true if forced or allowed
         return force || itemTransferringEventArgs.IsAllowed;
+    }
+
+    /// <summary>Sort a a container.</summary>
+    /// <param name="container">The container to sort.</param>
+    /// <param name="reverse">Indicates whether to reverse the sort order.</param>
+    public void Sort(IStorageContainer container, bool reverse = false)
+    {
+        var containerSortingEventArgs = new ContainerSortingEventArgs(container);
+        ItemGrabMenu.organizeItemsInList(container.Items);
+
+        if (reverse)
+        {
+            var copy = container.Items.Reverse().ToList();
+            container.Items.OverwriteWith(copy);
+        }
+
+        this.eventPublisher.Publish(containerSortingEventArgs);
     }
 
     /// <summary>Transfers items from one container to another.</summary>

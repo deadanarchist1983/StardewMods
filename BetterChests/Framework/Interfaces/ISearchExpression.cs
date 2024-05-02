@@ -1,6 +1,6 @@
 namespace StardewMods.BetterChests.Framework.Interfaces;
 
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
+using StardewMods.Common.Services.Integrations.BetterChests;
 
 /// <summary>Represents a search expression.</summary>
 internal interface ISearchExpression

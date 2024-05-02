@@ -1,7 +1,7 @@
 namespace StardewMods.BetterChests.Framework.Models.Terms;
 
 using StardewMods.BetterChests.Framework.Interfaces;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
+using StardewMods.Common.Services.Integrations.BetterChests;
 
 /// <summary>Represents an or expression.</summary>
 internal sealed class OrExpression : ISearchExpression

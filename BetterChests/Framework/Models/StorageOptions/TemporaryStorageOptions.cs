@@ -1,7 +1,7 @@
 namespace StardewMods.BetterChests.Framework.Models.StorageOptions;
 
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 
 /// <inheritdoc />
 internal sealed class TemporaryStorageOptions : DefaultStorageOptions
@@ -23,27 +23,27 @@ internal sealed class TemporaryStorageOptions : DefaultStorageOptions
                 {
                     case FeatureOption when storageOptions.TryGetOption(name, out FeatureOption featureOption):
                         this.SetOption(name, featureOption);
-                        break;
+                        return;
 
                     case RangeOption when storageOptions.TryGetOption(name, out RangeOption rangeOption):
                         this.SetOption(name, rangeOption);
-                        break;
+                        return;
 
                     case ChestMenuOption when storageOptions.TryGetOption(name, out ChestMenuOption chestMenuOption):
                         this.SetOption(name, chestMenuOption);
-                        break;
+                        return;
 
                     case StashPriority when storageOptions.TryGetOption(name, out StashPriority stashPriority):
                         this.SetOption(name, stashPriority);
-                        break;
+                        return;
 
                     case string when storageOptions.TryGetOption(name, out string stringValue):
                         this.SetOption(name, stringValue);
-                        break;
+                        return;
 
                     case int when storageOptions.TryGetOption(name, out int intValue):
                         this.SetOption(name, intValue);
-                        break;
+                        return;
                 }
             });
     }
@@ -63,29 +63,29 @@ internal sealed class TemporaryStorageOptions : DefaultStorageOptions
                 {
                     case FeatureOption when this.defaultOptions.TryGetOption(name, out FeatureOption featureOption):
                         this.SetOption(name, featureOption);
-                        break;
+                        return;
 
                     case RangeOption when this.defaultOptions.TryGetOption(name, out RangeOption rangeOption):
                         this.SetOption(name, rangeOption);
-                        break;
+                        return;
 
                     case ChestMenuOption when this.defaultOptions.TryGetOption(
                         name,
                         out ChestMenuOption chestMenuOption):
                         this.SetOption(name, chestMenuOption);
-                        break;
+                        return;
 
                     case StashPriority when this.defaultOptions.TryGetOption(name, out StashPriority stashPriority):
                         this.SetOption(name, stashPriority);
-                        break;
+                        return;
 
                     case string when this.defaultOptions.TryGetOption(name, out string stringValue):
                         this.SetOption(name, stringValue);
-                        break;
+                        return;
 
                     case int when this.defaultOptions.TryGetOption(name, out int intValue):
                         this.SetOption(name, intValue);
-                        break;
+                        return;
                 }
             });
 
@@ -97,28 +97,28 @@ internal sealed class TemporaryStorageOptions : DefaultStorageOptions
                 switch (option)
                 {
                     case FeatureOption when this.TryGetOption(name, out FeatureOption featureOption):
-                        this.SetOption(name, featureOption);
-                        break;
+                        this.storageOptions.SetOption(name, featureOption);
+                        return;
 
                     case RangeOption when this.TryGetOption(name, out RangeOption rangeOption):
-                        this.SetOption(name, rangeOption);
-                        break;
+                        this.storageOptions.SetOption(name, rangeOption);
+                        return;
 
                     case ChestMenuOption when this.TryGetOption(name, out ChestMenuOption chestMenuOption):
-                        this.SetOption(name, chestMenuOption);
-                        break;
+                        this.storageOptions.SetOption(name, chestMenuOption);
+                        return;
 
                     case StashPriority when this.TryGetOption(name, out StashPriority stashPriority):
-                        this.SetOption(name, stashPriority);
-                        break;
+                        this.storageOptions.SetOption(name, stashPriority);
+                        return;
 
                     case string when this.TryGetOption(name, out string stringValue):
-                        this.SetOption(name, stringValue);
-                        break;
+                        this.storageOptions.SetOption(name, stringValue);
+                        return;
 
                     case int when this.TryGetOption(name, out int intValue):
-                        this.SetOption(name, intValue);
-                        break;
+                        this.storageOptions.SetOption(name, intValue);
+                        return;
                 }
             });
 }

@@ -1,7 +1,7 @@
 namespace StardewMods.BetterChests.Framework.Models;
 
 /// <summary>Represents an inventory tab.</summary>
-internal sealed class InventoryTab
+internal sealed class TabData
 {
     /// <summary>Gets or sets the id of the tab icon.</summary>
     public string Icon { get; set; } = string.Empty;

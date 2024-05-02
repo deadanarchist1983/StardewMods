@@ -2,7 +2,7 @@ namespace StardewMods.BetterChests.Framework.Services;
 
 using Microsoft.Xna.Framework;
 using StardewMods.Common.Services;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewMods.Common.Services.Integrations.BetterCrafting;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewValley.Inventories;

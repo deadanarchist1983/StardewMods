@@ -2,7 +2,7 @@ namespace StardewMods.BetterChests.Framework.UI;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
+using StardewMods.Common.Services.Integrations.BetterChests;
 
 /// <summary>Overlay which points to an object on the map.</summary>
 internal sealed class Pointer

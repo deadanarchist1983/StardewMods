@@ -79,7 +79,7 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
         var container = this.menuManager.Top.Container;
-        if (container is null
+        if (container?.Options.InventoryTabs is not FeatureOption.Enabled
             || !this.tabs.Value.Any()
             || this.menuManager.CurrentMenu is not ItemGrabMenu
             || !this.menuManager.CanFocus(this))
@@ -91,28 +91,20 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
         switch (e.Button)
         {
             case SButton.MouseLeft or SButton.ControllerA:
-                foreach (var tab in this.tabs.Value)
+                if (this.tabs.Value.Any(tab => tab.LeftClick(mouseX, mouseY)))
                 {
-                    if (tab.LeftClick(mouseX, mouseY))
-                    {
-                        this.inputHelper.Suppress(e.Button);
-                        return;
-                    }
+                    this.inputHelper.Suppress(e.Button);
                 }
 
-                break;
+                return;
 
             case SButton.MouseRight or SButton.ControllerB:
-                foreach (var tab in this.tabs.Value)
+                if (this.tabs.Value.Any(tab => tab.RightClick(mouseX, mouseY)))
                 {
-                    if (tab.RightClick(mouseX, mouseY))
-                    {
-                        this.inputHelper.Suppress(e.Button);
-                        return;
-                    }
+                    this.inputHelper.Suppress(e.Button);
                 }
 
-                break;
+                return;
         }
     }
 
@@ -147,6 +139,7 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
                     inventoryTab,
                     () =>
                     {
+                        this.Log.Trace("{0}: Switching tab to {1}.", this.Id, inventoryTab.Label);
                         this.searchText.Value = inventoryTab.SearchTerm;
                         this.searchExpression.Value =
                             this.searchHandler.TryParseExpression(inventoryTab.SearchTerm, out var expression)

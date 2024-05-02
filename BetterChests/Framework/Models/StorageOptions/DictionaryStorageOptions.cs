@@ -3,8 +3,8 @@ namespace StardewMods.BetterChests.Framework.Models.StorageOptions;
 using System.Globalization;
 using NetEscapades.EnumGenerators;
 using StardewMods.Common.Helpers;
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 
 /// <inheritdoc />
 internal abstract class DictionaryStorageOptions : IStorageOptions
@@ -69,13 +69,6 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
     {
         get => this.Get(OptionKey.ChestFinder);
         set => this.Set(OptionKey.ChestFinder, value);
-    }
-
-    /// <inheritdoc />
-    public FeatureOption ChestInfo
-    {
-        get => this.Get(OptionKey.ChestInfo);
-        set => this.Set(OptionKey.ChestInfo, value);
     }
 
     /// <inheritdoc />
@@ -166,6 +159,20 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
+    public FeatureOption SortInventory
+    {
+        get => this.Get(OptionKey.SortInventory);
+        set => this.Set(OptionKey.SortInventory, value);
+    }
+
+    /// <inheritdoc />
+    public string SortInventoryBy
+    {
+        get => this.Get(StringKey.SortInventoryBy);
+        set => this.Set(StringKey.SortInventoryBy, value);
+    }
+
+    /// <inheritdoc />
     public RangeOption StashToChest
     {
         get => this.Get(RangeOptionKey.StashToChest);
@@ -187,6 +194,20 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
                 ? stashPriority
                 : StashPriority.Default;
         set => this.Set(StringKey.StashToChestPriority, value.ToStringFast());
+    }
+
+    /// <inheritdoc />
+    public FeatureOption StorageInfo
+    {
+        get => this.Get(OptionKey.StorageInfo);
+        set => this.Set(OptionKey.StorageInfo, value);
+    }
+
+    /// <inheritdoc />
+    public FeatureOption StorageInfoHover
+    {
+        get => this.Get(OptionKey.StorageInfoHover);
+        set => this.Set(OptionKey.StorageInfoHover, value);
     }
 
     /// <inheritdoc />
@@ -342,7 +363,6 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
         CategorizeChestBlockItems,
         CategorizeChestIncludeStacks,
         ChestFinder,
-        ChestInfo,
         CollectItems,
         ConfigureChest,
         HslColorPicker,
@@ -350,8 +370,9 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
         OpenHeldChest,
         SearchItems,
         ShopFromChest,
-        TransferItems,
-        UnloadChest,
+        SortInventory,
+        StorageInfo,
+        StorageInfoHover,
     }
 
     [EnumExtensions]
@@ -368,6 +389,7 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
     {
         CategorizeChestSearchTerm,
         ResizeChest,
+        SortInventoryBy,
         StashToChestPriority,
         StorageName,
     }

@@ -197,7 +197,7 @@ internal sealed class CarryChest : BaseFeature<CarryChest>
         this.Log.Info(
             "{0}: Grabbed chest from {1} at ({2}, {3})",
             this.Id,
-            Game1.player.currentLocation.Name,
+            Game1.currentLocation.Name,
             e.Cursor.GrabTile.X,
             e.Cursor.GrabTile.Y);
 

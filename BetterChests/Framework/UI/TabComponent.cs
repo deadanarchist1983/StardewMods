@@ -18,17 +18,17 @@ internal sealed class TabComponent : ClickableComponent
     /// <param name="x">The x-coordinate of the tab component.</param>
     /// <param name="y">The y-coordinate of the tab component.</param>
     /// <param name="tabIcon">The tab icon.</param>
-    /// <param name="inventoryTab">The inventory tab data.</param>
+    /// <param name="tabData">The inventory tab data.</param>
     /// <param name="onClick">Action to perform when clicked.</param>
-    public TabComponent(int x, int y, TabIcon tabIcon, InventoryTab inventoryTab, Action onClick)
+    public TabComponent(int x, int y, TabIcon tabIcon, TabData tabData, Action onClick)
         : base(
             new Rectangle(x, y, Game1.tileSize, Game1.tileSize),
             ((int)Math.Pow(y, 2) + x).ToString(CultureInfo.InvariantCulture),
-            inventoryTab.Label)
+            tabData.Label)
     {
         this.onClick = onClick;
         this.myID = (int)(Math.Pow(y, 2) + x);
-        this.Data = inventoryTab;
+        this.Data = tabData;
         this.origin = new Vector2(x, y);
         this.icon = new ClickableTextureComponent(
             new Rectangle(x, y, Game1.tileSize, Game1.tileSize),
@@ -36,12 +36,12 @@ internal sealed class TabComponent : ClickableComponent
             tabIcon.Area,
             Game1.pixelZoom);
 
-        var textBounds = Game1.smallFont.MeasureString(inventoryTab.Label).ToPoint();
+        var textBounds = Game1.smallFont.MeasureString(tabData.Label).ToPoint();
         this.textWidth = textBounds.X;
     }
 
     /// <summary>Gets the inventory tab data.</summary>
-    public InventoryTab Data { get; }
+    public TabData Data { get; }
 
     /// <summary>Draw the color picker.</summary>
     /// <param name="spriteBatch">The sprite batch used for drawing.</param>

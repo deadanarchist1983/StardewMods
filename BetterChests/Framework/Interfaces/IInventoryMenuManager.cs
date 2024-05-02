@@ -1,6 +1,6 @@
 namespace StardewMods.BetterChests.Framework.Interfaces;
 
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewValley.Menus;
 
 /// <summary>Manages the inventory menu by adding, removing, and filtering item filters.</summary>

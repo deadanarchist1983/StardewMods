@@ -118,12 +118,15 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
 
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]
     [SuppressMessage("StyleCop", "SA1313", Justification = "Harmony")]
-    private static void DiscreteColorPicker_draw_prefix(DiscreteColorPicker __instance)
+    private static bool DiscreteColorPicker_draw_prefix(DiscreteColorPicker __instance)
     {
-        if (HslColorPicker.instance.colorPicker.Value is not null)
+        if (HslColorPicker.instance.colorPicker.Value is null)
         {
-            __instance.visible = false;
+            return true;
         }
+
+        __instance.visible = false;
+        return false;
     }
 
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]
@@ -230,6 +233,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
             chest.modData[key] = value;
         }
 
+        itemGrabMenu.chestColorPicker.visible = false;
         itemGrabMenu.colorPickerToggleButton.texture = this.assetHandler.Icons.Value;
         itemGrabMenu.colorPickerToggleButton.sourceRect = new Rectangle(126, 0, 16, 16);
 

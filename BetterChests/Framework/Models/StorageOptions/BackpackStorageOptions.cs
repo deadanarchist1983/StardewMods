@@ -1,7 +1,7 @@
 namespace StardewMods.BetterChests.Framework.Models.StorageOptions;
 
+using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
-using StardewMods.Common.Services.Integrations.BetterChests.Interfaces;
 
 /// <inheritdoc />
 internal sealed class BackpackStorageOptions : IStorageOptions
@@ -74,10 +74,17 @@ internal sealed class BackpackStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
-    public FeatureOption ChestInfo
+    public FeatureOption StorageInfo
     {
-        get => this.storageOptions.ChestInfo;
-        set => this.storageOptions.ChestInfo = value;
+        get => this.storageOptions.StorageInfo;
+        set => this.storageOptions.StorageInfo = value;
+    }
+
+    /// <inheritdoc />
+    public FeatureOption StorageInfoHover
+    {
+        get => this.storageOptions.StorageInfoHover;
+        set => this.storageOptions.StorageInfoHover = value;
     }
 
     /// <inheritdoc />
@@ -170,6 +177,20 @@ internal sealed class BackpackStorageOptions : IStorageOptions
     {
         get => this.storageOptions.ShopFromChest;
         set => this.storageOptions.ShopFromChest = value;
+    }
+
+    /// <inheritdoc />
+    public FeatureOption SortInventory
+    {
+        get => this.storageOptions.SortInventory;
+        set => this.storageOptions.SortInventory = value;
+    }
+
+    /// <inheritdoc />
+    public string SortInventoryBy
+    {
+        get => this.storageOptions.SortInventoryBy;
+        set => this.storageOptions.SortInventoryBy = value;
     }
 
     /// <inheritdoc />
