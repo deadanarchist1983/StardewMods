@@ -88,8 +88,24 @@ internal sealed class AssetHandler : BaseService
     public IManagedTexture Icons => this.icons.Value;
 
     /// <summary>Gets the tab icons.</summary>
-    public Dictionary<string, TabIcon> TabIcons =>
-        this.tabIcons ??= this.gameContentHelper.Load<Dictionary<string, TabIcon>>(this.tabIconsPath);
+    public Dictionary<string, TabIcon> TabIcons
+    {
+        get
+        {
+            if (this.tabIcons is not null)
+            {
+                return this.tabIcons;
+            }
+
+            this.tabIcons = this.gameContentHelper.Load<Dictionary<string, TabIcon>>(this.tabIconsPath);
+            foreach (var (id, tabIcon) in this.tabIcons)
+            {
+                tabIcon.Id = id;
+            }
+
+            return this.tabIcons;
+        }
+    }
 
     private void OnAssetRequested(AssetRequestedEventArgs e)
     {
@@ -102,77 +118,72 @@ internal sealed class AssetHandler : BaseService
         if (e.Name.IsEquivalentTo(this.tabIconsPath))
         {
             e.LoadFrom(
-                () =>
+                () => new Dictionary<string, TabIcon>
                 {
-                    var tabIcons = new Dictionary<string, TabIcon>
                     {
+                        this.ModId + "/Clothing",
+                        new TabIcon
                         {
-                            this.ModId + "/Clothing",
-                            new TabIcon
-                            {
-                                Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
-                                Area = new Rectangle(0, 0, 16, 16),
-                            }
-                        },
+                            Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
+                            Area = new Rectangle(0, 0, 16, 16),
+                        }
+                    },
+                    {
+                        this.ModId + "/Cooking",
+                        new TabIcon
                         {
-                            this.ModId + "/Cooking",
-                            new TabIcon
-                            {
-                                Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
-                                Area = new Rectangle(16, 0, 16, 16),
-                            }
-                        },
+                            Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
+                            Area = new Rectangle(16, 0, 16, 16),
+                        }
+                    },
+                    {
+                        this.ModId + "/Crops",
+                        new TabIcon
                         {
-                            this.ModId + "/Crops",
-                            new TabIcon
-                            {
-                                Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
-                                Area = new Rectangle(32, 0, 16, 16),
-                            }
-                        },
+                            Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
+                            Area = new Rectangle(32, 0, 16, 16),
+                        }
+                    },
+                    {
+                        this.ModId + "/Equipment",
+                        new TabIcon
                         {
-                            this.ModId + "/Equipment",
-                            new TabIcon
-                            {
-                                Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
-                                Area = new Rectangle(48, 0, 16, 16),
-                            }
-                        },
+                            Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
+                            Area = new Rectangle(48, 0, 16, 16),
+                        }
+                    },
+                    {
+                        this.ModId + "/Fishing",
+                        new TabIcon
                         {
-                            this.ModId + "/Fishing",
-                            new TabIcon
-                            {
-                                Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
-                                Area = new Rectangle(64, 0, 16, 16),
-                            }
-                        },
+                            Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
+                            Area = new Rectangle(64, 0, 16, 16),
+                        }
+                    },
+                    {
+                        this.ModId + "/Materials",
+                        new TabIcon
                         {
-                            this.ModId + "/Materials",
-                            new TabIcon
-                            {
-                                Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
-                                Area = new Rectangle(80, 0, 16, 16),
-                            }
-                        },
+                            Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
+                            Area = new Rectangle(80, 0, 16, 16),
+                        }
+                    },
+                    {
+                        this.ModId + "/Miscellaneous",
+                        new TabIcon
                         {
-                            this.ModId + "/Miscellaneous",
-                            new TabIcon
-                            {
-                                Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
-                                Area = new Rectangle(96, 0, 16, 16),
-                            }
-                        },
+                            Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
+                            Area = new Rectangle(96, 0, 16, 16),
+                        }
+                    },
+                    {
+                        this.ModId + "/Seeds",
+                        new TabIcon
                         {
-                            this.ModId + "/Seeds",
-                            new TabIcon
-                            {
-                                Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
-                                Area = new Rectangle(112, 0, 16, 16),
-                            }
-                        },
-                    };
-
-                    return tabIcons;
+                            Path = this.modContentHelper.GetInternalAssetName("assets/tabs.png").Name,
+                            Area = new Rectangle(112, 0, 16, 16),
+                        }
+                    },
                 },
                 AssetLoadPriority.Exclusive);
 
