@@ -1,4 +1,4 @@
-namespace StardewMods.BetterChests.Framework.UI;
+namespace StardewMods.BetterChests.Framework.UI.Components;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -35,6 +35,7 @@ internal sealed class SearchComponent : ClickableComponent
             Y = this.bounds.Y,
             Width = this.bounds.Width,
             Text = this.previousText,
+            limitWidth = false,
         };
 
         this.icon = new ClickableTextureComponent(

@@ -143,20 +143,18 @@ internal sealed class SortInventory : BaseFeature<SortInventory>
         }
 
         // Add new organize button to the bottom inventory menu
+        var x = itemGrabMenu.okButton.bounds.X;
+        var y = itemGrabMenu.okButton.bounds.Y - Game1.tileSize - 16;
         this.organizeButton.Value = new ClickableTextureComponent(
             string.Empty,
-            new Rectangle(
-                itemGrabMenu.okButton.bounds.X,
-                itemGrabMenu.okButton.bounds.Y - Game1.tileSize - 16,
-                Game1.tileSize,
-                Game1.tileSize),
+            new Rectangle(x, y, Game1.tileSize, Game1.tileSize),
             string.Empty,
             Game1.content.LoadString("Strings\\UI:ItemGrab_Organize"),
             Game1.mouseCursors,
             new Rectangle(162, 440, 16, 16),
             4f)
         {
-            myID = 4857,
+            myID = (int)Math.Pow(y, 2) + x,
             upNeighborID = 5948,
             downNeighborID = 4857,
             leftNeighborID = 12,

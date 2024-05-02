@@ -1,7 +1,8 @@
-﻿namespace StardewMods.BetterChests.Framework.UI;
+﻿namespace StardewMods.BetterChests.Framework.UI.Overlays;
 
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using StardewMods.BetterChests.Framework.UI.Components;
 using StardewValley.Menus;
 
 /// <summary>Menu for searching for chests which contain specific items.</summary>

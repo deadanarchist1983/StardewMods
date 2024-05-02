@@ -5,7 +5,7 @@ using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewMods.BetterChests.Framework.Interfaces;
 using StardewMods.BetterChests.Framework.Models.Events;
-using StardewMods.BetterChests.Framework.UI;
+using StardewMods.BetterChests.Framework.UI.Components;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewMods.Common.Services.Integrations.FauxCore;
@@ -228,6 +228,25 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         {
             this.inputHelper.SuppressActiveKeybinds(this.Config.Controls.ToggleSearch);
             this.isActive.Value = !this.isActive.Value;
+            return;
+        }
+
+        // Copy Search
+        if (this.searchBar.Value?.Selected == true && this.Config.Controls.Copy.JustPressed())
+        {
+            this.inputHelper.SuppressActiveKeybinds(this.Config.Controls.Copy);
+            DesktopClipboard.SetText(this.searchText.Value);
+            return;
+        }
+
+        // Paste Search
+        if (this.searchBar.Value?.Selected == true && this.Config.Controls.Paste.JustPressed())
+        {
+            this.inputHelper.SuppressActiveKeybinds(this.Config.Controls.Paste);
+            var pasteText = string.Empty;
+            DesktopClipboard.GetText(ref pasteText);
+            this.searchText.Value = pasteText;
+            this.searchBar.Value.Reset();
             return;
         }
 

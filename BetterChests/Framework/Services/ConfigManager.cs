@@ -764,6 +764,22 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
             value => controls.TransferItemsReverse = value,
             I18n.Controls_TransferItemsReverse_Name,
             I18n.Controls_TransferItemsReverse_Tooltip);
+
+        // Copy
+        gmcm.AddKeybindList(
+            this.manifest,
+            () => controls.Copy,
+            value => controls.Copy = value,
+            I18n.Controls_Copy_Name,
+            I18n.Controls_Copy_Tooltip);
+
+        // Paste
+        gmcm.AddKeybindList(
+            this.manifest,
+            () => controls.Paste,
+            value => controls.Paste = value,
+            I18n.Controls_Paste_Name,
+            I18n.Controls_Paste_Tooltip);
     }
 
     private void AddTweaks(DefaultConfig config)

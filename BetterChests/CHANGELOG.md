@@ -1,5 +1,22 @@
 ﻿# Better Chests Change Log
 
+## 2.18.0 (Planned)
+
+### Added
+
+* Added visual editors for configuring storage options.
+* Added support for copy and paste into search bar.
+
+### Changed
+
+* Remove textbox limit for search.
+
+## 2.17.1 (Unreleased)
+
+### Added
+
+* Initialize storage name from latent mod data.
+
 ## 2.17.0 (May 1, 2024)
 
 ### Added

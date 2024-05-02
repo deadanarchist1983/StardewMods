@@ -1,4 +1,4 @@
-namespace StardewMods.BetterChests.Framework.UI;
+namespace StardewMods.BetterChests.Framework.UI.Components;
 
 using System.Globalization;
 using Microsoft.Xna.Framework;

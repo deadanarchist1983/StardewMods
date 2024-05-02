@@ -45,8 +45,7 @@ internal abstract class BaseContainer : IStorageContainer
             return;
         }
 
-        this.storageOptions = new Lazy<IStorageOptions>(
-            () => new ChildStorageOptions(() => baseOptions, new ModDataStorageOptions(this.ModData)));
+        this.storageOptions = new Lazy<IStorageOptions>(this.InitializeStorageOptions);
     }
 
     /// <inheritdoc />
@@ -204,5 +203,24 @@ internal abstract class BaseContainer : IStorageContainer
         sb.Append(this.Location?.DisplayName ?? "Unknown");
         sb.Append(CultureInfo.InvariantCulture, $"({this.TileLocation.X:n0}, {this.TileLocation.Y:n0})");
         return sb.ToString();
+    }
+
+    private IStorageOptions InitializeStorageOptions()
+    {
+        var child = new ModDataStorageOptions(this.ModData);
+
+        // Initialize Storage Name
+        if (string.IsNullOrWhiteSpace(child.StorageName)
+            && this.ModData.TryGetValue("Pathoschild.ChestsAnywhere/Name", out var name)
+            && !string.IsNullOrWhiteSpace(name)
+            && this.ModData.TryGetValue("Pathoschild.ChestsAnywhere/Category", out var category)
+            && !string.IsNullOrWhiteSpace(category))
+        {
+            child.StorageName = $"{category} - {name}";
+        }
+
+        return new ChildStorageOptions(GetParent, child);
+
+        IStorageOptions GetParent() => this.baseOptions;
     }
 }

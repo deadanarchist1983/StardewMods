@@ -22,6 +22,11 @@ internal sealed class Controls
     /// <summary>Gets or sets controls to configure currently held object.</summary>
     public KeybindList ConfigureChest { get; set; } = new(SButton.End);
 
+    /// <summary>Gets or sets controls for copying.</summary>
+    public KeybindList Copy { get; set; } = new(
+        new Keybind(SButton.LeftControl, SButton.C),
+        new Keybind(SButton.RightControl, SButton.C));
+
     /// <summary>Gets or sets controls to lock an item slot.</summary>
     public KeybindList LockSlot { get; set; } = new(SButton.LeftAlt);
 
@@ -32,6 +37,11 @@ internal sealed class Controls
     public KeybindList OpenFoundChest { get; set; } = new(
         new Keybind(SButton.LeftShift, SButton.Enter),
         new Keybind(SButton.RightShift, SButton.Enter));
+
+    /// <summary>Gets or sets controls for pasting.</summary>
+    public KeybindList Paste { get; set; } = new(
+        new Keybind(SButton.LeftControl, SButton.V),
+        new Keybind(SButton.RightControl, SButton.V));
 
     /// <summary>Gets or sets controls to scroll <see cref="StardewValley.Menus.ItemGrabMenu" /> down.</summary>
     public KeybindList ScrollDown { get; set; } = new(SButton.DPadDown);
