@@ -11,11 +11,12 @@
 
 * Remove textbox limit for search.
 
-## 2.17.1 (Unreleased)
+## 2.17.1 (May 2, 2024)
 
 ### Added
 
 * Initialize storage name from latent mod data.
+* Added support for copy+paste into search bar.
 
 ## 2.17.0 (May 1, 2024)
 
