@@ -20,7 +20,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
     private readonly ContainerFactory containerFactory;
     private readonly ContainerHandler containerHandler;
     private readonly IInputHelper inputHelper;
-    private readonly MenuManager menuManager;
+    private readonly MenuHandler menuHandler;
     private readonly ToolbarIconsIntegration toolbarIconsIntegration;
 
     /// <summary>Initializes a new instance of the <see cref="StashToChest" /> class.</summary>
@@ -29,7 +29,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
     /// <param name="containerHandler">Dependency used for handling operations between containers.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
-    /// <param name="menuManager">Dependency used for managing the current menu.</param>
+    /// <param name="menuHandler">Dependency used for managing the current menu.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
@@ -40,7 +40,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
         ContainerHandler containerHandler,
         IEventManager eventManager,
         IInputHelper inputHelper,
-        MenuManager menuManager,
+        MenuHandler menuHandler,
         ILog log,
         IManifest manifest,
         IModConfig modConfig,
@@ -51,7 +51,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
         this.containerFactory = containerFactory;
         this.containerHandler = containerHandler;
         this.inputHelper = inputHelper;
-        this.menuManager = menuManager;
+        this.menuHandler = menuHandler;
         this.toolbarIconsIntegration = toolbarIconsIntegration;
     }
 
@@ -102,12 +102,12 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
         if (e.Button is not SButton.MouseLeft
-            || this.menuManager.CurrentMenu is not ItemGrabMenu itemGrabMenu
+            || this.menuHandler.CurrentMenu is not ItemGrabMenu itemGrabMenu
             || itemGrabMenu.fillStacksButton is null
-            || this.menuManager.Bottom.Container is null
-            || this.menuManager.Top.Container is null
-            || !this.containerFactory.TryGetOne(out var container)
-            || container.Options.StashToChest is RangeOption.Disabled or RangeOption.Default)
+            || this.menuHandler.Bottom.Container is null
+            || this.menuHandler.Top.Container is null
+            || !this.containerFactory.TryGetOne(this.menuHandler.Top.Menu, out var container)
+            || container.Options.StashToChest is RangeOption.Disabled)
         {
             return;
         }
@@ -123,11 +123,11 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
         // Stash to existing stacks only
         if (!this.Config.Controls.TransferItems.IsDown()
-            || this.menuManager.Top.Container.Options.StashToChest is RangeOption.Disabled or RangeOption.Default)
+            || this.menuHandler.Top.Container.Options.StashToChest is RangeOption.Disabled)
         {
             this.containerHandler.Transfer(
-                this.menuManager.Bottom.Container,
-                this.menuManager.Top.Container,
+                this.menuHandler.Bottom.Container,
+                this.menuHandler.Top.Container,
                 out _,
                 existingOnly: true);
 
@@ -136,8 +136,8 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
         // Stash using categorization rules
         var (from, to) = this.Config.Controls.TransferItemsReverse.IsDown()
-            ? (this.menuManager.Top.Container, this.menuManager.Bottom.Container)
-            : (this.menuManager.Bottom.Container, this.menuManager.Top.Container);
+            ? (this.menuHandler.Top.Container, this.menuHandler.Bottom.Container)
+            : (this.menuHandler.Bottom.Container, this.menuHandler.Top.Container);
 
         var force = to is FarmerContainer;
         if (!this.containerHandler.Transfer(from, to, out var amounts, force))
@@ -175,8 +175,8 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
             return;
         }
 
-        if (!this.containerFactory.TryGetOne(out var container)
-            || container.Options.StashToChest is RangeOption.Disabled or RangeOption.Default)
+        if (!this.containerFactory.TryGetOne(this.menuHandler.Top.Menu, out var container)
+            || container.Options.StashToChest is RangeOption.Disabled)
         {
             return;
         }
@@ -189,10 +189,10 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
     private void OnRenderingActiveMenu(RenderingActiveMenuEventArgs obj)
     {
-        if (this.menuManager.CurrentMenu is not ItemGrabMenu itemGrabMenu
+        if (this.menuHandler.CurrentMenu is not ItemGrabMenu itemGrabMenu
             || itemGrabMenu.fillStacksButton is null
-            || !this.containerFactory.TryGetOne(out var container)
-            || container.Options.StashToChest is RangeOption.Disabled or RangeOption.Default)
+            || !this.containerFactory.TryGetOne(this.menuHandler.Top.Menu, out var container)
+            || container.Options.StashToChest is RangeOption.Disabled)
         {
             return;
         }
@@ -293,7 +293,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
         bool Predicate(IStorageContainer container) =>
             container is not FarmerContainer
-            && container.Options.StashToChest is not (RangeOption.Disabled or RangeOption.Default)
+            && container.Options.StashToChest is not RangeOption.Disabled
             && !this.Config.StashToChestDisableLocations.Contains(Game1.player.currentLocation.Name)
             && !(this.Config.StashToChestDisableLocations.Contains("UndergroundMine")
                 && Game1.player.currentLocation is MineShaft mineShaft

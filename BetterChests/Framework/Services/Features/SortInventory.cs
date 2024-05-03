@@ -16,7 +16,7 @@ internal sealed class SortInventory : BaseFeature<SortInventory>
 {
     private readonly ContainerHandler containerHandler;
     private readonly IInputHelper inputHelper;
-    private readonly MenuManager menuManager;
+    private readonly MenuHandler menuHandler;
     private readonly PerScreen<ClickableTextureComponent?> organizeButton = new();
 
     /// <summary>Initializes a new instance of the <see cref="SortInventory" /> class.</summary>
@@ -25,7 +25,7 @@ internal sealed class SortInventory : BaseFeature<SortInventory>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
-    /// <param name="menuManager">Dependency used for managing the current menu.</param>
+    /// <param name="menuHandler">Dependency used for managing the current menu.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
     public SortInventory(
         ContainerHandler containerHandler,
@@ -33,13 +33,13 @@ internal sealed class SortInventory : BaseFeature<SortInventory>
         IInputHelper inputHelper,
         ILog log,
         IManifest manifest,
-        MenuManager menuManager,
+        MenuHandler menuHandler,
         IModConfig modConfig)
         : base(eventManager, log, manifest, modConfig)
     {
         this.containerHandler = containerHandler;
         this.inputHelper = inputHelper;
-        this.menuManager = menuManager;
+        this.menuHandler = menuHandler;
     }
 
     /// <inheritdoc />
@@ -81,19 +81,19 @@ internal sealed class SortInventory : BaseFeature<SortInventory>
 
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
-        if (!this.menuManager.CanFocus(this))
+        if (!this.menuHandler.CanFocus(this))
         {
             return;
         }
 
         var (mouseX, mouseY) = Game1.getMousePosition(true);
-        var container = this.menuManager.CurrentMenu switch
+        var container = this.menuHandler.CurrentMenu switch
         {
             ItemGrabMenu itemGrabMenu when itemGrabMenu.organizeButton?.containsPoint(mouseX, mouseY) == true =>
-                this.menuManager.Top.Container,
+                this.menuHandler.Top.Container,
             InventoryPage inventoryPage when inventoryPage.organizeButton?.containsPoint(mouseX, mouseY) == true =>
-                this.menuManager.Bottom.Container,
-            not null when this.organizeButton.Value?.containsPoint(mouseX, mouseY) == true => this.menuManager
+                this.menuHandler.Bottom.Container,
+            not null when this.organizeButton.Value?.containsPoint(mouseX, mouseY) == true => this.menuHandler
                 .Bottom.Container,
             _ => null,
         };
@@ -131,11 +131,11 @@ internal sealed class SortInventory : BaseFeature<SortInventory>
 
     private void OnInventoryMenuChanged(InventoryMenuChangedEventArgs e)
     {
-        var container = this.menuManager.Bottom.Container;
-        var bottom = this.menuManager.Bottom;
+        var container = this.menuHandler.Bottom.Container;
+        var bottom = this.menuHandler.Bottom;
 
-        if (this.menuManager.CurrentMenu is not ItemGrabMenu itemGrabMenu
-            || bottom.Menu is null
+        if (this.menuHandler.CurrentMenu is not ItemGrabMenu itemGrabMenu
+            || bottom.InventoryMenu is null
             || container?.Options.SortInventory is not FeatureOption.Enabled)
         {
             this.organizeButton.Value = null;
@@ -181,7 +181,7 @@ internal sealed class SortInventory : BaseFeature<SortInventory>
             return;
         }
 
-        switch (this.menuManager.CurrentMenu)
+        switch (this.menuHandler.CurrentMenu)
         {
             case ItemGrabMenu itemGrabMenu:
                 itemGrabMenu.hoverText = this.organizeButton.Value.hoverText;

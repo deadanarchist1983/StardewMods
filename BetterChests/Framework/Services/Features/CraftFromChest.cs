@@ -140,7 +140,7 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
 
     private static bool DefaultPredicate(IStorageContainer container) =>
         container is not FarmerContainer
-        && container.Options.CraftFromChest is not (RangeOption.Disabled or RangeOption.Default)
+        && container.Options.CraftFromChest is not RangeOption.Disabled
         && container.Items.Count > 0
         && !CraftFromChest.instance.Config.CraftFromChestDisableLocations.Contains(Game1.player.currentLocation.Name)
         && !(CraftFromChest.instance.Config.CraftFromChestDisableLocations.Contains("UndergroundMine")
@@ -152,7 +152,7 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
 
     private static bool CookingPredicate(IStorageContainer container) =>
         container is not FarmerContainer
-        && container.Options.CookFromChest is not (RangeOption.Disabled or RangeOption.Default)
+        && container.Options.CookFromChest is not RangeOption.Disabled
         && container.Items.Count > 0
         && !CraftFromChest.instance.Config.CraftFromChestDisableLocations.Contains(Game1.player.currentLocation.Name)
         && !(CraftFromChest.instance.Config.CraftFromChestDisableLocations.Contains("UndergroundMine")
@@ -209,7 +209,7 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
         {
             var storageOptions = this.containerFactory.GetStorageOptions(obj);
             predicate = container => container is not FarmerContainer
-                && container.Options.CraftFromChest is not (RangeOption.Disabled or RangeOption.Default)
+                && container.Options.CraftFromChest is not RangeOption.Disabled
                 && !CraftFromChest.instance.Config.CraftFromChestDisableLocations.Contains(
                     Game1.player.currentLocation.Name)
                 && !(CraftFromChest.instance.Config.CraftFromChestDisableLocations.Contains("UndergroundMine")

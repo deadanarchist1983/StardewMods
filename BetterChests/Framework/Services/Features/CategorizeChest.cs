@@ -14,26 +14,15 @@ using StardewValley.ItemTypeDefinitions;
 /// <summary>Restricts what items can be added into a chest.</summary>
 internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
 {
-    private static readonly Lazy<List<Item>> AllItems = new(
-        () =>
-        {
-            return ItemRegistry
-                .ItemTypes.SelectMany(
-                    itemType => itemType
-                        .GetAllIds()
-                        .Select(localId => ItemRegistry.Create(itemType.Identifier + localId)))
-                .ToList();
-        });
-
     private readonly PerScreen<List<Item>> cachedItems = new(() => []);
     private readonly ICacheTable<ISearchExpression?> cachedSearches;
-    private readonly MenuManager menuManager;
+    private readonly MenuHandler menuHandler;
     private readonly SearchHandler searchHandler;
 
     /// <summary>Initializes a new instance of the <see cref="CategorizeChest" /> class.</summary>
     /// <param name="cacheManager">Dependency used for managing cache tables.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
-    /// <param name="menuManager">Dependency used for managing the current menu.</param>
+    /// <param name="menuHandler">Dependency used for managing the current menu.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
@@ -41,7 +30,7 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
     public CategorizeChest(
         CacheManager cacheManager,
         IEventManager eventManager,
-        MenuManager menuManager,
+        MenuHandler menuHandler,
         ILog log,
         IManifest manifest,
         IModConfig modConfig,
@@ -49,12 +38,32 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
         : base(eventManager, log, manifest, modConfig)
     {
         this.cachedSearches = cacheManager.GetCacheTable<ISearchExpression?>();
-        this.menuManager = menuManager;
+        this.menuHandler = menuHandler;
         this.searchHandler = searchHandler;
     }
 
     /// <inheritdoc />
     public override bool ShouldBeActive => this.Config.DefaultOptions.CategorizeChest != FeatureOption.Disabled;
+
+    /// <inheritdoc />
+    protected override void Activate()
+    {
+        // Events
+        this.Events.Subscribe<ItemHighlightingEventArgs>(this.OnItemHighlighting);
+        this.Events.Subscribe<ItemsDisplayingEventArgs>(this.OnItemsDisplaying);
+        this.Events.Subscribe<ItemTransferringEventArgs>(this.OnItemTransferring);
+        this.Events.Subscribe<SearchChangedEventArgs>(this.OnSearchChanged);
+    }
+
+    /// <inheritdoc />
+    protected override void Deactivate()
+    {
+        // Events
+        this.Events.Unsubscribe<ItemHighlightingEventArgs>(this.OnItemHighlighting);
+        this.Events.Unsubscribe<ItemsDisplayingEventArgs>(this.OnItemsDisplaying);
+        this.Events.Unsubscribe<ItemTransferringEventArgs>(this.OnItemTransferring);
+        this.Events.Unsubscribe<SearchChangedEventArgs>(this.OnSearchChanged);
+    }
 
     private static IEnumerable<Item> GetItems(Func<Item, bool>? predicate)
     {
@@ -203,30 +212,10 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
         }
     }
 
-    /// <inheritdoc />
-    protected override void Activate()
-    {
-        // Events
-        this.Events.Subscribe<ItemHighlightingEventArgs>(this.OnItemHighlighting);
-        this.Events.Subscribe<ItemsDisplayingEventArgs>(this.OnItemsDisplaying);
-        this.Events.Subscribe<ItemTransferringEventArgs>(this.OnItemTransferring);
-        this.Events.Subscribe<SearchChangedEventArgs>(this.OnSearchChanged);
-    }
-
-    /// <inheritdoc />
-    protected override void Deactivate()
-    {
-        // Events
-        this.Events.Unsubscribe<ItemHighlightingEventArgs>(this.OnItemHighlighting);
-        this.Events.Unsubscribe<ItemsDisplayingEventArgs>(this.OnItemsDisplaying);
-        this.Events.Unsubscribe<ItemTransferringEventArgs>(this.OnItemTransferring);
-        this.Events.Unsubscribe<SearchChangedEventArgs>(this.OnSearchChanged);
-    }
-
     private void OnItemHighlighting(ItemHighlightingEventArgs e)
     {
-        var top = this.menuManager.Top.Container;
-        if (e.Container == this.menuManager.Bottom.Container
+        var top = this.menuHandler.Top.Container;
+        if (e.Container == this.menuHandler.Bottom.Container
             && top?.Options is
             {
                 CategorizeChest: FeatureOption.Enabled,
@@ -242,12 +231,9 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
         }
 
         // Unhighlight items not actually in container
-        if (e.Container == this.menuManager.Top.Container && this.cachedItems.Value.Any())
+        if (e.Container == top && !e.Container.Items.Contains(e.Item))
         {
-            if (!e.Container.Items.Contains(e.Item))
-            {
-                e.UnHighlight();
-            }
+            e.UnHighlight();
         }
     }
 
@@ -255,7 +241,9 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
     private void OnItemsDisplaying(ItemsDisplayingEventArgs e)
     {
         // Append searched items to the end of the list
-        if (e.Container == this.menuManager.Top.Container && this.cachedItems.Value.Any())
+        if (e.Container == this.menuHandler.Top.Container
+            && e.Container.Options.CategorizeChest is FeatureOption.Enabled
+            && this.cachedItems.Value.Any())
         {
             e.Edit(items => items.Concat(this.cachedItems.Value.Except(e.Container.Items)));
         }
@@ -289,7 +277,7 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
             return;
         }
 
-        this.cachedItems.Value = [..CategorizeChest.AllItems.Value.Where(e.SearchExpression.PartialMatch)];
+        this.cachedItems.Value = [..CategorizeChest.GetItems(e.SearchExpression.PartialMatch)];
     }
 
     private bool CanAcceptItem(IStorageContainer container, Item item, out bool accepted)

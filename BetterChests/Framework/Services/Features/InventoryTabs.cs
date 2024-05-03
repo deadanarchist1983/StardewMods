@@ -15,7 +15,7 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
 {
     private readonly AssetHandler assetHandler;
     private readonly IInputHelper inputHelper;
-    private readonly MenuManager menuManager;
+    private readonly MenuHandler menuHandler;
     private readonly PerScreen<ISearchExpression?> searchExpression;
     private readonly SearchHandler searchHandler;
     private readonly PerScreen<string> searchText;
@@ -27,7 +27,7 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
-    /// <param name="menuManager">Dependency used for managing the current menu.</param>
+    /// <param name="menuHandler">Dependency used for managing the current menu.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
     /// <param name="searchExpression">Dependency for retrieving a parsed search expression.</param>
     /// <param name="searchHandler">Dependency used for handling search.</param>
@@ -38,7 +38,7 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
         IInputHelper inputHelper,
         ILog log,
         IManifest manifest,
-        MenuManager menuManager,
+        MenuHandler menuHandler,
         IModConfig modConfig,
         PerScreen<ISearchExpression?> searchExpression,
         SearchHandler searchHandler,
@@ -47,7 +47,7 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
     {
         this.assetHandler = assetHandler;
         this.inputHelper = inputHelper;
-        this.menuManager = menuManager;
+        this.menuHandler = menuHandler;
         this.searchExpression = searchExpression;
         this.searchHandler = searchHandler;
         this.searchText = searchText;
@@ -78,11 +78,15 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
 
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
-        var container = this.menuManager.Top.Container;
-        if (container?.Options.InventoryTabs is not FeatureOption.Enabled
+        var container = this.menuHandler.Top.Container;
+        if (container?.Options is not
+            {
+                InventoryTabs: FeatureOption.Enabled,
+                SearchItems: FeatureOption.Enabled,
+            }
             || !this.tabs.Value.Any()
-            || this.menuManager.CurrentMenu is not ItemGrabMenu
-            || !this.menuManager.CanFocus(this))
+            || this.menuHandler.CurrentMenu is not ItemGrabMenu
+            || !this.menuHandler.CanFocus(this))
         {
             return;
         }
@@ -110,23 +114,27 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
 
     private void OnInventoryMenuChanged(InventoryMenuChangedEventArgs e)
     {
-        var container = this.menuManager.Top.Container;
-        var top = this.menuManager.Top;
+        var container = this.menuHandler.Top.Container;
+        var top = this.menuHandler.Top;
         this.tabs.Value.Clear();
 
-        if (this.menuManager.CurrentMenu is not ItemGrabMenu itemGrabMenu
-            || top.Menu is null
-            || container?.Options.InventoryTabs is not FeatureOption.Enabled)
+        if (this.menuHandler.CurrentMenu is not ItemGrabMenu itemGrabMenu
+            || top.InventoryMenu is null
+            || container?.Options is not
+            {
+                InventoryTabs: FeatureOption.Enabled,
+                SearchItems: FeatureOption.Enabled,
+            })
         {
             return;
         }
 
         var x = itemGrabMenu.xPositionOnScreen - Game1.tileSize - (IClickableMenu.borderWidth / 2);
-        var y = top.Menu.inventory[0].bounds.Y;
+        var y = top.InventoryMenu.inventory[0].bounds.Y;
 
         foreach (var inventoryTab in this.Config.InventoryTabList)
         {
-            if (!this.assetHandler.Icons.TryGetValue(inventoryTab.Icon, out var tabIcon))
+            if (!this.assetHandler.Icons.TryGetValue(inventoryTab.Icon, out var icon))
             {
                 continue;
             }
@@ -135,7 +143,7 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
                 new TabComponent(
                     x,
                     y,
-                    tabIcon,
+                    icon,
                     inventoryTab,
                     () =>
                     {
@@ -155,7 +163,7 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
 
     private void OnRenderedActiveMenu(RenderedActiveMenuEventArgs e)
     {
-        if (!this.tabs.Value.Any() || this.menuManager.CurrentMenu is not ItemGrabMenu)
+        if (!this.tabs.Value.Any() || this.menuHandler.CurrentMenu is not ItemGrabMenu)
         {
             return;
         }
@@ -168,7 +176,7 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
 
     private void OnRenderingActiveMenu(RenderingActiveMenuEventArgs e)
     {
-        if (!this.tabs.Value.Any() || this.menuManager.CurrentMenu is not ItemGrabMenu)
+        if (!this.tabs.Value.Any() || this.menuHandler.CurrentMenu is not ItemGrabMenu)
         {
             return;
         }

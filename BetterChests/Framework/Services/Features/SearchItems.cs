@@ -17,7 +17,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
     private readonly PerScreen<ClickableTextureComponent> existingStacksButton;
     private readonly IInputHelper inputHelper;
     private readonly PerScreen<bool> isActive = new(() => true);
-    private readonly MenuManager menuManager;
+    private readonly MenuHandler menuHandler;
     private readonly PerScreen<ClickableTextureComponent> rejectButton;
     private readonly PerScreen<ClickableTextureComponent> saveButton;
     private readonly PerScreen<SearchComponent?> searchBar = new();
@@ -31,7 +31,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
-    /// <param name="menuManager">Dependency used for managing the current menu.</param>
+    /// <param name="menuHandler">Dependency used for managing the current menu.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
     /// <param name="searchExpression">Dependency for retrieving a parsed search expression.</param>
     /// <param name="searchHandler">Dependency used for handling search.</param>
@@ -42,7 +42,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         IInputHelper inputHelper,
         ILog log,
         IManifest manifest,
-        MenuManager menuManager,
+        MenuHandler menuHandler,
         IModConfig modConfig,
         PerScreen<ISearchExpression?> searchExpression,
         SearchHandler searchHandler,
@@ -50,7 +50,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         : base(eventManager, log, manifest, modConfig)
     {
         this.inputHelper = inputHelper;
-        this.menuManager = menuManager;
+        this.menuHandler = menuHandler;
         this.searchExpression = searchExpression;
         this.searchHandler = searchHandler;
         this.searchText = searchText;
@@ -125,12 +125,12 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
-        var container = this.menuManager.Top.Container;
+        var container = this.menuHandler.Top.Container;
         if (container is null
             || !this.isActive.Value
             || this.searchBar.Value is null
-            || this.menuManager.CurrentMenu is not ItemGrabMenu
-            || !this.menuManager.CanFocus(this))
+            || this.menuHandler.CurrentMenu is not ItemGrabMenu
+            || !this.menuHandler.CanFocus(this))
         {
             return;
         }
@@ -192,10 +192,10 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
                 break;
 
-            case SButton.Escape when this.menuManager.CurrentMenu.readyToClose():
+            case SButton.Escape when this.menuHandler.CurrentMenu.readyToClose():
                 this.inputHelper.Suppress(e.Button);
                 Game1.playSound("bigDeSelect");
-                this.menuManager.CurrentMenu.exitThisMenu();
+                this.menuHandler.CurrentMenu.exitThisMenu();
                 break;
 
             case SButton.Escape: return;
@@ -218,7 +218,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
     private void OnButtonsChanged(ButtonsChangedEventArgs e)
     {
-        if (this.menuManager.Top.Container?.Options.SearchItems is not FeatureOption.Enabled)
+        if (this.menuHandler.Top.Container?.Options.SearchItems is not FeatureOption.Enabled)
         {
             return;
         }
@@ -261,9 +261,9 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
     private void OnInventoryMenuChanged(InventoryMenuChangedEventArgs e)
     {
-        var container = this.menuManager.Top.Container;
-        var top = this.menuManager.Top;
-        if (top.Menu is null || container?.Options.SearchItems is not FeatureOption.Enabled)
+        var container = this.menuHandler.Top.Container;
+        var top = this.menuHandler.Top;
+        if (top.InventoryMenu is null || container?.Options.SearchItems is not FeatureOption.Enabled)
         {
             this.searchBar.Value = null;
             return;
@@ -273,13 +273,13 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
         var x = top.Columns switch
         {
-            3 => top.Menu.inventory[1].bounds.Center.X - (width / 2),
-            12 => top.Menu.inventory[5].bounds.Right - (width / 2),
-            14 => top.Menu.inventory[6].bounds.Right - (width / 2),
+            3 => top.InventoryMenu.inventory[1].bounds.Center.X - (width / 2),
+            12 => top.InventoryMenu.inventory[5].bounds.Right - (width / 2),
+            14 => top.InventoryMenu.inventory[6].bounds.Right - (width / 2),
             _ => (Game1.uiViewport.Width - width) / 2,
         };
 
-        var y = top.Menu.yPositionOnScreen
+        var y = top.InventoryMenu.yPositionOnScreen
             - (IClickableMenu.borderWidth / 2)
             - Game1.tileSize
             - (top.Rows == 3 ? 25 : 4);
@@ -333,7 +333,8 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
     private void OnItemHighlighting(ItemHighlightingEventArgs e)
     {
-        if (this.searchExpression.Value?.PartialMatch(e.Item) == false)
+        if (e.Container.Options.SearchItems is FeatureOption.Enabled
+            && this.searchExpression.Value?.PartialMatch(e.Item) == false)
         {
             e.UnHighlight();
         }
@@ -361,10 +362,10 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
     private void OnRenderedActiveMenu(RenderedActiveMenuEventArgs e)
     {
-        var container = this.menuManager.Top.Container;
+        var container = this.menuHandler.Top.Container;
         if (this.searchBar.Value is null
             || !this.isActive.Value
-            || this.menuManager.CurrentMenu is not ItemGrabMenu itemGrabMenu
+            || this.menuHandler.CurrentMenu is not ItemGrabMenu itemGrabMenu
             || container is null)
         {
             return;
@@ -409,7 +410,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
     private void OnRenderingActiveMenu(RenderingActiveMenuEventArgs e)
     {
-        if (this.searchBar.Value is null || !this.isActive.Value || this.menuManager.CurrentMenu is not ItemGrabMenu)
+        if (this.searchBar.Value is null || !this.isActive.Value || this.menuHandler.CurrentMenu is not ItemGrabMenu)
         {
             return;
         }
@@ -420,7 +421,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
     private void OnSearchChanged(SearchChangedEventArgs e)
     {
-        if (this.searchBar.Value is null || !this.isActive.Value || this.menuManager.CurrentMenu is not ItemGrabMenu)
+        if (this.searchBar.Value is null || !this.isActive.Value || this.menuHandler.CurrentMenu is not ItemGrabMenu)
         {
             return;
         }

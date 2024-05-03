@@ -32,7 +32,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     private readonly PerScreen<IStorageContainer?> lastContainer = new();
     private readonly LocalizedTextManager localizedTextManager;
     private readonly IManifest manifest;
-    private readonly MenuManager menuManager;
+    private readonly MenuHandler menuHandler;
     private readonly IPatchManager patchManager;
 
     /// <summary>Initializes a new instance of the <see cref="ConfigureChest" /> class.</summary>
@@ -43,7 +43,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="genericModConfigMenuIntegration">Dependency for Generic Mod Config Menu integration.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
-    /// <param name="menuManager">Dependency used for managing the current menu.</param>
+    /// <param name="menuHandler">Dependency used for managing the current menu.</param>
     /// <param name="localizedTextManager">Dependency used for formatting and translating text.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
@@ -56,7 +56,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         IEventManager eventManager,
         GenericModConfigMenuIntegration genericModConfigMenuIntegration,
         IInputHelper inputHelper,
-        MenuManager menuManager,
+        MenuHandler menuHandler,
         LocalizedTextManager localizedTextManager,
         ILog log,
         IManifest manifest,
@@ -68,7 +68,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         this.containerFactory = containerFactory;
         this.genericModConfigMenuIntegration = genericModConfigMenuIntegration;
         this.inputHelper = inputHelper;
-        this.menuManager = menuManager;
+        this.menuHandler = menuHandler;
         this.localizedTextManager = localizedTextManager;
         this.manifest = manifest;
         this.patchManager = patchManager;
@@ -195,7 +195,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     {
         if (!this.isActive.Value
             || e.Button is not (SButton.MouseLeft or SButton.ControllerA)
-            || !this.menuManager.CanFocus(this))
+            || !this.menuHandler.CanFocus(this))
         {
             return;
         }
@@ -206,8 +206,8 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             return;
         }
 
-        this.lastContainer.Value = this.menuManager.Top.Container;
-        this.lastContainer.Value ??= this.menuManager.Bottom.Container;
+        this.lastContainer.Value = this.menuHandler.Top.Container;
+        this.lastContainer.Value ??= this.menuHandler.Bottom.Container;
         if (this.lastContainer.Value is null)
         {
             return;
@@ -234,10 +234,10 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     [Priority(1000)]
     private void OnInventoryMenuChanged(InventoryMenuChangedEventArgs e)
     {
-        switch (this.menuManager.CurrentMenu)
+        switch (this.menuHandler.CurrentMenu)
         {
             case ItemGrabMenu itemGrabMenu:
-                if (this.menuManager.Top.Container?.Options.ConfigureChest != FeatureOption.Enabled)
+                if (this.menuHandler.Top.Container?.Options.ConfigureChest != FeatureOption.Enabled)
                 {
                     this.isActive.Value = false;
                     return;
@@ -248,7 +248,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
                 return;
 
             case InventoryPage inventoryPage:
-                if (this.menuManager.Bottom.Container?.Options.ConfigureChest != FeatureOption.Enabled)
+                if (this.menuHandler.Bottom.Container?.Options.ConfigureChest != FeatureOption.Enabled)
                 {
                     this.isActive.Value = false;
                     return;
@@ -318,7 +318,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             return;
         }
 
-        switch (this.menuManager.CurrentMenu)
+        switch (this.menuHandler.CurrentMenu)
         {
             case ItemGrabMenu itemGrabMenu:
                 itemGrabMenu.hoverText = this.configButton.Value.hoverText;
@@ -379,7 +379,26 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             I18n.Config_StorageName_Name,
             I18n.Config_StorageName_Tooltip);
 
-        if (this.lastContainer.Value.Options.StashToChest is not (RangeOption.Disabled or RangeOption.Default))
+        gmcm.AddTextOption(
+            this.manifest,
+            () => options.StorageIcon,
+            value => options.StorageIcon = value,
+            I18n.Config_StorageIcon_Name,
+            I18n.Config_StorageIcon_Tooltip);
+
+        // Access Chest Priority
+        if (this.lastContainer.Value.Options.AccessChest is not RangeOption.Disabled)
+        {
+            gmcm.AddNumberOption(
+                this.manifest,
+                () => options.AccessChestPriority,
+                value => options.AccessChestPriority = value,
+                I18n.Config_AccessChestPriority_Name,
+                I18n.Config_AccessChestPriority_Tooltip);
+        }
+
+        // Stash to Chest Priority
+        if (this.lastContainer.Value.Options.StashToChest is not RangeOption.Disabled)
         {
             gmcm.AddNumberOption(
                 this.manifest,
@@ -394,7 +413,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         }
 
         // Categorize Chest
-        if (this.lastContainer.Value.Options.CategorizeChest is not (FeatureOption.Disabled or FeatureOption.Default))
+        if (this.lastContainer.Value.Options.CategorizeChest is not FeatureOption.Disabled)
         {
             gmcm.AddTextOption(
                 this.manifest,
@@ -431,7 +450,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             }
 
             chestContainer.Chest.fridge.Value =
-                this.lastContainer.Value.Options.CookFromChest is not (RangeOption.Default or RangeOption.Disabled);
+                this.lastContainer.Value.Options.CookFromChest is not RangeOption.Disabled;
         }
     }
 }
