@@ -1,15 +1,28 @@
 ﻿# Better Chests Change Log
 
-## 2.18.0 (Planned)
+## 2.19.0 (Planned)
 
 ### Added
 
 * Added visual editors for configuring storage options.
-* Added support for copy and paste into search bar.
+
+## 2.18.0 (Unreleased)
+
+### Added
+
+* Added Access Chest Priority to configure sort/access order.
+* Added configurable icons that can be assigned to storages.
+* Added Name and Icon as info that can be displayed for storages.
+* Added support for storage furniture.
 
 ### Changed
 
-* Remove textbox limit for search.
+* When a storage is given a unique name, the dropdown will no longer show the location/tile.
+* Group storage type config options into separate pages for each storage type.
+
+### Fixed
+
+* Updated menu relaunch method to avoid breaking Chests Anywhere detection.
 
 ## 2.17.1 (May 2, 2024)
 
@@ -17,6 +30,11 @@
 
 * Initialize storage name from latent mod data.
 * Added support for copy+paste into search bar.
+* Added support for copy and paste into search bar.
+
+### Changed
+
+* Remove textbox limit for search.
 
 ## 2.17.0 (May 1, 2024)
 
