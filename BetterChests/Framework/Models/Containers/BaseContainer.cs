@@ -25,6 +25,34 @@ internal abstract class BaseContainer<TSource> : BaseContainer, IStorageContaine
 
     /// <inheritdoc />
     public abstract WeakReference<TSource> Source { get; }
+
+    /// <inheritdoc />
+    protected override ItemGrabMenu GetItemGrabMenu(
+        bool playSound = false,
+        bool reverseGrab = false,
+        bool showReceivingMenu = true,
+        bool snapToBottom = false,
+        bool canBeExitedWithKey = true,
+        bool playRightClickSound = true,
+        bool allowRightClick = true,
+        bool showOrganizeButton = true,
+        int source = ItemGrabMenu.source_chest,
+        Item? sourceItem = null,
+        int whichSpecialButton = -1,
+        object? context = null) =>
+        base.GetItemGrabMenu(
+            playSound,
+            reverseGrab,
+            showReceivingMenu,
+            snapToBottom,
+            canBeExitedWithKey,
+            playRightClickSound,
+            allowRightClick,
+            showOrganizeButton,
+            source,
+            sourceItem,
+            whichSpecialButton,
+            this.Source.TryGetTarget(out var target) ? target : context);
 }
 
 /// <inheritdoc />
@@ -67,9 +95,6 @@ internal abstract class BaseContainer : IStorageContainer
     public abstract GameLocation Location { get; }
 
     /// <inheritdoc />
-    public virtual Item? SourceItem => null;
-
-    /// <inheritdoc />
     public abstract Vector2 TileLocation { get; }
 
     /// <inheritdoc />
@@ -96,31 +121,8 @@ internal abstract class BaseContainer : IStorageContainer
     }
 
     /// <inheritdoc />
-    public virtual void ShowMenu(bool playSound = false)
-    {
-        if (playSound)
-        {
-            Game1.player.currentLocation.localSound("openChest");
-        }
-
-        Game1.activeClickableMenu = new ItemGrabMenu(
-            this.Items,
-            false,
-            true,
-            this.HighlightItems,
-            this.GrabItemFromInventory,
-            null,
-            this.GrabItemFromChest,
-            false,
-            true,
-            true,
-            true,
-            true,
-            1,
-            this.SourceItem,
-            -1,
-            this);
-    }
+    public virtual void ShowMenu(bool playSound = false) =>
+        Game1.activeClickableMenu = this.GetItemGrabMenu(playSound, context: this);
 
     /// <inheritdoc />
     public abstract bool TryAdd(Item item, out Item? remaining);
@@ -194,15 +196,73 @@ internal abstract class BaseContainer : IStorageContainer
     /// <inheritdoc />
     public override string ToString()
     {
+        if (!string.IsNullOrWhiteSpace(this.Options.StorageName))
+        {
+            return this.Options.StorageName.Trim();
+        }
+
         var sb = new StringBuilder();
 
-        sb.Append(
-            !string.IsNullOrWhiteSpace(this.Options.StorageName) ? this.Options.StorageName.Trim() : this.DisplayName);
-
+        sb.Append(this.DisplayName);
         sb.Append(" at ");
         sb.Append(this.Location?.DisplayName ?? "Unknown");
         sb.Append(CultureInfo.InvariantCulture, $"({this.TileLocation.X:n0}, {this.TileLocation.Y:n0})");
         return sb.ToString();
+    }
+
+    /// <summary>Opens an item grab menu for this container.</summary>
+    /// <param name="playSound">Whether to play the container open sound.</param>
+    /// <param name="reverseGrab">Indicates if an item can be held rather than placed back into the chest.</param>
+    /// <param name="showReceivingMenu">Indicates whether the top menu is displayed.</param>
+    /// <param name="snapToBottom">Indicates whether the menu will be moved to the bottom of the screen.</param>
+    /// <param name="canBeExitedWithKey">Indicates whether the menu can be exited with the menu key.</param>
+    /// <param name="playRightClickSound">Indicates whether sound can be played on right-click.</param>
+    /// <param name="allowRightClick">Indicates whether right-click can be used for interactions other than tool attachments.</param>
+    /// <param name="showOrganizeButton">Indicates whether the organize button will be shown.</param>
+    /// <param name="source">
+    /// Indicates the source of the <see cref="ItemGrabMenu" />. (0 - none, 1 - chest, 2 - gift, 3 -
+    /// fishing chest, 4 - overflow).
+    /// </param>
+    /// <param name="sourceItem">The source item of the <see cref="ItemGrabMenu" />.</param>
+    /// <param name="whichSpecialButton">Indicates whether the Junimo toggle button will be shown.</param>
+    /// <param name="context">The context of the <see cref="ItemGrabMenu" />.</param>
+    /// <returns>The <see cref="ItemGrabMenu" />.</returns>
+    protected virtual ItemGrabMenu GetItemGrabMenu(
+        bool playSound = false,
+        bool reverseGrab = false,
+        bool showReceivingMenu = true,
+        bool snapToBottom = false,
+        bool canBeExitedWithKey = true,
+        bool playRightClickSound = true,
+        bool allowRightClick = true,
+        bool showOrganizeButton = true,
+        int source = ItemGrabMenu.source_chest,
+        Item? sourceItem = null,
+        int whichSpecialButton = -1,
+        object? context = null)
+    {
+        if (playSound)
+        {
+            Game1.player.currentLocation.localSound("openChest");
+        }
+
+        return new ItemGrabMenu(
+            this.Items,
+            reverseGrab,
+            showReceivingMenu,
+            this.HighlightItems,
+            this.GrabItemFromInventory,
+            null,
+            this.GrabItemFromChest,
+            snapToBottom,
+            canBeExitedWithKey,
+            playRightClickSound,
+            allowRightClick,
+            showOrganizeButton,
+            source,
+            sourceItem,
+            whichSpecialButton,
+            context);
     }
 
     private IStorageOptions InitializeStorageOptions()
@@ -219,7 +279,7 @@ internal abstract class BaseContainer : IStorageContainer
             child.StorageName = $"{category} - {name}";
         }
 
-        return new ChildStorageOptions(GetParent, child);
+        return new ChildStorageOptions(GetParent, () => child);
 
         IStorageOptions GetParent() => this.baseOptions;
     }

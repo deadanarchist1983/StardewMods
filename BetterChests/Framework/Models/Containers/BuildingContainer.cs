@@ -34,7 +34,6 @@ internal sealed class BuildingContainer : BaseContainer<Building>
         this.Source = new WeakReference<Building>(shippingBin);
 
     /// <summary>Gets the source building of the container.</summary>
-    /// <exception cref="ObjectDisposedException">Thrown when the Building is disposed.</exception>
     public Building Building =>
         this.Source.TryGetTarget(out var target)
             ? target
@@ -72,58 +71,20 @@ internal sealed class BuildingContainer : BaseContainer<Building>
     {
         var itemGrabMenu = this.Building switch
         {
-            ShippingBin when this.Options.ResizeChest is ChestMenuOption.Default or ChestMenuOption.Disabled =>
-                new ItemGrabMenu(
-                    null,
-                    true,
-                    false,
-                    this.HighlightItems,
-                    this.GrabItemFromInventory,
-                    null,
-                    null,
-                    true,
-                    true,
-                    false,
-                    true,
-                    false,
-                    0,
-                    null,
-                    -1,
-                    this),
-            ShippingBin => new ItemGrabMenu(
-                this.Items,
-                false,
-                true,
-                this.HighlightItems,
-                this.GrabItemFromInventory,
-                null,
-                this.GrabItemFromChest,
-                false,
-                true,
-                true,
-                true,
-                true,
-                0,
-                null,
-                -1,
-                this),
-            JunimoHut => new ItemGrabMenu(
-                this.Items,
-                false,
-                true,
-                this.HighlightItems,
-                this.GrabItemFromInventory,
-                null,
-                this.GrabItemFromChest,
-                false,
-                true,
-                true,
-                true,
-                true,
-                1,
-                null,
-                1,
-                this.Building),
+            // Vanilla Shipping Bin
+            ShippingBin when this.Options.ResizeChest is ChestMenuOption.Disabled => this.GetItemGrabMenu(
+                reverseGrab: true,
+                showReceivingMenu: false,
+                snapToBottom: true,
+                playRightClickSound: false,
+                showOrganizeButton: false,
+                source: ItemGrabMenu.source_none),
+
+            // Shipping Bin with Chest Menu
+            ShippingBin => this.GetItemGrabMenu(source: ItemGrabMenu.source_none, context: Game1.getFarm()),
+
+            // Junimo Hut
+            JunimoHut => this.GetItemGrabMenu(whichSpecialButton: ItemGrabMenu.specialButton_junimotoggle),
             _ => null,
         };
 
@@ -133,8 +94,13 @@ internal sealed class BuildingContainer : BaseContainer<Building>
             return;
         }
 
-        if (this.Building is ShippingBin
-            && this.Options.ResizeChest is ChestMenuOption.Default or ChestMenuOption.Disabled)
+        if (this.Building is not ShippingBin)
+        {
+            Game1.activeClickableMenu = itemGrabMenu;
+            return;
+        }
+
+        if (this.Options.ResizeChest is ChestMenuOption.Disabled)
         {
             itemGrabMenu.initializeUpperRightCloseButton();
             itemGrabMenu.setBackgroundTransparency(b: false);
@@ -142,6 +108,7 @@ internal sealed class BuildingContainer : BaseContainer<Building>
             itemGrabMenu.initializeShippingBin();
         }
 
+        itemGrabMenu.inventory.moveItemSound = "Ship";
         Game1.activeClickableMenu = itemGrabMenu;
     }
 
@@ -189,6 +156,19 @@ internal sealed class BuildingContainer : BaseContainer<Building>
         this.Items.Remove(item);
         this.Items.RemoveEmptySlots();
         return true;
+    }
+
+    /// <inheritdoc />
+    public override void GrabItemFromInventory(Item? item, Farmer who)
+    {
+        if (this.Building is not ShippingBin)
+        {
+            base.GrabItemFromInventory(item, who);
+            return;
+        }
+
+        Game1.playSound("Ship");
+        base.GrabItemFromInventory(item, who);
     }
 
     /// <inheritdoc />

@@ -26,5 +26,6 @@ internal sealed class FridgeContainer : ChestContainer
     public override ModDataDictionary ModData => this.Location.modData;
 
     /// <inheritdoc />
-    public override Item? SourceItem => null;
+    public override void ShowMenu(bool playSound = false) =>
+        Game1.activeClickableMenu = this.GetItemGrabMenu(playSound, sourceItem: null);
 }

@@ -46,7 +46,16 @@ internal class ChestContainer : BaseContainer<Chest>
     public override WeakReference<Chest> Source { get; }
 
     /// <inheritdoc />
-    public override Item? SourceItem => this.Chest;
+    public override void ShowMenu(bool playSound = false)
+    {
+        var itemGrabMenu = this.GetItemGrabMenu(playSound, sourceItem: this.Chest);
+        if (this.Chest.SpecialChestType is Chest.SpecialChestTypes.MiniShippingBin)
+        {
+            itemGrabMenu.inventory.moveItemSound = "Ship";
+        }
+
+        Game1.activeClickableMenu = itemGrabMenu;
+    }
 
     /// <inheritdoc />
     public override bool TryAdd(Item item, out Item? remaining)

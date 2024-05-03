@@ -48,9 +48,6 @@ internal class ChildContainer : IStorageContainer
     public GameLocation Location => this.child.Location ?? this.parent.Location;
 
     /// <inheritdoc />
-    public Item? SourceItem => this.child.SourceItem ?? this.Parent.SourceItem;
-
-    /// <inheritdoc />
     public Vector2 TileLocation =>
         this.child.TileLocation.Equals(Vector2.Zero) ? this.parent.TileLocation : this.child.TileLocation;
 

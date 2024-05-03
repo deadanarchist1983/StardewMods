@@ -5,7 +5,10 @@ using StardewValley.Inventories;
 using StardewValley.Mods;
 using StardewValley.Network;
 
-/// <summary>An instance of a game object that can store items.</summary>
+/// <summary>
+/// A container is the vessel which storage is attached to. It can be anything that can be associated with
+/// items, a location, tile position, and has mod data.
+/// </summary>
 public interface IStorageContainer
 {
     /// <summary>Gets the name of the container.</summary>
@@ -25,9 +28,6 @@ public interface IStorageContainer
 
     /// <summary>Gets the game location of an object.</summary>
     GameLocation Location { get; }
-
-    /// <summary>Gets the source item of the container.</summary>
-    Item? SourceItem { get; }
 
     /// <summary>Gets the tile location of an object.</summary>
     Vector2 TileLocation { get; }
