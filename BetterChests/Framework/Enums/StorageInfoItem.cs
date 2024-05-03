@@ -4,30 +4,35 @@ using NetEscapades.EnumGenerators;
 
 /// <summary>Represents the info that can be displayed about storages.</summary>
 [EnumExtensions]
-[Flags]
 internal enum StorageInfoItem
 {
+    /// <summary>The storage name.</summary>
+    Name,
+
+    /// <summary>The storage icon.</summary>
+    Icon,
+
     /// <summary>The name or type of storage.</summary>
-    Type = 1 << 0,
+    Type,
 
     /// <summary>The location of the storage.</summary>
-    Location = 1 << 1,
+    Location,
 
     /// <summary>The position of the storage.</summary>
-    Position = 1 << 2,
+    Position,
 
     /// <summary>The farmer whose inventory contains the storage.</summary>
-    Inventory = 1 << 3,
+    Inventory,
 
     /// <summary>The number of item stacks and slots in the storage.</summary>
-    Capacity = 1 << 4,
+    Capacity,
 
     /// <summary>The total items in the storage.</summary>
-    TotalItems = 1 << 5,
+    TotalItems,
 
     /// <summary>The number of unique items in the storage.</summary>
-    UniqueItems = 1 << 6,
+    UniqueItems,
 
     /// <summary>The total value of items in the storage.</summary>
-    TotalValue = 1 << 7,
+    TotalValue,
 }

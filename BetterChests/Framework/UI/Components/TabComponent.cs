@@ -17,10 +17,10 @@ internal sealed class TabComponent : ClickableComponent
     /// <summary>Initializes a new instance of the <see cref="TabComponent" /> class.</summary>
     /// <param name="x">The x-coordinate of the tab component.</param>
     /// <param name="y">The y-coordinate of the tab component.</param>
-    /// <param name="tabIcon">The tab icon.</param>
+    /// <param name="icon">The tab icon.</param>
     /// <param name="tabData">The inventory tab data.</param>
     /// <param name="onClick">Action to perform when clicked.</param>
-    public TabComponent(int x, int y, TabIcon tabIcon, TabData tabData, Action onClick)
+    public TabComponent(int x, int y, Icon icon, TabData tabData, Action onClick)
         : base(
             new Rectangle(x, y, Game1.tileSize, Game1.tileSize),
             ((int)Math.Pow(y, 2) + x).ToString(CultureInfo.InvariantCulture),
@@ -32,8 +32,8 @@ internal sealed class TabComponent : ClickableComponent
         this.origin = new Vector2(x, y);
         this.icon = new ClickableTextureComponent(
             new Rectangle(x, y, Game1.tileSize, Game1.tileSize),
-            Game1.content.Load<Texture2D>(tabIcon.Path),
-            tabIcon.Area,
+            Game1.content.Load<Texture2D>(icon.Path),
+            icon.Area,
             Game1.pixelZoom);
 
         var textBounds = Game1.smallFont.MeasureString(tabData.Label).ToPoint();

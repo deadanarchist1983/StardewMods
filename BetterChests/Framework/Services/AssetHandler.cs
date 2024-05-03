@@ -28,7 +28,7 @@ internal sealed class AssetHandler : BaseService
     private Texture2D? hslTexture;
     private Color[]? hslTextureData;
 
-    private Dictionary<string, TabIcon>? icons;
+    private Dictionary<string, Icon>? icons;
 
     /// <summary>Initializes a new instance of the <see cref="AssetHandler" /> class.</summary>
     /// <param name="eventSubscriber">Dependency used for subscribing to events.</param>
@@ -83,7 +83,7 @@ internal sealed class AssetHandler : BaseService
     public Texture2D HslTexture => this.hslTexture ??= this.gameContentHelper.Load<Texture2D>(this.hslTexturePath);
 
     /// <summary>Gets the tab icons.</summary>
-    public Dictionary<string, TabIcon> Icons
+    public Dictionary<string, Icon> Icons
     {
         get
         {
@@ -92,7 +92,7 @@ internal sealed class AssetHandler : BaseService
                 return this.icons;
             }
 
-            this.icons = this.gameContentHelper.Load<Dictionary<string, TabIcon>>(this.iconsPath);
+            this.icons = this.gameContentHelper.Load<Dictionary<string, Icon>>(this.iconsPath);
             foreach (var (id, icon) in this.icons)
             {
                 icon.Id = id;
@@ -116,11 +116,11 @@ internal sealed class AssetHandler : BaseService
         if (e.Name.IsEquivalentTo(this.iconsPath))
         {
             e.LoadFrom(
-                () => new Dictionary<string, TabIcon>
+                () => new Dictionary<string, Icon>
                 {
                     {
                         this.ModId + "/Clothing",
-                        new TabIcon
+                        new Icon
                         {
                             Path = this.modContentHelper.GetInternalAssetName("assets/icons.png").Name,
                             Area = new Rectangle(0, 0, 16, 16),
@@ -128,7 +128,7 @@ internal sealed class AssetHandler : BaseService
                     },
                     {
                         this.ModId + "/Cooking",
-                        new TabIcon
+                        new Icon
                         {
                             Path = this.modContentHelper.GetInternalAssetName("assets/icons.png").Name,
                             Area = new Rectangle(16, 0, 16, 16),
@@ -136,7 +136,7 @@ internal sealed class AssetHandler : BaseService
                     },
                     {
                         this.ModId + "/Crops",
-                        new TabIcon
+                        new Icon
                         {
                             Path = this.modContentHelper.GetInternalAssetName("assets/icons.png").Name,
                             Area = new Rectangle(32, 0, 16, 16),
@@ -144,7 +144,7 @@ internal sealed class AssetHandler : BaseService
                     },
                     {
                         this.ModId + "/Equipment",
-                        new TabIcon
+                        new Icon
                         {
                             Path = this.modContentHelper.GetInternalAssetName("assets/icons.png").Name,
                             Area = new Rectangle(48, 0, 16, 16),
@@ -152,7 +152,7 @@ internal sealed class AssetHandler : BaseService
                     },
                     {
                         this.ModId + "/Fishing",
-                        new TabIcon
+                        new Icon
                         {
                             Path = this.modContentHelper.GetInternalAssetName("assets/icons.png").Name,
                             Area = new Rectangle(64, 0, 16, 16),
@@ -160,7 +160,7 @@ internal sealed class AssetHandler : BaseService
                     },
                     {
                         this.ModId + "/Materials",
-                        new TabIcon
+                        new Icon
                         {
                             Path = this.modContentHelper.GetInternalAssetName("assets/icons.png").Name,
                             Area = new Rectangle(80, 0, 16, 16),
@@ -168,7 +168,7 @@ internal sealed class AssetHandler : BaseService
                     },
                     {
                         this.ModId + "/Miscellaneous",
-                        new TabIcon
+                        new Icon
                         {
                             Path = this.modContentHelper.GetInternalAssetName("assets/icons.png").Name,
                             Area = new Rectangle(96, 0, 16, 16),
@@ -176,7 +176,7 @@ internal sealed class AssetHandler : BaseService
                     },
                     {
                         this.ModId + "/Seeds",
-                        new TabIcon
+                        new Icon
                         {
                             Path = this.modContentHelper.GetInternalAssetName("assets/icons.png").Name,
                             Area = new Rectangle(112, 0, 16, 16),
@@ -204,7 +204,7 @@ internal sealed class AssetHandler : BaseService
 
                         bigCraftableData.CustomFields ??= new Dictionary<string, string>();
                         var customFieldStorageOptions =
-                            new CustomFieldsStorageOptions(_ => bigCraftableData.CustomFields);
+                            new CustomFieldsStorageOptions(() => bigCraftableData.CustomFields);
 
                         var temporaryStorageOptions = new TemporaryStorageOptions(
                             customFieldStorageOptions,
@@ -233,7 +233,7 @@ internal sealed class AssetHandler : BaseService
                         }
 
                         buildingData.CustomFields ??= new Dictionary<string, string>();
-                        var customFieldStorageOptions = new CustomFieldsStorageOptions(_ => buildingData.CustomFields);
+                        var customFieldStorageOptions = new CustomFieldsStorageOptions(() => buildingData.CustomFields);
                         var temporaryStorageOptions = new TemporaryStorageOptions(
                             customFieldStorageOptions,
                             storageOptions);
@@ -261,7 +261,7 @@ internal sealed class AssetHandler : BaseService
                         }
 
                         locationData.CustomFields ??= new Dictionary<string, string>();
-                        var customFieldStorageOptions = new CustomFieldsStorageOptions(_ => locationData.CustomFields);
+                        var customFieldStorageOptions = new CustomFieldsStorageOptions(() => locationData.CustomFields);
                         var temporaryStorageOptions = new TemporaryStorageOptions(
                             customFieldStorageOptions,
                             storageOptions);

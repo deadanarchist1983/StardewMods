@@ -16,21 +16,22 @@ internal static class Extensions
         action(nameof(config.AccessChestsShowArrows), config.AccessChestsShowArrows);
         action(nameof(config.CarryChestLimit), config.CarryChestLimit);
         action(nameof(config.CarryChestSlowAmount), config.CarryChestSlowAmount);
+        action(nameof(config.CarryChestSlowLimit), config.CarryChestSlowLimit);
         action(nameof(config.CraftFromChestDisableLocations), config.CraftFromChestDisableLocations);
         action(nameof(config.HslColorPickerHueSteps), config.HslColorPickerHueSteps);
         action(nameof(config.HslColorPickerSaturationSteps), config.HslColorPickerSaturationSteps);
         action(nameof(config.HslColorPickerLightnessSteps), config.HslColorPickerLightnessSteps);
-        action(nameof(config.HslColorPickerLightnessSteps), config.HslColorPickerLightnessSteps);
+        action(nameof(config.HslColorPickerPlacement), config.HslColorPickerPlacement);
         action(nameof(config.InventoryTabList), config.InventoryTabList);
         action(nameof(config.LockItem), config.LockItem);
         action(nameof(config.LockItemHold), config.LockItemHold);
         action(nameof(config.SearchItemsMethod), config.SearchItemsMethod);
         action(nameof(config.StashToChestDisableLocations), config.StashToChestDisableLocations);
+        action(nameof(config.StorageInfoHoverItems), config.StorageInfoHoverItems);
+        action(nameof(config.StorageInfoMenuItems), config.StorageInfoMenuItems);
         action(nameof(config.Controls), config.Controls);
         action(nameof(config.DefaultOptions), config.DefaultOptions);
         action(nameof(config.StorageOptions), config.StorageOptions);
-        action(nameof(config.StorageInfoHoverItems), config.StorageInfoHoverItems);
-        action(nameof(config.StorageInfoMenuItems), config.StorageInfoMenuItems);
     }
 
     /// <summary>Executes the specified action for each option in the class.</summary>
@@ -39,6 +40,7 @@ internal static class Extensions
     public static void ForEachOption(this IStorageOptions options, Action<string, object> action)
     {
         action(nameof(options.AccessChest), options.AccessChest);
+        action(nameof(options.AccessChestPriority), options.AccessChestPriority);
         action(nameof(options.AutoOrganize), options.AutoOrganize);
         action(nameof(options.CarryChest), options.CarryChest);
         action(nameof(options.CategorizeChest), options.CategorizeChest);
@@ -63,6 +65,7 @@ internal static class Extensions
         action(nameof(options.StashToChest), options.StashToChest);
         action(nameof(options.StashToChestDistance), options.StashToChestDistance);
         action(nameof(options.StashToChestPriority), options.StashToChestPriority);
+        action(nameof(options.StorageIcon), options.StorageIcon);
         action(nameof(options.StorageInfo), options.StorageInfo);
         action(nameof(options.StorageInfoHover), options.StorageInfoHover);
         action(nameof(options.StorageName), options.StorageName);
@@ -160,6 +163,7 @@ internal static class Extensions
         {
             nameof(options.CategorizeChestSearchTerm) => options.CategorizeChestSearchTerm,
             nameof(options.SortInventoryBy) => options.SortInventoryBy,
+            nameof(options.StorageIcon) => options.StorageIcon,
             nameof(options.StorageName) => options.StorageName,
             _ => throw new ArgumentOutOfRangeException(name),
         };
@@ -176,6 +180,7 @@ internal static class Extensions
     {
         value = name switch
         {
+            nameof(options.AccessChestPriority) => options.AccessChestPriority,
             nameof(options.CraftFromChestDistance) => options.CraftFromChestDistance,
             nameof(options.ResizeChestCapacity) => options.ResizeChestCapacity,
             nameof(options.StashToChestDistance) => options.StashToChestDistance,
@@ -283,6 +288,9 @@ internal static class Extensions
             case nameof(options.SortInventoryBy):
                 options.SortInventoryBy = value;
                 return;
+            case nameof(options.StorageIcon):
+                options.StorageIcon = value;
+                return;
             case nameof(options.StorageName):
                 options.StorageName = value;
                 return;
@@ -298,6 +306,9 @@ internal static class Extensions
     {
         switch (name)
         {
+            case nameof(options.AccessChestPriority):
+                options.AccessChestPriority = value;
+                return;
             case nameof(options.CraftFromChestDistance):
                 options.CraftFromChestDistance = value;
                 return;

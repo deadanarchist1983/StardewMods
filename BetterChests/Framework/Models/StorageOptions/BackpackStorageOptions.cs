@@ -25,6 +25,13 @@ internal sealed class BackpackStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
+    public int AccessChestPriority
+    {
+        get => this.storageOptions.AccessChestPriority;
+        set => this.storageOptions.AccessChestPriority = value;
+    }
+
+    /// <inheritdoc />
     public FeatureOption AutoOrganize
     {
         get => this.storageOptions.AutoOrganize;
@@ -71,6 +78,13 @@ internal sealed class BackpackStorageOptions : IStorageOptions
     {
         get => this.storageOptions.ChestFinder;
         set => this.storageOptions.ChestFinder = value;
+    }
+
+    /// <inheritdoc />
+    public string StorageIcon
+    {
+        get => this.storageOptions.StorageIcon;
+        set => this.storageOptions.StorageIcon = value;
     }
 
     /// <inheritdoc />

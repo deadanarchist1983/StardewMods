@@ -8,6 +8,9 @@ public interface IStorageOptions
     /// <summary>Gets or sets a value indicate if chests can be remotely accessed.</summary>
     public RangeOption AccessChest { get; set; }
 
+    /// <summary>Gets or sets a value indicating the priority that chests will be accessed.</summary>
+    public int AccessChestPriority { get; set; }
+
     /// <summary>Gets or sets a value indicating if the chest can be automatically organized overnight.</summary>
     public FeatureOption AutoOrganize { get; set; }
 
@@ -79,6 +82,9 @@ public interface IStorageOptions
 
     /// <summary>Gets or sets a value indicating the priority that chests will be stashed into.</summary>
     public StashPriority StashToChestPriority { get; set; }
+
+    /// <summary>Gets or sets an icon to use for the storage.</summary>
+    public string StorageIcon { get; set; }
 
     /// <summary>Gets or sets a value indicating whether info will be displayed about the chest.</summary>
     public FeatureOption StorageInfo { get; set; }

@@ -23,6 +23,13 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
+    public int AccessChestPriority
+    {
+        get => this.Get(IntegerKey.AccessChestPriority);
+        set => this.Set(IntegerKey.AccessChestPriority, value);
+    }
+
+    /// <inheritdoc />
     public FeatureOption AutoOrganize
     {
         get => this.Get(OptionKey.AutoOrganize);
@@ -197,6 +204,13 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
+    public string StorageIcon
+    {
+        get => this.Get(StringKey.StorageIcon);
+        set => this.Set(StringKey.StorageIcon, value);
+    }
+
+    /// <inheritdoc />
     public FeatureOption StorageInfo
     {
         get => this.Get(OptionKey.StorageInfo);
@@ -349,6 +363,7 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
     [EnumExtensions]
     internal enum IntegerKey
     {
+        AccessChestPriority,
         CraftFromChestDistance,
         ResizeChestCapacity,
         StashToChestDistance,
@@ -391,6 +406,7 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
         ResizeChest,
         SortInventoryBy,
         StashToChestPriority,
+        StorageIcon,
         StorageName,
     }
 }

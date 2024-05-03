@@ -12,6 +12,9 @@ internal class DefaultStorageOptions : IStorageOptions
     public RangeOption AccessChest { get; set; } = RangeOption.Default;
 
     /// <inheritdoc />
+    public int AccessChestPriority { get; set; }
+
+    /// <inheritdoc />
     public FeatureOption AutoOrganize { get; set; } = FeatureOption.Default;
 
     /// <inheritdoc />
@@ -82,6 +85,9 @@ internal class DefaultStorageOptions : IStorageOptions
 
     /// <inheritdoc />
     public StashPriority StashToChestPriority { get; set; }
+
+    /// <inheritdoc />
+    public string StorageIcon { get; set; } = string.Empty;
 
     /// <inheritdoc />
     public FeatureOption StorageInfo { get; set; } = FeatureOption.Default;

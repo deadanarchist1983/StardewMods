@@ -3,7 +3,7 @@ namespace StardewMods.BetterChests.Framework.Models;
 using Microsoft.Xna.Framework;
 
 /// <summary>Represents an icon on a sprite sheet.</summary>
-internal sealed class TabIcon
+internal sealed class Icon
 {
     /// <summary>Gets or sets the id of the tab icon.</summary>
     public string Id { get; set; } = string.Empty;

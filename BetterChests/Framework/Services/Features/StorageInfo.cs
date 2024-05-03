@@ -1,7 +1,9 @@
 namespace StardewMods.BetterChests.Framework.Services.Features;
 
+using System.Globalization;
 using System.Text;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewMods.BetterChests.Framework.Enums;
@@ -22,35 +24,40 @@ internal sealed class StorageInfo : BaseFeature<StorageInfo>
     private static readonly Lazy<int> LineHeight =
         new(() => (int)Game1.smallFont.MeasureString(StorageInfo.AlphaNumeric).Y);
 
+    private readonly AssetHandler assetHandler;
+
     private readonly PerScreen<Dictionary<StorageInfoItem, Info>> cachedInfo = new(() => []);
     private readonly ContainerFactory containerFactory;
     private readonly PerScreen<IStorageContainer?> currentContainer = new();
     private readonly IInputHelper inputHelper;
     private readonly PerScreen<bool> isActive = new();
-    private readonly MenuManager menuManager;
+    private readonly MenuHandler menuHandler;
     private readonly PerScreen<bool> resetCache = new(() => true);
 
     /// <summary>Initializes a new instance of the <see cref="StorageInfo" /> class.</summary>
+    /// <param name="assetHandler">Dependency used for handling assets.</param>
     /// <param name="containerFactory">Dependency used for accessing containers.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="log">Dependency used for logging debug information to the console.</param>
     /// <param name="manifest">Dependency for accessing mod manifest.</param>
-    /// <param name="menuManager">Dependency used for managing the current menu.</param>
+    /// <param name="menuHandler">Dependency used for managing the current menu.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
     public StorageInfo(
+        AssetHandler assetHandler,
         ContainerFactory containerFactory,
         IEventManager eventManager,
         IInputHelper inputHelper,
         ILog log,
         IManifest manifest,
-        MenuManager menuManager,
+        MenuHandler menuHandler,
         IModConfig modConfig)
         : base(eventManager, log, manifest, modConfig)
     {
+        this.assetHandler = assetHandler;
         this.containerFactory = containerFactory;
         this.inputHelper = inputHelper;
-        this.menuManager = menuManager;
+        this.menuHandler = menuHandler;
     }
 
     /// <inheritdoc />
@@ -96,12 +103,12 @@ internal sealed class StorageInfo : BaseFeature<StorageInfo>
 
     private void OnRenderedActiveMenu(RenderedActiveMenuEventArgs e)
     {
-        var container = this.menuManager.Top.Container;
+        var container = this.menuHandler.Top.Container;
 
         // Check if active
         if (!this.Config.StorageInfoMenuItems.Any()
             || !this.isActive.Value
-            || this.menuManager.CurrentMenu is null
+            || this.menuHandler.CurrentMenu is null
             || container?.Options.StorageInfo != FeatureOption.Enabled)
         {
             return;
@@ -128,8 +135,8 @@ internal sealed class StorageInfo : BaseFeature<StorageInfo>
             return;
         }
 
-        var x = this.menuManager.CurrentMenu.xPositionOnScreen - (IClickableMenu.borderWidth / 2) - 384;
-        var y = this.menuManager.CurrentMenu.yPositionOnScreen;
+        var x = this.menuHandler.CurrentMenu.xPositionOnScreen - (IClickableMenu.borderWidth / 2) - 384;
+        var y = this.menuHandler.CurrentMenu.yPositionOnScreen;
 
         // Draw background
         Game1.drawDialogueBox(
@@ -156,12 +163,12 @@ internal sealed class StorageInfo : BaseFeature<StorageInfo>
                 0.1f);
 
             // Draw Value
-            if (info.TotalWidth <= 384 - IClickableMenu.borderWidth)
+            if (info.TotalBounds.X <= 384 - IClickableMenu.borderWidth)
             {
                 e.SpriteBatch.DrawString(
                     Game1.smallFont,
                     info.Value,
-                    new Vector2(x + info.NameWidth, y),
+                    new Vector2(x + info.NameBounds.X, y),
                     Game1.textColor);
 
                 y += StorageInfo.LineHeight.Value;
@@ -178,10 +185,12 @@ internal sealed class StorageInfo : BaseFeature<StorageInfo>
     private void OnRenderedHud(RenderedHudEventArgs e)
     {
         // Check if active
-        if (!this.Config.StorageInfoHoverItems.Any()
+        if (!Context.IsPlayerFree
+            || !Game1.displayHUD
+            || !this.Config.StorageInfoHoverItems.Any()
             || !this.containerFactory.TryGetOne(
                 Game1.currentLocation,
-                this.inputHelper.GetCursorPosition().Tile,
+                this.inputHelper.GetCursorPosition().AbsolutePixels / Game1.tileSize,
                 out var container)
             || container.Options.StorageInfoHover != FeatureOption.Enabled)
         {
@@ -205,8 +214,12 @@ internal sealed class StorageInfo : BaseFeature<StorageInfo>
 
         var sb = new StringBuilder();
         var valueWidth = 0;
+        var yOffset = 0;
+        Info? infoIcon = null;
+        var iconPos = Vector2.Zero;
+        var (mouseX, mouseY) = Game1.getMousePosition(true);
 
-        foreach (var infoItem in StorageInfoItemExtensions.GetValues())
+        foreach (var infoItem in this.Config.StorageInfoHoverItems)
         {
             if (!this.Config.StorageInfoHoverItems.Contains(infoItem)
                 || !this.cachedInfo.Value.TryGetValue(infoItem, out var info))
@@ -214,22 +227,69 @@ internal sealed class StorageInfo : BaseFeature<StorageInfo>
                 continue;
             }
 
-            if (valueWidth > 0)
+            if (valueWidth > 0 && (infoIcon is null || !iconPos.Equals(Vector2.Zero)))
             {
                 sb.Append('\n');
+                yOffset += info.TotalBounds.Y;
+            }
+
+            if (infoItem is StorageInfoItem.Icon)
+            {
+                infoIcon = info;
+                continue;
+            }
+
+            if (infoIcon is not null && iconPos.Equals(Vector2.Zero))
+            {
+                sb.Append(CultureInfo.InvariantCulture, $"     {info.Value}");
+                iconPos = new Vector2(mouseX + 32, mouseY + yOffset + 32);
+                valueWidth = Math.Max(valueWidth, info.ValueBounds.X + 44);
+                continue;
             }
 
             sb.Append(info.Value);
-            valueWidth = Math.Max(valueWidth, info.TotalWidth - info.NameWidth + 4);
+            valueWidth = Math.Max(valueWidth, info.ValueBounds.X + 4);
         }
 
         // Draw info
         IClickableMenu.drawHoverText(e.SpriteBatch, sb.ToString(), Game1.smallFont, boxWidthOverride: valueWidth + 32);
+
+        // Draw icon
+        if (infoIcon.HasValue && this.assetHandler.Icons.TryGetValue(infoIcon.Value.Value, out var icon))
+        {
+            e.SpriteBatch.Draw(
+                Game1.content.Load<Texture2D>(icon.Path),
+                iconPos,
+                icon.Area,
+                Color.White,
+                0,
+                Vector2.Zero,
+                Game1.pixelZoom,
+                SpriteEffects.None,
+                1f);
+        }
     }
 
     private void RefreshInfo(IStorageContainer container)
     {
         this.cachedInfo.Value.Clear();
+
+        // Add name
+        if (!string.IsNullOrWhiteSpace(container.Options.StorageName))
+        {
+            this.cachedInfo.Value.TryAdd(
+                StorageInfoItem.Name,
+                new Info(I18n.StorageInfo_Name(), container.Options.StorageName));
+        }
+
+        // Add icon
+        if (!string.IsNullOrWhiteSpace(container.Options.StorageIcon)
+            && this.assetHandler.Icons.ContainsKey(container.Options.StorageIcon))
+        {
+            this.cachedInfo.Value.TryAdd(
+                StorageInfoItem.Icon,
+                new Info(I18n.StorageInfo_Icon(), container.Options.StorageIcon));
+        }
 
         // Add type
         this.cachedInfo.Value.TryAdd(StorageInfoItem.Type, new Info(I18n.StorageInfo_Type(), container.DisplayName));
@@ -294,8 +354,10 @@ internal sealed class StorageInfo : BaseFeature<StorageInfo>
 
         public string Value { get; } = value;
 
-        public int NameWidth { get; } = (int)Game1.smallFont.MeasureString($"{name} ").X;
+        public Point NameBounds { get; } = Game1.smallFont.MeasureString($"{name} ").ToPoint();
 
-        public int TotalWidth { get; } = (int)Game1.smallFont.MeasureString($"{name} {value}").X;
+        public Point ValueBounds { get; } = Game1.smallFont.MeasureString($"{value} ").ToPoint();
+
+        public Point TotalBounds { get; } = Game1.smallFont.MeasureString($"{name} {value}").ToPoint();
     }
 }

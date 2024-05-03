@@ -143,7 +143,11 @@ internal sealed class DefaultConfig : IModConfig
     /// <inheritdoc />
     public HashSet<StorageInfoItem> StorageInfoHoverItems { get; set; } =
     [
-        StorageInfoItem.Type, StorageInfoItem.Capacity, StorageInfoItem.TotalValue,
+        StorageInfoItem.Icon,
+        StorageInfoItem.Name,
+        StorageInfoItem.Type,
+        StorageInfoItem.Capacity,
+        StorageInfoItem.TotalValue,
     ];
 
     /// <inheritdoc />
@@ -203,6 +207,10 @@ internal sealed class DefaultConfig : IModConfig
                         break;
 
                     case HashSet<string> hashSet:
+                        sb.AppendLine(CultureInfo.InvariantCulture, $"{name}: {string.Join(", ", hashSet)}");
+                        break;
+
+                    case HashSet<StorageInfoItem> hashSet:
                         sb.AppendLine(CultureInfo.InvariantCulture, $"{name}: {string.Join(", ", hashSet)}");
                         break;
 
