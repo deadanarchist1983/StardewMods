@@ -24,9 +24,6 @@ public sealed class BetterChestsApi : IBetterChestsApi
     }
 
     /// <inheritdoc />
-    public event EventHandler<EventArgs>? ItemTransferred;
-
-    /// <inheritdoc />
     public IEnumerable<IStorageContainer> GetAllContainers(Func<IStorageContainer, bool>? predicate = default) =>
         this.containerFactory.GetAll(predicate);
 
@@ -67,7 +64,7 @@ public sealed class BetterChestsApi : IBetterChestsApi
 
     /// <inheritdoc />
     public bool TryGetContainerFromMenu([NotNullWhen(true)] out IStorageContainer? container) =>
-        this.containerFactory.TryGetOne(out container);
+        this.containerFactory.TryGetOne(Game1.activeClickableMenu, out container);
 
     /// <inheritdoc />
     public bool TryGetContainerFromPlayer(
