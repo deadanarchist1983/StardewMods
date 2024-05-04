@@ -129,7 +129,7 @@ internal sealed class DefaultConfig : IModConfig
     ];
 
     /// <inheritdoc />
-    public FeatureOption LockItem { get; set; }
+    public FeatureOption LockItem { get; set; } = FeatureOption.Enabled;
 
     /// <inheritdoc />
     public bool LockItemHold { get; set; } = true;
