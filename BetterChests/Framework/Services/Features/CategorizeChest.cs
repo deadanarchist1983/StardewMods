@@ -67,146 +67,142 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
 
     private static IEnumerable<Item> GetItems(Func<Item, bool>? predicate)
     {
-        foreach (var itemType in ItemRegistry.ItemTypes)
+        foreach (var item in GetAll())
         {
-            var definition = ItemRegistry.GetTypeDefinition(itemType.Identifier);
-            foreach (var itemId in itemType.GetAllIds())
+            if (predicate is null || predicate(item))
             {
-                var item = ItemRegistry.Create(itemType.Identifier + itemId);
-                switch (definition)
+                yield return item;
+            }
+
+            if (item is not SObject obj
+                || obj.bigCraftable.Value
+                || item.QualifiedItemId == "(O)447"
+                || item.QualifiedItemId == "(O)812")
+            {
+                continue;
+            }
+
+            // Add silver quality item
+            obj = (SObject)item.getOne();
+            obj.Quality = SObject.medQuality;
+            if (predicate is null || predicate(obj))
+            {
+                yield return obj;
+            }
+
+            // Add gold quality item
+            obj = (SObject)item.getOne();
+            obj.Quality = SObject.highQuality;
+            if (predicate is null || predicate(obj))
+            {
+                yield return obj;
+            }
+
+            // Add iridium quality item
+            obj = (SObject)item.getOne();
+            obj.Quality = SObject.bestQuality;
+            if (predicate is null || predicate(obj))
+            {
+                yield return obj;
+            }
+        }
+
+        yield break;
+
+        IEnumerable<Item> GetAll(bool flavored = true, params string[]? identifiers)
+        {
+            foreach (var itemType in ItemRegistry.ItemTypes)
+            {
+                if (identifiers is not null && identifiers.Any() && !identifiers.Contains(itemType.Identifier))
                 {
-                    case BigCraftableDataDefinition bigCraftableDataDefinition:
-                        if (predicate is null || predicate(item))
-                        {
+                    continue;
+                }
+
+                var definition = ItemRegistry.GetTypeDefinition(itemType.Identifier);
+                foreach (var itemId in itemType.GetAllIds())
+                {
+                    var item = ItemRegistry.Create(itemType.Identifier + itemId);
+                    if (!flavored)
+                    {
+                        yield return item;
+
+                        continue;
+                    }
+
+                    switch (definition)
+                    {
+                        case ObjectDataDefinition objectDataDefinition:
+                            if (item.QualifiedItemId == "(O)340")
+                            {
+                                yield return objectDataDefinition.CreateFlavoredHoney(null);
+
+                                continue;
+                            }
+
+                            var ingredient = item as SObject;
+                            switch (item.Category)
+                            {
+                                case SObject.FruitsCategory:
+                                    yield return objectDataDefinition.CreateFlavoredWine(ingredient);
+                                    yield return objectDataDefinition.CreateFlavoredJelly(ingredient);
+                                    yield return objectDataDefinition.CreateFlavoredDriedFruit(ingredient);
+
+                                    break;
+
+                                case SObject.VegetableCategory:
+                                    yield return objectDataDefinition.CreateFlavoredJuice(ingredient);
+                                    yield return objectDataDefinition.CreateFlavoredPickle(ingredient);
+
+                                    break;
+
+                                case SObject.flowersCategory:
+                                    yield return objectDataDefinition.CreateFlavoredHoney(ingredient);
+
+                                    break;
+
+                                case SObject.FishCategory:
+                                    yield return objectDataDefinition.CreateFlavoredBait(ingredient);
+                                    yield return objectDataDefinition.CreateFlavoredSmokedFish(ingredient);
+
+                                    break;
+
+                                case SObject.sellAtFishShopCategory when item.QualifiedItemId == "(O)812":
+                                    foreach (var fishPondData in DataLoader.FishPondData(Game1.content))
+                                    {
+                                        if (fishPondData.ProducedItems.All(
+                                            producedItem => producedItem.ItemId != item.QualifiedItemId))
+                                        {
+                                            continue;
+                                        }
+
+                                        foreach (var fishPondItem in GetAll(false, "(O)"))
+                                        {
+                                            if (fishPondItem is SObject fishPondObject
+                                                && fishPondData.RequiredTags.All(fishPondItem.HasContextTag))
+                                            {
+                                                yield return objectDataDefinition.CreateFlavoredRoe(fishPondObject);
+                                                yield return objectDataDefinition.CreateFlavoredAgedRoe(fishPondObject);
+                                            }
+                                        }
+                                    }
+
+                                    break;
+                            }
+
+                            if (item.HasContextTag("edible_mushroom"))
+                            {
+                                yield return objectDataDefinition.CreateFlavoredDriedMushroom(item as SObject);
+                            }
+
                             yield return item;
-                        }
 
-                        break;
+                            break;
 
-                    case BootsDataDefinition bootsDataDefinition:
-                        if (predicate is null || predicate(item))
-                        {
+                        default:
                             yield return item;
-                        }
 
-                        break;
-
-                    case FlooringDataDefinition flooringDataDefinition:
-                        if (predicate is null || predicate(item))
-                        {
-                            yield return item;
-                        }
-
-                        break;
-
-                    case FurnitureDataDefinition furnitureDataDefinition:
-                        if (predicate is null || predicate(item))
-                        {
-                            yield return item;
-                        }
-
-                        break;
-
-                    case HatDataDefinition hatDataDefinition:
-                        if (predicate is null || predicate(item))
-                        {
-                            yield return item;
-                        }
-
-                        break;
-
-                    case MannequinDataDefinition mannequinDataDefinition:
-                        if (predicate is null || predicate(item))
-                        {
-                            yield return item;
-                        }
-
-                        break;
-
-                    case ObjectDataDefinition objectDataDefinition:
-                        if (item.QualifiedItemId == "(O)340")
-                        {
-                            item = objectDataDefinition.CreateFlavoredHoney(null);
-                        }
-
-                        var ingredient = item as SObject;
-                        switch (item.Category)
-                        {
-                            case SObject.FruitsCategory:
-                                var wine = objectDataDefinition.CreateFlavoredWine(ingredient);
-                                var jelly = objectDataDefinition.CreateFlavoredJelly(ingredient);
-                                var driedFruit = objectDataDefinition.CreateFlavoredDriedFruit(ingredient);
-                                break;
-
-                            case SObject.VegetableCategory:
-                                var juice = objectDataDefinition.CreateFlavoredJuice(ingredient);
-                                var pickle = objectDataDefinition.CreateFlavoredPickle(ingredient);
-                                break;
-
-                            case SObject.flowersCategory:
-                                var honey = objectDataDefinition.CreateFlavoredHoney(ingredient);
-                                break;
-                        }
-
-                        if (item.HasContextTag("edible_mushroom"))
-                        {
-                            var driedMushroom = objectDataDefinition.CreateFlavoredDriedMushroom(item as SObject);
-                        }
-
-                        if (predicate is null || predicate(item))
-                        {
-                            yield return item;
-                        }
-
-                        break;
-
-                    case PantsDataDefinition pantsDataDefinition:
-                        if (predicate is null || predicate(item))
-                        {
-                            yield return item;
-                        }
-
-                        break;
-
-                    case ShirtDataDefinition shirtDataDefinition:
-                        if (predicate is null || predicate(item))
-                        {
-                            yield return item;
-                        }
-
-                        break;
-
-                    case ToolDataDefinition toolDataDefinition:
-                        if (predicate is null || predicate(item))
-                        {
-                            yield return item;
-                        }
-
-                        break;
-
-                    case TrinketDataDefinition trinketDataDefinition:
-                        if (predicate is null || predicate(item))
-                        {
-                            yield return item;
-                        }
-
-                        break;
-
-                    case WallpaperDataDefinition wallpaperDataDefinition:
-                        if (predicate is null || predicate(item))
-                        {
-                            yield return item;
-                        }
-
-                        break;
-
-                    case WeaponDataDefinition weaponDataDefinition:
-                        if (predicate is null || predicate(item))
-                        {
-                            yield return item;
-                        }
-
-                        break;
+                            break;
+                    }
                 }
             }
         }

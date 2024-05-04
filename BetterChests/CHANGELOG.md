@@ -6,14 +6,15 @@
 
 * Added visual editors for configuring storage options.
 
-## 2.18.0 (Unreleased)
+## 2.18.0 (May 3, 2024)
 
 ### Added
 
 * Added Access Chest Priority to configure sort/access order.
 * Added configurable icons that can be assigned to storages.
 * Added Name and Icon as info that can be displayed for storages.
-* Added support for storage furniture.
+* Added support for storage furniture such as dressers and fish tanks.
+* Added flavored and quality items to categorize chest search.
 
 ### Changed
 
