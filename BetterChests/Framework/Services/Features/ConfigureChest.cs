@@ -206,8 +206,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             return;
         }
 
-        this.lastContainer.Value = this.menuHandler.Top.Container;
-        this.lastContainer.Value ??= this.menuHandler.Bottom.Container;
+        this.lastContainer.Value = this.menuHandler.Top.Container ?? this.menuHandler.Bottom.Container;
         if (this.lastContainer.Value is null)
         {
             return;
@@ -234,7 +233,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
     [Priority(1000)]
     private void OnInventoryMenuChanged(InventoryMenuChangedEventArgs e)
     {
-        switch (this.menuHandler.CurrentMenu)
+        switch (e.Parent)
         {
             case ItemGrabMenu itemGrabMenu:
                 if (this.menuHandler.Top.Container?.Options.ConfigureChest != FeatureOption.Enabled)
@@ -261,6 +260,18 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
                     - Game1.tileSize
                     - (IClickableMenu.borderWidth / 2);
 
+                return;
+
+            case ShopMenu shopMenu:
+                if (this.menuHandler.Top.Container?.Options.ConfigureChest != FeatureOption.Enabled)
+                {
+                    this.isActive.Value = false;
+                    return;
+                }
+
+                this.isActive.Value = true;
+                this.configButton.Value.bounds.X = shopMenu.upArrow.bounds.X + Game1.tileSize + (IClickableMenu.borderWidth / 2);
+                this.configButton.Value.bounds.Y = shopMenu.upArrow.bounds.Y;
                 return;
 
             default:
@@ -327,6 +338,10 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             case InventoryPage inventoryPage:
                 inventoryPage.hoverText = this.configButton.Value.hoverText;
                 return;
+
+            case ShopMenu shopMenu:
+                shopMenu.hoverText = this.configButton.Value.hoverText;
+                return;
         }
     }
 
@@ -363,7 +378,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
 
         var gmcm = this.genericModConfigMenuIntegration.Api;
         var defaultOptions = new DefaultStorageOptions();
-        var options = new TemporaryStorageOptions(this.lastContainer.Value.Options.GetActualOptions(), defaultOptions);
+        var options = new TemporaryStorageOptions(this.lastContainer.Value.Options, defaultOptions);
         var parentOptions = this.lastContainer.Value.Options.GetParentOptions();
         this.genericModConfigMenuIntegration.Register(options.Reset, Save);
 

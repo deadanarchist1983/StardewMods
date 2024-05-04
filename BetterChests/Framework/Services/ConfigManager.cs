@@ -1068,7 +1068,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         config
             .StorageOptions["BigCraftables"]
             .TryAdd(
-                "213",
+                "216",
                 new DefaultStorageOptions
                 {
                     CookFromChest = RangeOption.Location,

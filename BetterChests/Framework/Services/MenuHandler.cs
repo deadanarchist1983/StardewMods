@@ -65,6 +65,7 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
             () => new MenuManager(eventManager, inputHelper, log, manifest, modConfig));
 
         // Events
+        eventManager.Subscribe<InventoryMenuChangedEventArgs>(this.OnInventoryMenuChanged);
         eventManager.Subscribe<RenderedActiveMenuEventArgs>(this.OnRenderedActiveMenu);
         eventManager.Subscribe<UpdateTickingEventArgs>(this.OnUpdateTicking);
         eventManager.Subscribe<UpdateTickedEventArgs>(this.OnUpdateTicked);
@@ -324,6 +325,13 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
         }
     }
 
+    [Priority(int.MaxValue)]
+    private void OnInventoryMenuChanged(InventoryMenuChangedEventArgs e)
+    {
+        this.topMenu.Value.Set(e.Parent, e.Top);
+        this.bottomMenu.Value.Set(e.Parent, e.Bottom);
+    }
+
     private void OnUpdateTicking(UpdateTickingEventArgs e) => this.UpdateMenuIfRequired();
 
     private void OnUpdateTicked(UpdateTickedEventArgs e) => this.UpdateMenuIfRequired();
@@ -384,6 +392,8 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
     private void UpdateMenu()
     {
         var depth = -1;
+        this.focus.Value = null;
+
         while (++depth != 2)
         {
             this.CurrentMenu = Game1.activeClickableMenu switch
@@ -394,44 +404,28 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
                 _ => Game1.activeClickableMenu,
             };
 
-            this.focus.Value = null;
-            IClickableMenu? parentMenu = null;
-            IClickableMenu? top = null;
-            IClickableMenu? bottom = null;
-            var itemGrabMenu = this.CurrentMenu as ItemGrabMenu;
-
-            switch (this.CurrentMenu)
+            var (parent, top, bottom) = this.CurrentMenu switch
             {
-                case not null when itemGrabMenu is not null:
-                    parentMenu = itemGrabMenu;
-                    top = itemGrabMenu.showReceivingMenu ? itemGrabMenu.ItemsToGrabMenu : null;
-                    bottom = itemGrabMenu.inventory;
+                ItemGrabMenu menu => (menu, menu.showReceivingMenu ? menu.ItemsToGrabMenu : null, menu.inventory),
+                InventoryPage menu => (menu, null, menu.inventory),
+                ShopMenu menu => (menu, menu, menu.inventory),
+                _ => (default(IClickableMenu), default(IClickableMenu), default(IClickableMenu)),
+            };
 
-                    // Disable background fade
-                    itemGrabMenu.setBackgroundTransparency(false);
-                    break;
-                case InventoryPage inventoryPage:
-                    parentMenu = inventoryPage;
-                    bottom = inventoryPage.inventory;
-                    break;
-                case ShopMenu shopMenu:
-                    parentMenu = shopMenu;
-                    top = shopMenu;
-                    bottom = shopMenu.inventory;
-                    break;
-            }
-
-            this.topMenu.Value.Set(parentMenu, top);
-            this.bottomMenu.Value.Set(parentMenu, bottom);
-
-            if (parentMenu is null)
+            if (parent is null)
             {
-                this.eventManager.Publish(new InventoryMenuChangedEventArgs());
+                this.topMenu.Value.Container = null;
+                this.bottomMenu.Value.Container = null;
+                this.eventManager.Publish(new InventoryMenuChangedEventArgs(parent, top, bottom));
                 return;
             }
 
             // Update top menu
-            if (this.containerFactory.TryGetOne(top, out var topContainer) && itemGrabMenu is not null)
+            this.topMenu.Value.Container = this.containerFactory.TryGetOne(top, out var topContainer)
+                ? topContainer
+                : null;
+
+            if (topContainer is not null && this.CurrentMenu is ItemGrabMenu itemGrabMenu)
             {
                 // Relaunch menu once
                 if (depth == 0 && itemGrabMenu.inventory.highlightMethod?.Target?.GetType() != this.chestsAnywhereType)
@@ -444,8 +438,6 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
                 itemGrabMenu.behaviorOnItemGrab = topContainer.GrabItemFromChest;
             }
 
-            this.topMenu.Value.Container = topContainer;
-
             // Update bottom menu
             this.bottomMenu.Value.Container = this.containerFactory.TryGetOne(bottom, out var bottomContainer)
                 ? bottomContainer
@@ -453,7 +445,7 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
 
             // Reset filters
             this.UpdateHighlightMethods();
-            this.eventManager.Publish(new InventoryMenuChangedEventArgs());
+            this.eventManager.Publish(new InventoryMenuChangedEventArgs(parent, top, bottom));
             break;
         }
     }
@@ -480,7 +472,7 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
 
                 break;
 
-            case InventoryPage: break;
+            case InventoryPage or ShopMenu: break;
             default: return;
         }
 
@@ -598,15 +590,33 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
                 // Redraw foreground
                 if (this.focus.Value is null)
                 {
-                    shopMenu.heldItem?.drawInMenu(
-                        e.SpriteBatch,
-                        new Vector2(Game1.getOldMouseX() + 8, Game1.getOldMouseY() + 8),
-                        1f,
-                        1f,
-                        0.9f,
-                        StackDrawType.Draw,
-                        Color.White,
-                        true);
+                    if (shopMenu.hoveredItem?.IsRecipe ?? false)
+                    {
+                        shopMenu.heldItem?.drawInMenu(
+                            e.SpriteBatch,
+                            new Vector2(Game1.getOldMouseX() + 8, Game1.getOldMouseY() + 8),
+                            1f,
+                            1f,
+                            0.9f,
+                            StackDrawType.Draw,
+                            Color.White,
+                            true);
+                    }
+                    else
+                    {
+                        IClickableMenu.drawToolTip(
+                            e.SpriteBatch,
+                            shopMenu.hoverText,
+                            shopMenu.boldTitleText,
+                            shopMenu.hoveredItem as Item,
+                            shopMenu.heldItem != null,
+                            -1,
+                            shopMenu.currency,
+                            null,
+                            -1,
+                            null,
+                            shopMenu.hoverPrice > 0 ? shopMenu.hoverPrice : -1);
+                    }
                 }
 
                 break;

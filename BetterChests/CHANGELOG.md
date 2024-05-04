@@ -5,6 +5,17 @@
 ### Added
 
 * Added visual editors for configuring storage options.
+* Added configuration for Mini-Fridge storage type.
+
+## 2.18.1 (May 4, 2024)
+
+### Changed
+
+* Added config button for dressers and fish tanks.
+
+### Fixed
+
+* Fixed storages showing the inventory of the chest next to it.
 
 ## 2.18.0 (May 3, 2024)
 

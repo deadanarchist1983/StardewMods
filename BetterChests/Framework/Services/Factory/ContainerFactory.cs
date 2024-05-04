@@ -490,10 +490,10 @@ internal sealed class ContainerFactory : BaseService
         }
 
         var bounds = new Rectangle(
-            (int)(pos.X * Game1.tileSize) - 16,
-            (int)(pos.Y * Game1.tileSize) - 16,
-            Game1.tileSize / 2,
-            Game1.tileSize / 2);
+            (int)(pos.X * Game1.tileSize),
+            (int)(pos.Y * Game1.tileSize),
+            Game1.tileSize,
+            Game1.tileSize);
 
         // Container is a placed object
         foreach (var obj in location.Objects.Values)

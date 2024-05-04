@@ -190,7 +190,7 @@ internal sealed class StorageInfo : BaseFeature<StorageInfo>
             || !this.Config.StorageInfoHoverItems.Any()
             || !this.containerFactory.TryGetOne(
                 Game1.currentLocation,
-                this.inputHelper.GetCursorPosition().AbsolutePixels / Game1.tileSize,
+                this.inputHelper.GetCursorPosition().Tile,
                 out var container)
             || container.Options.StorageInfoHover != FeatureOption.Enabled)
         {

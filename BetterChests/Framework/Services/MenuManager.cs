@@ -120,7 +120,6 @@ internal sealed class MenuManager : BaseService
         {
             this.scrolled = 0;
             this.maxScroll = 0;
-            this.Container = null;
             return;
         }
 
