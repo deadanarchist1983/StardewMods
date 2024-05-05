@@ -109,9 +109,9 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
 
     private bool Predicate(IStorageContainer container) =>
         container is not FarmerContainer
-        && container.Options.AccessChest is not RangeOption.Disabled
+        && container.AccessChest is not RangeOption.Disabled
         && (this.searchExpression.Value is null || this.searchExpression.Value.PartialMatch(container))
-        && container.Options.AccessChest.WithinRange(-1, container.Location, container.TileLocation);
+        && container.AccessChest.WithinRange(-1, container.Location, container.TileLocation);
 
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
@@ -321,9 +321,9 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         // Draw current container icon
         Icon? icon = null;
         if (this.menuHandler.Top.Container is not null
-            && !string.IsNullOrWhiteSpace(this.menuHandler.Top.Container.Options.StorageIcon))
+            && !string.IsNullOrWhiteSpace(this.menuHandler.Top.Container.StorageIcon))
         {
-            icon = this.assetHandler.Icons.GetValueOrDefault(this.menuHandler.Top.Container.Options.StorageIcon);
+            icon = this.assetHandler.Icons.GetValueOrDefault(this.menuHandler.Top.Container.StorageIcon);
         }
 
         // Draw current container name
@@ -391,8 +391,8 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
             }
 
             var xOffset = 0;
-            if (!string.IsNullOrWhiteSpace(container.Options.StorageIcon)
-                && this.assetHandler.Icons.TryGetValue(container.Options.StorageIcon, out icon))
+            if (!string.IsNullOrWhiteSpace(container.StorageIcon)
+                && this.assetHandler.Icons.TryGetValue(container.StorageIcon, out icon))
             {
                 xOffset = 32;
                 e.SpriteBatch.Draw(
@@ -445,15 +445,15 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
     {
         this.isActive.Value = false;
         var top = this.menuHandler.Top;
-        if (top.Container?.Options.AccessChest is RangeOption.Disabled or null)
+        if (top.Container?.AccessChest is RangeOption.Disabled or null)
         {
             this.dropDown.Value = null;
             return;
         }
 
-        var name = string.IsNullOrWhiteSpace(top.Container.Options.StorageName)
+        var name = string.IsNullOrWhiteSpace(top.Container.StorageName)
             ? top.Container.DisplayName
-            : top.Container.Options.StorageName;
+            : top.Container.StorageName;
 
         var x = Math.Max(IClickableMenu.borderWidth / 2, (Game1.uiViewport.Width / 2) - (Game1.tileSize * 10));
         var y = IClickableMenu.borderWidth / 2;
@@ -499,7 +499,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         this.currentContainers.Value.AddRange(
             this
                 .containerFactory.GetAll(this.Predicate)
-                .OrderBy(container => container.Options.AccessChestPriority)
+                .OrderBy(container => container.AccessChestPriority)
                 .ThenBy(container => container.ToString()!));
 
         if (this.currentContainers.Value.Count == 0)
@@ -514,8 +514,8 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         {
             var textValue = container.ToString()!;
             var textBounds = Game1.smallFont.MeasureString(textValue).ToPoint();
-            if (!string.IsNullOrWhiteSpace(container.Options.StorageIcon)
-                && this.assetHandler.Icons.ContainsKey(container.Options.StorageIcon))
+            if (!string.IsNullOrWhiteSpace(container.StorageIcon)
+                && this.assetHandler.Icons.ContainsKey(container.StorageIcon))
             {
                 textBounds.X += 32;
             }

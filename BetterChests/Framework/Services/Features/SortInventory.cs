@@ -67,13 +67,13 @@ internal sealed class SortInventory : BaseFeature<SortInventory>
 
     private static void OnContainerSorting(ContainerSortingEventArgs e)
     {
-        if (e.Container.Options.SortInventory is not FeatureOption.Enabled
-            || string.IsNullOrWhiteSpace(e.Container.Options.SortInventoryBy))
+        if (e.Container.SortInventory is not FeatureOption.Enabled
+            || string.IsNullOrWhiteSpace(e.Container.SortInventoryBy))
         {
             return;
         }
 
-        var itemSorter = new ItemSorter(e.Container.Options.SortInventoryBy);
+        var itemSorter = new ItemSorter(e.Container.SortInventoryBy);
         var copy = e.Container.Items.ToList();
         copy.Sort(itemSorter);
         e.Container.Items.OverwriteWith(copy);
@@ -106,7 +106,7 @@ internal sealed class SortInventory : BaseFeature<SortInventory>
         switch (e.Button)
         {
             case SButton.MouseLeft or SButton.ControllerA:
-                if (container.Options.SortInventory is not FeatureOption.Enabled)
+                if (container.SortInventory is not FeatureOption.Enabled)
                 {
                     return;
                 }
@@ -117,7 +117,7 @@ internal sealed class SortInventory : BaseFeature<SortInventory>
                 return;
 
             case SButton.MouseRight or SButton.ControllerB:
-                if (container.Options.SortInventory is not FeatureOption.Enabled)
+                if (container.SortInventory is not FeatureOption.Enabled)
                 {
                     return;
                 }
@@ -136,7 +136,7 @@ internal sealed class SortInventory : BaseFeature<SortInventory>
 
         if (this.menuHandler.CurrentMenu is not ItemGrabMenu itemGrabMenu
             || bottom.InventoryMenu is null
-            || container?.Options.SortInventory is not FeatureOption.Enabled)
+            || container?.SortInventory is not FeatureOption.Enabled)
         {
             this.organizeButton.Value = null;
             return;

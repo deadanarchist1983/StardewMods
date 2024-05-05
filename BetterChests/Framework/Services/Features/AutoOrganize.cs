@@ -49,8 +49,8 @@ internal sealed class AutoOrganize : BaseFeature<AutoOrganize>
     private void OrganizeAll()
     {
         var containerGroupsTo = this
-            .containerFactory.GetAll(container => container.Options.AutoOrganize == FeatureOption.Enabled)
-            .GroupBy(container => (int)container.Options.StashToChestPriority)
+            .containerFactory.GetAll(container => container.AutoOrganize == FeatureOption.Enabled)
+            .GroupBy(container => (int)container.StashToChestPriority)
             .ToDictionary(containerGroup => containerGroup.Key, group => group.ToList());
 
         var containerGroupsFrom = new Dictionary<int, List<IStorageContainer>>();

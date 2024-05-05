@@ -205,7 +205,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
             pages.AddRange(subPages);
         }
 
-        this.AddMainOption("Main", I18n.Section_Main_Name, config.DefaultOptions.GetActualOptions(), true);
+        this.AddMainOption("Main", I18n.Section_Main_Name, config.DefaultOptions, true);
 
         gmcm.AddPage(this.manifest, "Controls", I18n.Section_Controls_Name);
         this.AddControls(config.Controls);
@@ -215,7 +215,7 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
 
         foreach (var (id, title, _, options) in pages)
         {
-            this.AddMainOption(id, () => title, options.GetActualOptions(), true, config.DefaultOptions);
+            this.AddMainOption(id, () => title, options, true, config.DefaultOptions);
         }
     }
 
@@ -983,43 +983,39 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         }
     }
 
-    private void InitializeDefaultOptions(IStorageOptions options) =>
-        this
-            .GetDefault()
-            .DefaultOptions.ForEachOption(
-                (name, option) =>
+    private void InitializeDefaultOptions(IStorageOptions options)
+    {
+        var defaultOptions = this.GetDefault().DefaultOptions;
+        options.ForEachOption(
+            (name, option) =>
+            {
+                switch (option)
                 {
-                    switch (option)
-                    {
-                        case FeatureOption featureOption when options.TryGetOption(
-                                name,
-                                out FeatureOption currentOption)
-                            && currentOption is FeatureOption.Default:
-                            options.SetOption(name, featureOption);
-                            return;
+                    case FeatureOption.Default when defaultOptions.TryGetOption(name, out FeatureOption defaultOption):
+                        options.SetOption(name, defaultOption);
+                        return;
 
-                        case RangeOption rangeOption when options.TryGetOption(name, out RangeOption currentRangeOption)
-                            && currentRangeOption is RangeOption.Default:
-                            options.SetOption(name, rangeOption);
-                            return;
+                    case RangeOption.Default when defaultOptions.TryGetOption(name, out RangeOption defaultOption):
+                        options.SetOption(name, defaultOption);
+                        return;
 
-                        case ChestMenuOption chestMenuOption when options.TryGetOption(
-                                name,
-                                out ChestMenuOption currentChestMenuOption)
-                            && currentChestMenuOption is ChestMenuOption.Default:
-                            options.SetOption(name, chestMenuOption);
-                            return;
+                    case ChestMenuOption.Default when defaultOptions.TryGetOption(
+                        name,
+                        out ChestMenuOption defaultOption):
+                        options.SetOption(name, defaultOption);
+                        return;
 
-                        case string stringValue when options.TryGetOption(name, out string currentString)
-                            && string.IsNullOrWhiteSpace(currentString):
-                            options.SetOption(name, stringValue);
-                            return;
+                    case string currentOption when string.IsNullOrWhiteSpace(currentOption)
+                        && defaultOptions.TryGetOption(name, out string defaultOption):
+                        options.SetOption(name, defaultOption);
+                        return;
 
-                        case int intValue when options.TryGetOption(name, out int currentInt) && currentInt == 0:
-                            options.SetOption(name, intValue);
-                            return;
-                    }
-                });
+                    case 0 when defaultOptions.TryGetOption(name, out int defaultOption):
+                        options.SetOption(name, defaultOption);
+                        return;
+                }
+            });
+    }
 
     private void InitializeStorageTypes(IModConfig config)
     {

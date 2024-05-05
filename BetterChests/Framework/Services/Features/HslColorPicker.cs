@@ -222,7 +222,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
                 } chestColorPicker,
             } itemGrabMenu
             || this.menuHandler.Top.Container is not ChestContainer container
-            || container.Options.HslColorPicker != FeatureOption.Enabled)
+            || container.HslColorPicker != FeatureOption.Enabled)
         {
             this.colorPicker.Value = null;
             return;

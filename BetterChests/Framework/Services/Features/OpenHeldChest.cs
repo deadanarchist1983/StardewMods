@@ -109,7 +109,7 @@ internal sealed class OpenHeldChest : BaseFeature<OpenHeldChest>
         if (!Context.IsPlayerFree
             || !e.Button.IsActionButton()
             || !this.containerFactory.TryGetOne(Game1.player, Game1.player.CurrentToolIndex, out var container)
-            || container.Options.OpenHeldChest != FeatureOption.Enabled)
+            || container.OpenHeldChest != FeatureOption.Enabled)
         {
             return;
         }

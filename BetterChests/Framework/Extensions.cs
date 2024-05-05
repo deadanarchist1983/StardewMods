@@ -34,6 +34,41 @@ internal static class Extensions
         action(nameof(config.StorageOptions), config.StorageOptions);
     }
 
+    /// <summary>Copy storage options.</summary>
+    /// <param name="from">The storage options to copy from.</param>
+    /// <param name="to">The storage options to copy to.</param>
+    public static void CopyTo(this IStorageOptions from, IStorageOptions to) =>
+        from.ForEachOption(
+            (name, option) =>
+            {
+                switch (option)
+                {
+                    case FeatureOption featureOption:
+                        to.SetOption(name, featureOption);
+                        return;
+
+                    case RangeOption rangeOption:
+                        to.SetOption(name, rangeOption);
+                        return;
+
+                    case ChestMenuOption chestMenuOption:
+                        to.SetOption(name, chestMenuOption);
+                        return;
+
+                    case StashPriority stashPriority:
+                        to.SetOption(name, stashPriority);
+                        return;
+
+                    case string stringValue:
+                        to.SetOption(name, stringValue);
+                        return;
+
+                    case int intValue:
+                        to.SetOption(name, intValue);
+                        return;
+                }
+            });
+
     /// <summary>Executes the specified action for each option in the class.</summary>
     /// <param name="options">The storage options.</param>
     /// <param name="action">The action to be performed for each option.</param>

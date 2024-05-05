@@ -236,7 +236,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         switch (e.Parent)
         {
             case ItemGrabMenu itemGrabMenu:
-                if (this.menuHandler.Top.Container?.Options.ConfigureChest != FeatureOption.Enabled)
+                if (this.menuHandler.Top.Container?.ConfigureChest != FeatureOption.Enabled)
                 {
                     this.isActive.Value = false;
                     return;
@@ -247,7 +247,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
                 return;
 
             case InventoryPage inventoryPage:
-                if (this.menuHandler.Bottom.Container?.Options.ConfigureChest != FeatureOption.Enabled)
+                if (this.menuHandler.Bottom.Container?.ConfigureChest != FeatureOption.Enabled)
                 {
                     this.isActive.Value = false;
                     return;
@@ -263,14 +263,16 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
                 return;
 
             case ShopMenu shopMenu:
-                if (this.menuHandler.Top.Container?.Options.ConfigureChest != FeatureOption.Enabled)
+                if (this.menuHandler.Top.Container?.ConfigureChest != FeatureOption.Enabled)
                 {
                     this.isActive.Value = false;
                     return;
                 }
 
                 this.isActive.Value = true;
-                this.configButton.Value.bounds.X = shopMenu.upArrow.bounds.X + Game1.tileSize + (IClickableMenu.borderWidth / 2);
+                this.configButton.Value.bounds.X =
+                    shopMenu.upArrow.bounds.X + Game1.tileSize + (IClickableMenu.borderWidth / 2);
+
                 this.configButton.Value.bounds.Y = shopMenu.upArrow.bounds.Y;
                 return;
 
@@ -361,9 +363,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         var defaultOptions = new DefaultStorageOptions();
         foreach (var container in this.containerFactory.GetAll())
         {
-            var options = new TemporaryStorageOptions(container.Options.GetActualOptions(), defaultOptions);
-            options.Reset();
-            options.Save();
+            defaultOptions.CopyTo(container);
         }
     }
 
@@ -377,10 +377,10 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         this.Log.Info("{0}: Configuring {1}", this.Id, this.lastContainer.Value);
 
         var gmcm = this.genericModConfigMenuIntegration.Api;
-        var defaultOptions = new DefaultStorageOptions();
-        var options = new TemporaryStorageOptions(this.lastContainer.Value.Options, defaultOptions);
-        var parentOptions = this.lastContainer.Value.Options.GetParentOptions();
-        this.genericModConfigMenuIntegration.Register(options.Reset, Save);
+        var options = new DefaultStorageOptions();
+        this.lastContainer.Value.ActualOptions.CopyTo(options);
+        var parentOptions = this.lastContainer.Value.GetParentOptions();
+        this.genericModConfigMenuIntegration.Register(() => new DefaultStorageOptions().CopyTo(options), Save);
 
         gmcm.AddSectionTitle(
             this.manifest,
@@ -402,7 +402,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             I18n.Config_StorageIcon_Tooltip);
 
         // Access Chest Priority
-        if (this.lastContainer.Value.Options.AccessChest is not RangeOption.Disabled)
+        if (this.lastContainer.Value.AccessChest is not RangeOption.Disabled)
         {
             gmcm.AddNumberOption(
                 this.manifest,
@@ -413,7 +413,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         }
 
         // Stash to Chest Priority
-        if (this.lastContainer.Value.Options.StashToChest is not RangeOption.Disabled)
+        if (this.lastContainer.Value.StashToChest is not RangeOption.Disabled)
         {
             gmcm.AddNumberOption(
                 this.manifest,
@@ -428,7 +428,7 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         }
 
         // Categorize Chest
-        if (this.lastContainer.Value.Options.CategorizeChest is not FeatureOption.Disabled)
+        if (this.lastContainer.Value.CategorizeChest is not FeatureOption.Disabled)
         {
             gmcm.AddTextOption(
                 this.manifest,
@@ -457,15 +457,12 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
         void Save()
         {
             this.Log.Trace("Config changed: {0}\n{1}", this.lastContainer.Value, options);
-            options.Save();
+            options.CopyTo(this.lastContainer.Value);
 
-            if (this.lastContainer.Value is not ChestContainer chestContainer)
+            if (this.lastContainer.Value is ChestContainer chestContainer)
             {
-                return;
+                chestContainer.Chest.fridge.Value = this.lastContainer.Value.CookFromChest is not RangeOption.Disabled;
             }
-
-            chestContainer.Chest.fridge.Value =
-                this.lastContainer.Value.Options.CookFromChest is not RangeOption.Disabled;
         }
     }
 }

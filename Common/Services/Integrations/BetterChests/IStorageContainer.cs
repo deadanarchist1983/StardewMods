@@ -1,6 +1,7 @@
 namespace StardewMods.Common.Services.Integrations.BetterChests;
 
 using Microsoft.Xna.Framework;
+using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewValley.Inventories;
 using StardewValley.Mods;
 using StardewValley.Network;
@@ -9,19 +10,16 @@ using StardewValley.Network;
 /// A container is the vessel which storage is attached to. It can be anything that can be associated with
 /// items, a location, tile position, and has mod data.
 /// </summary>
-public interface IStorageContainer
+public interface IStorageContainer : IStorageOptions
 {
-    /// <summary>Gets the name of the container.</summary>
-    string DisplayName { get; }
+    /// <summary>Gets the actual storage options.</summary>
+    public IStorageOptions ActualOptions { get; }
 
-    /// <summary>Gets the description of the container.</summary>
-    string Description { get; }
+    /// <summary>Gets or sets the parent storage container.</summary>
+    public IStorageContainer? Parent { get; set; }
 
     /// <summary>Gets the capacity of the container.</summary>
     int Capacity { get; }
-
-    /// <summary>Gets options for the storage instance.</summary>
-    IStorageOptions Options { get; }
 
     /// <summary>Gets the collection of items.</summary>
     IInventory Items { get; }
@@ -37,6 +35,15 @@ public interface IStorageContainer
 
     /// <summary>Gets a mutex for the container.</summary>
     NetMutex? Mutex { get; }
+
+    /// <summary>Adds an option getter.</summary>
+    /// <param name="storageOption">Which storage option to add.</param>
+    /// <param name="getOptions">A function that returns an instance of IStorageOptions.</param>
+    public void AddOptions(StorageOption storageOption, Func<IStorageOptions> getOptions);
+
+    /// <summary>Gets the parent storage options.</summary>
+    /// <returns>The parent storage options.</returns>
+    public IStorageOptions GetParentOptions();
 
     /// <summary>Executes a given action for each item in the collection.</summary>
     /// <param name="action">The action to be executed for each item.</param>

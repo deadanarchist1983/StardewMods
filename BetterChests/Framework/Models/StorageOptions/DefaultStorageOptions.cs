@@ -9,6 +9,12 @@ using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 internal class DefaultStorageOptions : IStorageOptions
 {
     /// <inheritdoc />
+    public string DisplayName => I18n.Storage_Other_Tooltip();
+
+    /// <inheritdoc />
+    public string Description => I18n.Storage_Other_Name();
+
+    /// <inheritdoc />
     public RangeOption AccessChest { get; set; } = RangeOption.Default;
 
     /// <inheritdoc />
@@ -99,23 +105,11 @@ internal class DefaultStorageOptions : IStorageOptions
     public string StorageName { get; set; } = string.Empty;
 
     /// <inheritdoc />
-    public IStorageOptions GetActualOptions() => this;
-
-    /// <inheritdoc />
-    public IStorageOptions GetParentOptions() => this;
-
-    /// <inheritdoc />
-    public virtual string GetDescription() => I18n.Storage_Other_Tooltip();
-
-    /// <inheritdoc />
-    public virtual string GetDisplayName() => I18n.Storage_Other_Name();
-
-    /// <inheritdoc />
     public override string ToString()
     {
         StringBuilder sb = new();
 
-        sb.AppendLine(CultureInfo.InvariantCulture, $"Display Name: {this.GetDisplayName()}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"Display Name: {this.DisplayName}");
 
         this.ForEachOption(
             (name, option) =>

@@ -5,6 +5,12 @@ using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 /// <summary>Configurable options for a storage container.</summary>
 public interface IStorageOptions
 {
+    /// <summary>Gets the name of the container.</summary>
+    string DisplayName { get; }
+
+    /// <summary>Gets the description of the container.</summary>
+    string Description { get; }
+
     /// <summary>Gets or sets a value indicate if chests can be remotely accessed.</summary>
     public RangeOption AccessChest { get; set; }
 
@@ -94,20 +100,4 @@ public interface IStorageOptions
 
     /// <summary>Gets or sets the name of the chest.</summary>
     public string StorageName { get; set; }
-
-    /// <summary>Gets the actual storage options.</summary>
-    /// <returns>The actual storage options.</returns>
-    public IStorageOptions GetActualOptions();
-
-    /// <summary>Gets the parent storage options.</summary>
-    /// <returns>The parent storage options.</returns>
-    public IStorageOptions GetParentOptions();
-
-    /// <summary>Gets the name of the storage.</summary>
-    /// <returns>Returns the name.</returns>
-    public string GetDisplayName();
-
-    /// <summary>Gets a description of the storage.</summary>
-    /// <returns>Returns the description.</returns>
-    public string GetDescription();
 }

@@ -252,13 +252,13 @@ internal sealed class ShopFromChest : BaseFeature<ShopFromChest>
 
     private static bool DefaultPredicate(IStorageContainer container) =>
         container is not FarmerContainer
-        && container.Options.ShopFromChest is not FeatureOption.Disabled
+        && container.ShopFromChest is not FeatureOption.Disabled
         && container.Items.Count > 0
         && !ShopFromChest.instance.Config.CraftFromChestDisableLocations.Contains(Game1.player.currentLocation.Name)
         && !(ShopFromChest.instance.Config.CraftFromChestDisableLocations.Contains("UndergroundMine")
             && Game1.player.currentLocation is MineShaft)
-        && container.Options.CraftFromChest.WithinRange(
-            container.Options.CraftFromChestDistance,
+        && container.CraftFromChest.WithinRange(
+            container.CraftFromChestDistance,
             container.Location,
             container.TileLocation);
 }

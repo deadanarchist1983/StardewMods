@@ -145,7 +145,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
                     return;
                 }
 
-                if (container.Options.CategorizeChest != FeatureOption.Enabled)
+                if (container.CategorizeChest != FeatureOption.Enabled)
                 {
                     return;
                 }
@@ -153,10 +153,9 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
                 if (this.rejectButton.Value.containsPoint(mouseX, mouseY))
                 {
                     this.inputHelper.Suppress(e.Button);
-                    container.Options.CategorizeChestBlockItems =
-                        container.Options.CategorizeChestBlockItems == FeatureOption.Enabled
-                            ? FeatureOption.Disabled
-                            : FeatureOption.Enabled;
+                    container.CategorizeChestBlockItems = container.CategorizeChestBlockItems == FeatureOption.Enabled
+                        ? FeatureOption.Disabled
+                        : FeatureOption.Enabled;
 
                     return;
                 }
@@ -164,20 +163,20 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
                 if (this.saveButton.Value.containsPoint(mouseX, mouseY))
                 {
                     this.inputHelper.Suppress(e.Button);
-                    container.Options.CategorizeChestSearchTerm = this.searchText.Value;
+                    container.CategorizeChestSearchTerm = this.searchText.Value;
                     return;
                 }
 
                 if (this.existingStacksButton.Value.containsPoint(mouseX, mouseY))
                 {
                     this.inputHelper.Suppress(e.Button);
-                    container.Options.CategorizeChestIncludeStacks =
-                        container.Options.CategorizeChestIncludeStacks == FeatureOption.Enabled
+                    container.CategorizeChestIncludeStacks =
+                        container.CategorizeChestIncludeStacks == FeatureOption.Enabled
                             ? FeatureOption.Disabled
                             : FeatureOption.Enabled;
 
                     this.existingStacksButton.Value.sourceRect =
-                        container.Options.CategorizeChestIncludeStacks == FeatureOption.Enabled
+                        container.CategorizeChestIncludeStacks == FeatureOption.Enabled
                             ? new Rectangle(236, 425, 9, 9)
                             : new Rectangle(227, 425, 9, 9);
                 }
@@ -218,7 +217,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
     private void OnButtonsChanged(ButtonsChangedEventArgs e)
     {
-        if (this.menuHandler.Top.Container?.Options.SearchItems is not FeatureOption.Enabled)
+        if (this.menuHandler.Top.Container?.SearchItems is not FeatureOption.Enabled)
         {
             return;
         }
@@ -263,7 +262,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
     {
         var container = this.menuHandler.Top.Container;
         var top = this.menuHandler.Top;
-        if (top.InventoryMenu is null || container?.Options.SearchItems is not FeatureOption.Enabled)
+        if (top.InventoryMenu is null || container?.SearchItems is not FeatureOption.Enabled)
         {
             this.searchBar.Value = null;
             return;
@@ -309,7 +308,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
                 this.Events.Publish(new SearchChangedEventArgs(this.searchExpression.Value));
             });
 
-        if (container.Options.CategorizeChest != FeatureOption.Enabled)
+        if (container.CategorizeChest != FeatureOption.Enabled)
         {
             return;
         }
@@ -322,10 +321,9 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
         this.existingStacksButton.Value.bounds.X = x + 32;
         this.existingStacksButton.Value.bounds.Y = y + 2;
-        this.existingStacksButton.Value.sourceRect =
-            container.Options.CategorizeChestIncludeStacks == FeatureOption.Enabled
-                ? new Rectangle(236, 425, 9, 9)
-                : new Rectangle(227, 425, 9, 9);
+        this.existingStacksButton.Value.sourceRect = container.CategorizeChestIncludeStacks == FeatureOption.Enabled
+            ? new Rectangle(236, 425, 9, 9)
+            : new Rectangle(227, 425, 9, 9);
 
         this.rejectButton.Value.bounds.X = x + 64;
         this.rejectButton.Value.bounds.Y = y + 2;
@@ -333,7 +331,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
     private void OnItemHighlighting(ItemHighlightingEventArgs e)
     {
-        if (e.Container.Options.SearchItems is FeatureOption.Enabled
+        if (e.Container.SearchItems is FeatureOption.Enabled
             && this.searchExpression.Value?.PartialMatch(e.Item) == false)
         {
             e.UnHighlight();
@@ -373,7 +371,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
 
         this.searchBar.Value.Draw(e.SpriteBatch);
 
-        if (container.Options.CategorizeChest != FeatureOption.Enabled)
+        if (container.CategorizeChest != FeatureOption.Enabled)
         {
             return;
         }
@@ -387,7 +385,7 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         this.existingStacksButton.Value.draw(e.SpriteBatch);
         this.rejectButton.Value.draw(
             e.SpriteBatch,
-            container.Options.CategorizeChestBlockItems == FeatureOption.Enabled ? Color.White : Color.Gray,
+            container.CategorizeChestBlockItems == FeatureOption.Enabled ? Color.White : Color.Gray,
             1f);
 
         if (this.saveButton.Value.containsPoint(mouseX, mouseY))

@@ -10,10 +10,17 @@ using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 internal abstract class DictionaryStorageOptions : IStorageOptions
 {
     private const string Prefix = "furyx639.BetterChests/";
+    private readonly Dictionary<string, CachedValue<ChestMenuOption>> cachedChestMenuOption = new();
 
     private readonly Dictionary<string, CachedValue<int>> cachedInt = new();
     private readonly Dictionary<string, CachedValue<FeatureOption>> cachedOption = new();
     private readonly Dictionary<string, CachedValue<RangeOption>> cachedRangeOption = new();
+
+    /// <inheritdoc />
+    public virtual string DisplayName => I18n.Storage_Other_Tooltip();
+
+    /// <inheritdoc />
+    public virtual string Description => I18n.Storage_Other_Name();
 
     /// <inheritdoc />
     public RangeOption AccessChest
@@ -141,7 +148,7 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
             ChestMenuOptionExtensions.TryParse(this.Get(StringKey.ResizeChest), out var capacityOption)
                 ? capacityOption
                 : ChestMenuOption.Default;
-        set => this.Set(StringKey.ResizeChest, value.ToStringFast());
+        set => this.Set(StringKey.ResizeChest, value == ChestMenuOption.Default ? string.Empty : value.ToStringFast());
     }
 
     /// <inheritdoc />
@@ -230,18 +237,6 @@ internal abstract class DictionaryStorageOptions : IStorageOptions
         get => this.Get(StringKey.StorageName);
         set => this.Set(StringKey.StorageName, value);
     }
-
-    /// <inheritdoc />
-    public IStorageOptions GetActualOptions() => this;
-
-    /// <inheritdoc />
-    public IStorageOptions GetParentOptions() => this;
-
-    /// <inheritdoc />
-    public virtual string GetDescription() => I18n.Storage_Other_Tooltip();
-
-    /// <inheritdoc />
-    public virtual string GetDisplayName() => I18n.Storage_Other_Name();
 
     /// <summary>Tries to get the data associated with the specified key.</summary>
     /// <param name="key">The key to search for.</param>

@@ -109,7 +109,7 @@ internal sealed class StorageInfo : BaseFeature<StorageInfo>
         if (!this.Config.StorageInfoMenuItems.Any()
             || !this.isActive.Value
             || this.menuHandler.CurrentMenu is null
-            || container?.Options.StorageInfo != FeatureOption.Enabled)
+            || container?.StorageInfo != FeatureOption.Enabled)
         {
             return;
         }
@@ -192,7 +192,7 @@ internal sealed class StorageInfo : BaseFeature<StorageInfo>
                 Game1.currentLocation,
                 this.inputHelper.GetCursorPosition().Tile,
                 out var container)
-            || container.Options.StorageInfoHover != FeatureOption.Enabled)
+            || container.StorageInfoHover != FeatureOption.Enabled)
         {
             this.currentContainer.Value = null;
             return;
@@ -275,20 +275,20 @@ internal sealed class StorageInfo : BaseFeature<StorageInfo>
         this.cachedInfo.Value.Clear();
 
         // Add name
-        if (!string.IsNullOrWhiteSpace(container.Options.StorageName))
+        if (!string.IsNullOrWhiteSpace(container.StorageName))
         {
             this.cachedInfo.Value.TryAdd(
                 StorageInfoItem.Name,
-                new Info(I18n.StorageInfo_Name(), container.Options.StorageName));
+                new Info(I18n.StorageInfo_Name(), container.StorageName));
         }
 
         // Add icon
-        if (!string.IsNullOrWhiteSpace(container.Options.StorageIcon)
-            && this.assetHandler.Icons.ContainsKey(container.Options.StorageIcon))
+        if (!string.IsNullOrWhiteSpace(container.StorageIcon)
+            && this.assetHandler.Icons.ContainsKey(container.StorageIcon))
         {
             this.cachedInfo.Value.TryAdd(
                 StorageInfoItem.Icon,
-                new Info(I18n.StorageInfo_Icon(), container.Options.StorageIcon));
+                new Info(I18n.StorageInfo_Icon(), container.StorageIcon));
         }
 
         // Add type
@@ -305,10 +305,7 @@ internal sealed class StorageInfo : BaseFeature<StorageInfo>
             new Info(I18n.StorageInfo_Position(), $"{(int)container.TileLocation.X}, {(int)container.TileLocation.Y}"));
 
         // Add inventory
-        if (container is ChildContainer
-            {
-                Parent: FarmerContainer farmerStorage,
-            })
+        if (container.Parent is FarmerContainer farmerStorage)
         {
             this.cachedInfo.Value.TryAdd(
                 StorageInfoItem.Inventory,
@@ -318,7 +315,7 @@ internal sealed class StorageInfo : BaseFeature<StorageInfo>
         var items = container.Items.Where(item => item is not null).ToList();
 
         // Capacity
-        var capacity = container.Options.ResizeChestCapacity switch
+        var capacity = container.ResizeChestCapacity switch
         {
             -1 => I18n.Capacity_Unlimited_Name(),
             _ when container.Capacity == int.MaxValue => I18n.Capacity_Unlimited_Name(),

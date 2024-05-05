@@ -150,7 +150,7 @@ internal sealed class CollectItems : BaseFeature<CollectItems>
         this.cachedContainers.Value.Clear();
         foreach (var storage in this.containerFactory.GetAll(
             Game1.player,
-            container => container.Options.ChestFinder == FeatureOption.Enabled))
+            container => container.ChestFinder == FeatureOption.Enabled))
         {
             this.cachedContainers.Value.Add(storage);
         }

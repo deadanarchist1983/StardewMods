@@ -203,15 +203,8 @@ internal sealed class AssetHandler : BaseService
                         }
 
                         bigCraftableData.CustomFields ??= new Dictionary<string, string>();
-                        var customFieldStorageOptions =
-                            new CustomFieldsStorageOptions(() => bigCraftableData.CustomFields);
-
-                        var temporaryStorageOptions = new TemporaryStorageOptions(
-                            customFieldStorageOptions,
-                            storageOptions);
-
-                        temporaryStorageOptions.Reset();
-                        temporaryStorageOptions.Save();
+                        var typeOptions = new CustomFieldsStorageOptions(() => bigCraftableData.CustomFields);
+                        storageOptions.CopyTo(typeOptions);
                     }
                 });
 
@@ -233,13 +226,8 @@ internal sealed class AssetHandler : BaseService
                         }
 
                         buildingData.CustomFields ??= new Dictionary<string, string>();
-                        var customFieldStorageOptions = new CustomFieldsStorageOptions(() => buildingData.CustomFields);
-                        var temporaryStorageOptions = new TemporaryStorageOptions(
-                            customFieldStorageOptions,
-                            storageOptions);
-
-                        temporaryStorageOptions.Reset();
-                        temporaryStorageOptions.Save();
+                        var typeOptions = new CustomFieldsStorageOptions(() => buildingData.CustomFields);
+                        storageOptions.CopyTo(typeOptions);
                     }
                 });
 
@@ -261,13 +249,8 @@ internal sealed class AssetHandler : BaseService
                         }
 
                         locationData.CustomFields ??= new Dictionary<string, string>();
-                        var customFieldStorageOptions = new CustomFieldsStorageOptions(() => locationData.CustomFields);
-                        var temporaryStorageOptions = new TemporaryStorageOptions(
-                            customFieldStorageOptions,
-                            storageOptions);
-
-                        temporaryStorageOptions.Reset();
-                        temporaryStorageOptions.Save();
+                        var typeOptions = new CustomFieldsStorageOptions(() => locationData.CustomFields);
+                        storageOptions.CopyTo(typeOptions);
                     }
                 });
         }

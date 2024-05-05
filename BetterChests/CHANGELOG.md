@@ -7,6 +7,16 @@
 * Added visual editors for configuring storage options.
 * Added configuration for Mini-Fridge storage type.
 
+## 2.18.2 (May 5, 2025)
+
+### Changed
+
+* Overhauled the hierarchy system for storage options.
+
+### Fixed
+
+* Fixed cursor jumping to top-left corner when grabbing items.
+
 ## 2.18.1 (May 4, 2024)
 
 ### Changed

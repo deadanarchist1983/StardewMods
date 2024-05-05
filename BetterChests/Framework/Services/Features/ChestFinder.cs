@@ -226,6 +226,6 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
 
     private bool Predicate(IStorageContainer container) =>
         container is not FarmerContainer
-        && container.Options.ChestFinder is FeatureOption.Enabled
+        && container.ChestFinder is FeatureOption.Enabled
         && (this.searchExpression.Value is null || this.searchExpression.Value.PartialMatch(container));
 }

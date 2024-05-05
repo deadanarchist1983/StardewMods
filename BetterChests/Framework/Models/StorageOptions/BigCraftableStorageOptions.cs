@@ -1,22 +1,24 @@
 namespace StardewMods.BetterChests.Framework.Models.StorageOptions;
 
-using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewValley.GameData.BigCraftables;
 using StardewValley.TokenizableStrings;
 
 /// <inheritdoc />
-internal sealed class BigCraftableStorageOptions : ChildStorageOptions
+internal sealed class BigCraftableStorageOptions : CustomFieldsStorageOptions
 {
-    private static readonly Dictionary<string, IStorageOptions> ChildOptions = new();
-
     private readonly string itemId;
 
     /// <summary>Initializes a new instance of the <see cref="BigCraftableStorageOptions" /> class.</summary>
-    /// <param name="getDefault">Get the default storage options.</param>
     /// <param name="itemId">he big craftable object id.</param>
-    public BigCraftableStorageOptions(Func<IStorageOptions> getDefault, string itemId)
-        : base(getDefault, BigCraftableStorageOptions.GetChild(itemId)) =>
+    public BigCraftableStorageOptions(string itemId)
+        : base(BigCraftableStorageOptions.GetCustomFields(itemId)) =>
         this.itemId = itemId;
+
+    /// <inheritdoc />
+    public override string Description => TokenParser.ParseText(this.Data.Description);
+
+    /// <inheritdoc />
+    public override string DisplayName => TokenParser.ParseText(this.Data.DisplayName);
 
     /// <summary>Gets the big craftable data.</summary>
     public BigCraftableData Data =>
@@ -24,33 +26,8 @@ internal sealed class BigCraftableStorageOptions : ChildStorageOptions
             ? bigCraftableData
             : new BigCraftableData();
 
-    /// <inheritdoc />
-    public override string GetDescription() => TokenParser.ParseText(this.Data.Description);
-
-    /// <inheritdoc />
-    public override string GetDisplayName() => TokenParser.ParseText(this.Data.DisplayName);
-
-    private static Func<IStorageOptions> GetChild(string itemId) =>
-        () =>
-        {
-            if (BigCraftableStorageOptions.ChildOptions.TryGetValue(itemId, out var storageOptions))
-            {
-                return storageOptions;
-            }
-
-            storageOptions = new CustomFieldsStorageOptions(BigCraftableStorageOptions.GetCustomFields(itemId));
-            BigCraftableStorageOptions.ChildOptions.Add(itemId, storageOptions);
-            return storageOptions;
-        };
-
-    private static Func<Dictionary<string, string>> GetCustomFields(string itemId) =>
-        () =>
-        {
-            if (!Game1.bigCraftableData.TryGetValue(itemId, out var bigCraftableData))
-            {
-                bigCraftableData = new BigCraftableData();
-            }
-
-            return bigCraftableData.CustomFields ?? [];
-        };
+    private static Func<Dictionary<string, string>?> GetCustomFields(string itemId) =>
+        () => Game1.bigCraftableData.TryGetValue(itemId, out var bigCraftableData)
+            ? bigCraftableData.CustomFields
+            : null;
 }

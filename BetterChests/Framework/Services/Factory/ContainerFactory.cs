@@ -34,51 +34,6 @@ internal sealed class ContainerFactory : BaseService
         this.proxyChestFactory = proxyChestFactory;
     }
 
-    /// <summary>Retrieves the storage options for a given item.</summary>
-    /// <param name="item">The item for which to retrieve the storage options.</param>
-    /// <returns>The storage options for the given item.</returns>
-    public IStorageOptions GetStorageOptions(Item item)
-    {
-        if (this.storageOptions.TryGetValue(item.QualifiedItemId, out var storageOption))
-        {
-            return storageOption;
-        }
-
-        storageOption = new BigCraftableStorageOptions(() => this.modConfig.DefaultOptions, item.ItemId);
-        this.storageOptions.Add(item.QualifiedItemId, storageOption);
-        return storageOption;
-    }
-
-    /// <summary>Retrieves the storage options for a given location.</summary>
-    /// <param name="location">The location for which to retrieve the storage options.</param>
-    /// <returns>The storage options for the given item.</returns>
-    public IStorageOptions GetStorageOptions(GameLocation location)
-    {
-        if (this.storageOptions.TryGetValue($"(L){location.Name}", out var storageOption))
-        {
-            return storageOption;
-        }
-
-        storageOption = new LocationStorageOptions(() => this.modConfig.DefaultOptions, location.Name);
-        this.storageOptions.Add($"(L){location.Name}", storageOption);
-        return storageOption;
-    }
-
-    /// <summary>Retrieves the storage options for a given building.</summary>
-    /// <param name="building">The building for which to retrieve the storage options.</param>
-    /// <returns>The storage options for the given item.</returns>
-    public IStorageOptions GetStorageOptions(Building building)
-    {
-        if (this.storageOptions.TryGetValue($"(B){building.buildingType.Value}", out var storageOption))
-        {
-            return storageOption;
-        }
-
-        storageOption = new BuildingStorageOptions(() => this.modConfig.DefaultOptions, building.buildingType.Value);
-        this.storageOptions.Add($"(B){building.buildingType.Value}", storageOption);
-        return storageOption;
-    }
-
     /// <summary>Retrieves all containers that match the optional predicate.</summary>
     /// <param name="predicate">The predicate to filter the containers.</param>
     /// <returns>An enumerable collection of containers that match the predicate.</returns>
@@ -113,15 +68,15 @@ internal sealed class ContainerFactory : BaseService
     {
         foreach (var item in parentContainer.Items)
         {
-            if (item is null || !this.TryGetAny(item, out var childContainer))
+            if (item is not SObject @object || !this.TryGetAny(@object, out var childContainer))
             {
                 continue;
             }
 
-            var container = new ChildContainer(parentContainer, childContainer);
-            if (predicate is null || predicate(container))
+            childContainer.Parent = parentContainer;
+            if (predicate is null || predicate(childContainer))
             {
-                yield return container;
+                yield return childContainer;
             }
         }
     }
@@ -220,15 +175,15 @@ internal sealed class ContainerFactory : BaseService
         // Search for containers from farmer inventory
         foreach (var item in farmer.Items)
         {
-            if (item is null || !this.TryGetAny(item, out var childContainer))
+            if (item is not SObject @object || !this.TryGetAny(@object, out var childContainer))
             {
                 continue;
             }
 
-            var container = new ChildContainer(farmerContainer, childContainer);
-            if (predicate is null || predicate(container))
+            childContainer.Parent = farmerContainer;
+            if (predicate is null || predicate(childContainer))
             {
-                yield return container;
+                yield return childContainer;
             }
         }
     }
@@ -310,13 +265,13 @@ internal sealed class ContainerFactory : BaseService
             SObject
                 {
                     heldObject.Value: Chest heldChest,
-                } obj when actualInventory is not null
+                } @object when actualInventory is not null
                 && actualInventory.Equals(heldChest.GetItemsForPlayer())
-                && obj.Location is not null
-                && this.TryGetOne(obj.Location, obj.TileLocation, out var objectContainer) => objectContainer,
+                && @object.Location is not null
+                && this.TryGetOne(@object.Location, @object.TileLocation, out var objectContainer) => objectContainer,
 
             // Proxy container
-            SObject obj when obj == Game1.player.ActiveObject
+            SObject @object when @object == Game1.player.ActiveObject
                 && actualInventory is not null
                 && this.TryGetOne(Game1.player, Game1.player.CurrentToolIndex, out var proxyContainer)
                 && actualInventory.Equals(proxyContainer.Items) => proxyContainer,
@@ -368,13 +323,15 @@ internal sealed class ContainerFactory : BaseService
             return true;
         }
 
-        if (!this.TryGetAny(item, out var childContainer) || !this.TryGetOne(farmer, out var farmerContainer))
+        if (item is not SObject @object
+            || !this.TryGetAny(@object, out container)
+            || !this.TryGetOne(farmer, out var farmerContainer))
         {
             container = null;
             return false;
         }
 
-        container = new ChildContainer(farmerContainer, childContainer);
+        container.Parent = farmerContainer;
         this.cachedContainers.AddOrUpdate(item, container);
         return true;
     }
@@ -390,8 +347,16 @@ internal sealed class ContainerFactory : BaseService
             return true;
         }
 
-        var storageType = new BackpackStorageOptions(farmer);
-        farmerContainer = new FarmerContainer(storageType, farmer);
+        // Create the farmer container
+        farmerContainer = new FarmerContainer(farmer);
+
+        // Get or initialize the backpack options (TBD replace backpack type with config options)
+        var backpackOptions = new BackpackStorageOptions(farmer);
+
+        // Add options to the farmer container
+        farmerContainer.AddOptions(StorageOption.Type, () => backpackOptions);
+
+        // Cache container to instance
         this.cachedContainers.AddOrUpdate(farmer, farmerContainer);
         return true;
     }
@@ -407,33 +372,46 @@ internal sealed class ContainerFactory : BaseService
             return true;
         }
 
-        IStorageOptions? storageType;
         switch (building)
         {
             case ShippingBin shippingBin:
-                storageType = this.GetStorageOptions(building);
-                buildingContainer = new BuildingContainer(storageType, shippingBin);
-                this.cachedContainers.AddOrUpdate(shippingBin, buildingContainer);
-                return true;
+                // Create the shipping bin container
+                buildingContainer = new BuildingContainer(shippingBin);
+                break;
 
-            default:
-                var chest = building.GetBuildingChest("Output");
-                if (chest is null)
-                {
-                    return false;
-                }
-
+            case not null when building.GetBuildingChest("Output") is
+                { } chest:
+                // Check if output chest has already been cached
                 if (this.cachedContainers.TryGetValue(chest, out buildingContainer))
                 {
+                    this.cachedContainers.AddOrUpdate(building, buildingContainer);
                     return true;
                 }
 
-                storageType = this.GetStorageOptions(building);
-                buildingContainer = new BuildingContainer(storageType, building, chest);
-                this.cachedContainers.AddOrUpdate(building, buildingContainer);
+                // Create the building container
+                buildingContainer = new BuildingContainer(building, chest);
+
+                // Cache building chest to the building storage container
                 this.cachedContainers.AddOrUpdate(chest, buildingContainer);
-                return true;
+                break;
+
+            default: return false;
         }
+
+        // Get or initialize the building options
+        if (!this.storageOptions.TryGetValue($"(B){building.buildingType.Value}", out var typeOptions))
+        {
+            typeOptions = new BuildingStorageOptions(building.buildingType.Value);
+            this.storageOptions.Add($"(B){building.buildingType.Value}", typeOptions);
+        }
+
+        // Add options to the building container
+        buildingContainer.AddOptions(StorageOption.Global, () => this.modConfig.DefaultOptions);
+        buildingContainer.AddOptions(StorageOption.Type, () => typeOptions);
+
+        // Cache container to instance
+        this.cachedContainers.AddOrUpdate(building, buildingContainer);
+        return true;
     }
 
     /// <summary>Tries to get a container from the specified NPC.</summary>
@@ -462,13 +440,28 @@ internal sealed class ContainerFactory : BaseService
                     return false;
                 }
 
+                // Check if saddle bag chest has already been cached
                 if (this.cachedContainers.TryGetValue(saddleBagChest, out npcContainer))
                 {
+                    this.cachedContainers.AddOrUpdate(npc, npcContainer);
                     return true;
                 }
 
-                var storageType = this.GetStorageOptions(stable);
-                npcContainer = new NpcContainer(storageType, horse, saddleBagChest);
+                // Create the horse container
+                npcContainer = new NpcContainer(horse, saddleBagChest);
+
+                // Get or initialize the stable options
+                if (!this.storageOptions.TryGetValue($"(B){stable.buildingType.Value}", out var typeOptions))
+                {
+                    typeOptions = new BuildingStorageOptions(stable.buildingType.Value);
+                    this.storageOptions.Add($"(B){stable.buildingType.Value}", typeOptions);
+                }
+
+                // Add options to the horse container
+                npcContainer.AddOptions(StorageOption.Global, () => this.modConfig.DefaultOptions);
+                npcContainer.AddOptions(StorageOption.Type, () => typeOptions);
+
+                // Cache container to instance
                 this.cachedContainers.AddOrUpdate(npc, npcContainer);
                 this.cachedContainers.AddOrUpdate(saddleBagChest, npcContainer);
                 return true;
@@ -484,27 +477,29 @@ internal sealed class ContainerFactory : BaseService
     /// <returns>true if a container is found; otherwise, false.</returns>
     public bool TryGetOne(GameLocation location, Vector2 pos, [NotNullWhen(true)] out IStorageContainer? container)
     {
+        // Try getting fridge container
         if (pos.Equals(Vector2.Zero) && this.TryGetOne(location, out container))
         {
             return true;
         }
 
+        // Create intersection tile
         var bounds = new Rectangle(
             (int)(pos.X * Game1.tileSize),
             (int)(pos.Y * Game1.tileSize),
             Game1.tileSize,
             Game1.tileSize);
 
-        // Container is a placed object
-        foreach (var obj in location.Objects.Values)
+        // Get container if it's a placed object
+        foreach (var @object in location.Objects.Values)
         {
-            if (obj.GetBoundingBox().Intersects(bounds) && this.TryGetAny(obj, out container))
+            if (@object.GetBoundingBox().Intersects(bounds) && this.TryGetAny(@object, out container))
             {
                 return true;
             }
         }
 
-        // Container is a building
+        // Get container if it's a building
         foreach (var building in location.buildings)
         {
             if (building.GetBoundingBox().Intersects(bounds) && this.TryGetOne(building, out container))
@@ -513,7 +508,7 @@ internal sealed class ContainerFactory : BaseService
             }
         }
 
-        // Container is a storage furniture
+        // Get container if it's a storage furniture
         foreach (var furniture in location.furniture.OfType<StorageFurniture>())
         {
             if (furniture.IntersectsForCollision(bounds) && this.TryGetAny(furniture, out container))
@@ -522,7 +517,7 @@ internal sealed class ContainerFactory : BaseService
             }
         }
 
-        // Container is an npc
+        // Get container if it's an npc
         foreach (var npc in location.characters.OfType<NPC>())
         {
             if (npc.GetBoundingBox().Intersects(bounds) && this.TryGetOne(npc, out container))
@@ -546,19 +541,35 @@ internal sealed class ContainerFactory : BaseService
             return true;
         }
 
+        // Only return containers for locations that have a fridge
         if (location.GetFridge() is not
             { } fridge)
         {
             return false;
         }
 
+        // Check if fridge has already been cached
         if (this.cachedContainers.TryGetValue(fridge, out locationContainer))
         {
+            this.cachedContainers.AddOrUpdate(location, locationContainer);
             return true;
         }
 
-        var storageType = this.GetStorageOptions(location);
-        locationContainer = new FridgeContainer(storageType, location, fridge);
+        // Create the fridge container
+        locationContainer = new FridgeContainer(location, fridge);
+
+        // Get or initialize the fridge options
+        if (!this.storageOptions.TryGetValue($"(L){location.Name}", out var typeOptions))
+        {
+            typeOptions = new LocationStorageOptions(location.Name);
+            this.storageOptions.Add($"(L){location.Name}", typeOptions);
+        }
+
+        // Add options to the fridge container
+        locationContainer.AddOptions(StorageOption.Global, () => this.modConfig.DefaultOptions);
+        locationContainer.AddOptions(StorageOption.Type, () => typeOptions);
+
+        // Cache container to instance
         this.cachedContainers.AddOrUpdate(fridge, locationContainer);
         this.cachedContainers.AddOrUpdate(location, locationContainer);
         return true;
@@ -575,8 +586,24 @@ internal sealed class ContainerFactory : BaseService
             return true;
         }
 
-        itemContainer = this.GetAll(Predicate).FirstOrDefault();
-        return itemContainer is not null;
+        switch (item)
+        {
+            // Try finding container based on location
+            case SObject
+            {
+                Location: not null,
+            } @object when this.TryGetOne(@object.Location, @object.TileLocation, out itemContainer):
+                this.cachedContainers.AddOrUpdate(item, itemContainer);
+                return true;
+
+            // Do an exhaustive search for the container
+            case not null when this.GetAll(Predicate).FirstOrDefault() is
+                { } foundContainer:
+                itemContainer = foundContainer;
+                return true;
+
+            default: return false;
+        }
 
         bool Predicate(IStorageContainer container) =>
             container switch
@@ -673,74 +700,99 @@ internal sealed class ContainerFactory : BaseService
         }
     }
 
-    private bool TryGetAny(Item item, [NotNullWhen(true)] out IStorageContainer? container)
+    private bool TryGetAny(SObject @object, [NotNullWhen(true)] out IStorageContainer? container)
     {
-        if (this.cachedContainers.TryGetValue(item, out container))
+        if (this.cachedContainers.TryGetValue(@object, out container))
         {
             return true;
         }
 
-        Chest storageChest;
-        IStorageOptions? storageOption;
-        switch (item)
+        switch (@object)
         {
             case Chest
             {
                 playerChest.Value: true,
             } chest:
-                storageChest = chest;
-                storageOption = this.GetStorageOptions(item);
-                container = new ChestContainer(storageOption, storageChest);
+                // Create the chest container
+                container = new ChestContainer(chest);
                 break;
 
-            case SObject
+            case
             {
                 heldObject.Value: Chest chestObject,
-            } obj:
-                storageChest = chestObject;
-                storageOption = this.GetStorageOptions(item);
-                container = new ObjectContainer(storageOption, obj, storageChest);
+            }:
+                // Check if object chest has already been cached
+                if (this.cachedContainers.TryGetValue(chestObject, out container))
+                {
+                    this.cachedContainers.AddOrUpdate(@object, container);
+                    return true;
+                }
+
+                // Create the object container
+                container = new ObjectContainer(@object, chestObject);
+
+                // Cache chest object to the container
+                this.cachedContainers.AddOrUpdate(@object, container);
                 break;
 
-            case not null when this.proxyChestFactory.TryGetProxy(item, out var proxyChest):
-                storageChest = proxyChest;
-                storageOption = this.GetStorageOptions(item);
-                container = new ChestContainer(storageOption, storageChest);
+            case not null when this.proxyChestFactory.TryGetProxy(@object, out var proxyChest):
+                // Check if proxy chest has already been cached
+                if (this.cachedContainers.TryGetValue(proxyChest, out container))
+                {
+                    this.cachedContainers.AddOrUpdate(@object, container);
+                    return true;
+                }
+
+                // Create the chest container
+                container = new ChestContainer(proxyChest);
+
+                // Cache proxy chest to the container
+                this.cachedContainers.AddOrUpdate(proxyChest, container);
                 break;
 
             case StorageFurniture furniture:
-                if (!this.storageOptions.TryGetValue(item.QualifiedItemId, out storageOption))
+                // Create the furniture container
+                container = new FurnitureContainer(furniture);
+
+                // Add global options to the furniture container
+                container.AddOptions(StorageOption.Global, () => this.modConfig.DefaultOptions);
+
+                // Add type options if furniture exists in config
+                if (this.modConfig.StorageOptions.GetValueOrDefault("Furniture")?.GetValueOrDefault(@object.ItemId) is
+                    not null)
                 {
-                    if (this.modConfig.StorageOptions.GetValueOrDefault("Furniture")?.GetValueOrDefault(item.ItemId) is
-                        null)
-                    {
-                        return false;
-                    }
-
-                    IStorageOptions GetChild() =>
-                        this.modConfig.StorageOptions.GetValueOrDefault("Furniture")?.GetValueOrDefault(item.ItemId)
-                        ?? new DefaultStorageOptions();
-
-                    storageOption = new FurnitureStorageOptions(
-                        () => this.modConfig.DefaultOptions,
-                        GetChild,
-                        item.ItemId);
-
-                    this.storageOptions.Add(item.QualifiedItemId, storageOption);
+                    container.AddOptions(
+                        StorageOption.Type,
+                        () => this.modConfig.StorageOptions["Furniture"][@object.ItemId]);
                 }
 
-                container = new FurnitureContainer(storageOption, furniture);
-                this.cachedContainers.AddOrUpdate(item, container);
+                // Cache container to instance
+                this.cachedContainers.AddOrUpdate(@object, container);
                 return true;
 
-            default:
-                container = null;
-                return false;
+            default: return false;
         }
 
-        storageChest.fridge.Value = storageOption.CookFromChest is not RangeOption.Disabled;
-        this.cachedContainers.AddOrUpdate(item, container);
-        this.cachedContainers.AddOrUpdate(storageChest, container);
+        // Get or initialize the object options
+        if (!this.storageOptions.TryGetValue(@object.QualifiedItemId, out var typeOptions))
+        {
+            typeOptions = new BigCraftableStorageOptions(@object.ItemId);
+            this.storageOptions.Add(@object.QualifiedItemId, typeOptions);
+        }
+
+        // Add options to the object container
+        container.AddOptions(StorageOption.Global, () => this.modConfig.DefaultOptions);
+        container.AddOptions(StorageOption.Type, () => typeOptions);
+
+        // Cache container to instance
+        this.cachedContainers.AddOrUpdate(@object, container);
+
+        // Initialize fridge if cook from chest is enabled
+        if (@object is Chest storageChest)
+        {
+            storageChest.fridge.Value = typeOptions.CookFromChest is not RangeOption.Disabled;
+        }
+
         return true;
     }
 }

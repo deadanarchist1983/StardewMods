@@ -18,6 +18,12 @@ internal sealed class BackpackStorageOptions : IStorageOptions
     }
 
     /// <inheritdoc />
+    public string DisplayName => I18n.Storage_Backpack_Name();
+
+    /// <inheritdoc />
+    public string Description => I18n.Storage_Backpack_Tooltip();
+
+    /// <inheritdoc />
     public RangeOption AccessChest
     {
         get => this.storageOptions.AccessChest;
@@ -234,16 +240,4 @@ internal sealed class BackpackStorageOptions : IStorageOptions
         get => this.farmer.Name;
         set { }
     }
-
-    /// <inheritdoc />
-    public IStorageOptions GetActualOptions() => this;
-
-    /// <inheritdoc />
-    public IStorageOptions GetParentOptions() => this;
-
-    /// <inheritdoc />
-    public string GetDisplayName() => I18n.Storage_Backpack_Name();
-
-    /// <inheritdoc />
-    public string GetDescription() => I18n.Storage_Backpack_Tooltip();
 }

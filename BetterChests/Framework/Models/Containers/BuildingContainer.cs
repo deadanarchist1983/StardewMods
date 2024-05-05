@@ -1,7 +1,6 @@
 namespace StardewMods.BetterChests.Framework.Models.Containers;
 
 using Microsoft.Xna.Framework;
-using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewMods.Common.Services.Integrations.BetterChests.Enums;
 using StardewValley.Buildings;
 using StardewValley.Inventories;
@@ -16,22 +15,20 @@ internal sealed class BuildingContainer : BaseContainer<Building>
     private readonly Chest? chest;
 
     /// <summary>Initializes a new instance of the <see cref="BuildingContainer" /> class.</summary>
-    /// <param name="baseOptions">The type of storage object.</param>
     /// <param name="building">The building to which the storage is connected.</param>
     /// <param name="chest">The chest storage of the container.</param>
-    public BuildingContainer(IStorageOptions baseOptions, Building building, Chest chest)
-        : base(baseOptions)
+    public BuildingContainer(Building building, Chest chest)
+        : base(building)
     {
-        this.Source = new WeakReference<Building>(building);
         this.chest = chest;
+        this.InitOptions();
     }
 
     /// <summary>Initializes a new instance of the <see cref="BuildingContainer" /> class.</summary>
-    /// <param name="baseOptions">The type of storage object.</param>
-    /// <param name="shippingBin">The building to which the storage is connected.</param>
-    public BuildingContainer(IStorageOptions baseOptions, ShippingBin shippingBin)
-        : base(baseOptions) =>
-        this.Source = new WeakReference<Building>(shippingBin);
+    /// <param name="building">The building to which the storage is connected.</param>
+    public BuildingContainer(Building building)
+        : base(building) =>
+        this.InitOptions();
 
     /// <summary>Gets the source building of the container.</summary>
     public Building Building =>
@@ -64,15 +61,12 @@ internal sealed class BuildingContainer : BaseContainer<Building>
     public override bool IsAlive => this.Source.TryGetTarget(out _);
 
     /// <inheritdoc />
-    public override WeakReference<Building> Source { get; }
-
-    /// <inheritdoc />
     public override void ShowMenu(bool playSound = false)
     {
         var itemGrabMenu = this.Building switch
         {
             // Vanilla Shipping Bin
-            ShippingBin when this.Options.ResizeChest is ChestMenuOption.Disabled => this.GetItemGrabMenu(
+            ShippingBin when this.ResizeChest is ChestMenuOption.Disabled => this.GetItemGrabMenu(
                 reverseGrab: true,
                 showReceivingMenu: false,
                 snapToBottom: true,
@@ -94,13 +88,21 @@ internal sealed class BuildingContainer : BaseContainer<Building>
             return;
         }
 
+        var oldID = Game1.activeClickableMenu?.currentlySnappedComponent?.myID ?? -1;
         if (this.Building is not ShippingBin)
         {
             Game1.activeClickableMenu = itemGrabMenu;
+            if (oldID == -1)
+            {
+                return;
+            }
+
+            Game1.activeClickableMenu.currentlySnappedComponent = Game1.activeClickableMenu.getComponentWithID(oldID);
+            Game1.activeClickableMenu.snapCursorToCurrentSnappedComponent();
             return;
         }
 
-        if (this.Options.ResizeChest is ChestMenuOption.Disabled)
+        if (this.ResizeChest is ChestMenuOption.Disabled)
         {
             itemGrabMenu.initializeUpperRightCloseButton();
             itemGrabMenu.setBackgroundTransparency(b: false);
@@ -110,6 +112,13 @@ internal sealed class BuildingContainer : BaseContainer<Building>
 
         itemGrabMenu.inventory.moveItemSound = "Ship";
         Game1.activeClickableMenu = itemGrabMenu;
+        if (oldID == -1)
+        {
+            return;
+        }
+
+        Game1.activeClickableMenu.currentlySnappedComponent = Game1.activeClickableMenu.getComponentWithID(oldID);
+        Game1.activeClickableMenu.snapCursorToCurrentSnappedComponent();
     }
 
     /// <inheritdoc />

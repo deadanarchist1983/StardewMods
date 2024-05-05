@@ -107,7 +107,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
             || this.menuHandler.Bottom.Container is null
             || this.menuHandler.Top.Container is null
             || !this.containerFactory.TryGetOne(this.menuHandler.Top.Menu, out var container)
-            || container.Options.StashToChest is RangeOption.Disabled)
+            || container.StashToChest is RangeOption.Disabled)
         {
             return;
         }
@@ -123,7 +123,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
         // Stash to existing stacks only
         if (!this.Config.Controls.TransferItems.IsDown()
-            || this.menuHandler.Top.Container.Options.StashToChest is RangeOption.Disabled)
+            || this.menuHandler.Top.Container.StashToChest is RangeOption.Disabled)
         {
             this.containerHandler.Transfer(
                 this.menuHandler.Bottom.Container,
@@ -176,7 +176,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
         }
 
         if (!this.containerFactory.TryGetOne(this.menuHandler.Top.Menu, out var container)
-            || container.Options.StashToChest is RangeOption.Disabled)
+            || container.StashToChest is RangeOption.Disabled)
         {
             return;
         }
@@ -189,10 +189,10 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
     private void OnRenderingActiveMenu(RenderingActiveMenuEventArgs obj)
     {
+        var container = this.menuHandler.Top.Container;
         if (this.menuHandler.CurrentMenu is not ItemGrabMenu itemGrabMenu
             || itemGrabMenu.fillStacksButton is null
-            || !this.containerFactory.TryGetOne(this.menuHandler.Top.Menu, out var container)
-            || container.Options.StashToChest is RangeOption.Disabled)
+            || container?.StashToChest is RangeOption.Disabled)
         {
             return;
         }
@@ -236,7 +236,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
         var containerGroups =
             this
                 .containerFactory.GetAll(Predicate)
-                .GroupBy(container => container.Options.StashToChestPriority)
+                .GroupBy(container => container.StashToChestPriority)
                 .ToDictionary(group => group.Key, group => group.ToList());
 
         if (!containerGroups.Any())
@@ -293,13 +293,13 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
         bool Predicate(IStorageContainer container) =>
             container is not FarmerContainer
-            && container.Options.StashToChest is not RangeOption.Disabled
+            && container.StashToChest is not RangeOption.Disabled
             && !this.Config.StashToChestDisableLocations.Contains(Game1.player.currentLocation.Name)
             && !(this.Config.StashToChestDisableLocations.Contains("UndergroundMine")
                 && Game1.player.currentLocation is MineShaft mineShaft
                 && mineShaft.Name.StartsWith("UndergroundMine", StringComparison.OrdinalIgnoreCase))
-            && container.Options.StashToChest.WithinRange(
-                container.Options.StashToChestDistance,
+            && container.StashToChest.WithinRange(
+                container.StashToChestDistance,
                 container.Location,
                 container.TileLocation);
     }

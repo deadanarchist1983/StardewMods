@@ -79,7 +79,7 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
         var container = this.menuHandler.Top.Container;
-        if (container?.Options is not
+        if (container is not
             {
                 InventoryTabs: FeatureOption.Enabled,
                 SearchItems: FeatureOption.Enabled,
@@ -120,7 +120,7 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
 
         if (this.menuHandler.CurrentMenu is not ItemGrabMenu itemGrabMenu
             || top.InventoryMenu is null
-            || container?.Options is not
+            || container is not
             {
                 InventoryTabs: FeatureOption.Enabled,
                 SearchItems: FeatureOption.Enabled,

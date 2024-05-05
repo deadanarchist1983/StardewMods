@@ -1,7 +1,6 @@
 namespace StardewMods.BetterChests.Framework.Models.Containers;
 
 using Microsoft.Xna.Framework;
-using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewValley.Inventories;
 using StardewValley.Mods;
 using StardewValley.Network;
@@ -11,14 +10,13 @@ using StardewValley.Objects;
 internal class ObjectContainer : BaseContainer<SObject>
 {
     /// <summary>Initializes a new instance of the <see cref="ObjectContainer" /> class.</summary>
-    /// <param name="baseOptions">The type of storage object.</param>
     /// <param name="obj">The storage object.</param>
     /// <param name="chest">The chest storage of the container.</param>
-    public ObjectContainer(IStorageOptions baseOptions, SObject obj, Chest chest)
-        : base(baseOptions)
+    public ObjectContainer(SObject obj, Chest chest)
+        : base(obj)
     {
-        this.Source = new WeakReference<SObject>(obj);
         this.Chest = chest;
+        this.InitOptions();
     }
 
     /// <summary>Gets the source object of the container.</summary>
@@ -48,9 +46,6 @@ internal class ObjectContainer : BaseContainer<SObject>
 
     /// <inheritdoc />
     public override bool IsAlive => this.Source.TryGetTarget(out _);
-
-    /// <inheritdoc />
-    public override WeakReference<SObject> Source { get; }
 
     /// <inheritdoc />
     public override bool TryAdd(Item item, out Item? remaining)

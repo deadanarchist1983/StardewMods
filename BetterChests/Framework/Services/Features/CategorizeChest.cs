@@ -212,7 +212,7 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
     {
         var top = this.menuHandler.Top.Container;
         if (e.Container == this.menuHandler.Bottom.Container
-            && top?.Options is
+            && top is
             {
                 CategorizeChest: FeatureOption.Enabled,
                 CategorizeChestBlockItems: FeatureOption.Enabled,
@@ -238,7 +238,7 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
     {
         // Append searched items to the end of the list
         if (e.Container == this.menuHandler.Top.Container
-            && e.Container.Options.CategorizeChest is FeatureOption.Enabled
+            && e.Container.CategorizeChest is FeatureOption.Enabled
             && this.cachedItems.Value.Any())
         {
             e.Edit(items => items.Concat(this.cachedItems.Value.Except(e.Container.Items)));
@@ -249,8 +249,7 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
     private void OnItemTransferring(ItemTransferringEventArgs e)
     {
         // Only test if categorize is enabled
-        if (e.Into.Options.CategorizeChest != FeatureOption.Enabled
-            || !this.CanAcceptItem(e.Into, e.Item, out var accepted))
+        if (e.Into.CategorizeChest != FeatureOption.Enabled || !this.CanAcceptItem(e.Into, e.Item, out var accepted))
         {
             return;
         }
@@ -259,7 +258,7 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
         {
             e.AllowTransfer();
         }
-        else if (e.Into.Options.CategorizeChestBlockItems == FeatureOption.Enabled)
+        else if (e.Into.CategorizeChestBlockItems == FeatureOption.Enabled)
         {
             e.PreventTransfer();
         }
@@ -279,7 +278,7 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
     private bool CanAcceptItem(IStorageContainer container, Item item, out bool accepted)
     {
         accepted = false;
-        var includeStacks = container.Options.CategorizeChestIncludeStacks == FeatureOption.Enabled;
+        var includeStacks = container.CategorizeChestIncludeStacks == FeatureOption.Enabled;
         var hasStacks = container.Items.ContainsId(item.QualifiedItemId);
         if (includeStacks && hasStacks)
         {
@@ -288,17 +287,17 @@ internal sealed class CategorizeChest : BaseFeature<CategorizeChest>
         }
 
         // Cannot handle if there is no search term
-        if (string.IsNullOrWhiteSpace(container.Options.CategorizeChestSearchTerm))
+        if (string.IsNullOrWhiteSpace(container.CategorizeChestSearchTerm))
         {
             return false;
         }
 
         // Retrieve search expression from cache or generate a new one
-        if (!this.cachedSearches.TryGetValue(container.Options.CategorizeChestSearchTerm, out var searchExpression))
+        if (!this.cachedSearches.TryGetValue(container.CategorizeChestSearchTerm, out var searchExpression))
         {
             this.cachedSearches.AddOrUpdate(
-                container.Options.CategorizeChestSearchTerm,
-                this.searchHandler.TryParseExpression(container.Options.CategorizeChestSearchTerm, out searchExpression)
+                container.CategorizeChestSearchTerm,
+                this.searchHandler.TryParseExpression(container.CategorizeChestSearchTerm, out searchExpression)
                     ? searchExpression
                     : null);
         }

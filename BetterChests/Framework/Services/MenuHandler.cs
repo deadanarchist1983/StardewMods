@@ -312,7 +312,7 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
         {
             case Item item when MenuHandler.instance.containerFactory.TryGetOne(item, out var container):
             case Building building when MenuHandler.instance.containerFactory.TryGetOne(building, out container):
-                return container.Options.ResizeChest switch
+                return container.ResizeChest switch
                 {
                     ChestMenuOption.Small => 9,
                     ChestMenuOption.Medium => 36,

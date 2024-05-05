@@ -169,7 +169,7 @@ internal sealed class CarryChest : BaseFeature<CarryChest>
                 Game1.currentLocation,
                 e.Cursor.AbsolutePixels / Game1.tileSize,
                 out var container)
-            || container.Options.CarryChest != FeatureOption.Enabled)
+            || container.CarryChest != FeatureOption.Enabled)
         {
             return;
         }

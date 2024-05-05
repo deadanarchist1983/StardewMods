@@ -1,7 +1,6 @@
 namespace StardewMods.BetterChests.Framework.Models.Containers;
 
 using Microsoft.Xna.Framework;
-using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewValley.Inventories;
 using StardewValley.Mods;
 using StardewValley.Network;
@@ -13,14 +12,13 @@ internal sealed class NpcContainer : BaseContainer<NPC>
     private readonly Chest chest;
 
     /// <summary>Initializes a new instance of the <see cref="NpcContainer" /> class.</summary>
-    /// <param name="baseOptions">The type of storage object.</param>
     /// <param name="npc">The npc to which the storage is connected.</param>
     /// <param name="chest">The chest storage of the container.</param>
-    public NpcContainer(IStorageOptions baseOptions, NPC npc, Chest chest)
-        : base(baseOptions)
+    public NpcContainer(NPC npc, Chest chest)
+        : base(npc)
     {
-        this.Source = new WeakReference<NPC>(npc);
         this.chest = chest;
+        this.InitOptions();
     }
 
     /// <summary>Gets the source NPC of the container.</summary>
@@ -48,9 +46,6 @@ internal sealed class NpcContainer : BaseContainer<NPC>
 
     /// <inheritdoc />
     public override bool IsAlive => this.Source.TryGetTarget(out _);
-
-    /// <inheritdoc />
-    public override WeakReference<NPC> Source { get; }
 
     /// <inheritdoc />
     public override bool TryAdd(Item item, out Item? remaining)

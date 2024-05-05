@@ -1,7 +1,6 @@
 namespace StardewMods.BetterChests.Framework.Models.Containers;
 
 using Microsoft.Xna.Framework;
-using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewValley.Inventories;
 using StardewValley.Mods;
 using StardewValley.Network;
@@ -11,13 +10,12 @@ using StardewValley.Objects;
 internal sealed class FurnitureContainer : BaseContainer<StorageFurniture>
 {
     /// <summary>Initializes a new instance of the <see cref="FurnitureContainer" /> class.</summary>
-    /// <param name="baseOptions">The type of storage object.</param>
     /// <param name="furniture">The furniture storage of the container.</param>
-    public FurnitureContainer(IStorageOptions baseOptions, StorageFurniture furniture)
-        : base(baseOptions)
+    public FurnitureContainer(StorageFurniture furniture)
+        : base(furniture)
     {
-        this.Source = new WeakReference<StorageFurniture>(furniture);
         this.Items = new HeldItemsWrapper(furniture);
+        this.InitOptions();
     }
 
     /// <summary>Gets the source furniture of the container.</summary>
@@ -44,9 +42,6 @@ internal sealed class FurnitureContainer : BaseContainer<StorageFurniture>
 
     /// <inheritdoc />
     public override bool IsAlive => this.Source.TryGetTarget(out _);
-
-    /// <inheritdoc />
-    public override WeakReference<StorageFurniture> Source { get; }
 
     /// <inheritdoc />
     public override void ShowMenu(bool playSound = false)
